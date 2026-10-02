@@ -1,0 +1,502 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN_AGENT
+  OWNER
+  TENANT
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum PropertyType {
+  VILLA
+  APPARTEMENT
+  STUDIO
+  TERRAIN
+  IMMEUBLE
+  BUREAU
+  MAGASIN
+}
+
+enum PropertyStatus {
+  VACANT
+  LOUE
+  MAINTENANCE
+  SUSPENDU
+}
+
+enum LeaseStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum SignatureStatus {
+  SIGNED
+  UNSIGNED
+}
+
+enum PaymentMethod {
+  ORANGE_MONEY
+  MTN_MONEY
+  MOOV_MONEY
+  WAVE
+  CASH
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  LATE
+  CANCELLED
+}
+
+enum MaintenanceIssueType {
+  EAU
+  ELECTRICITE
+  PLOMBERIE
+  SERRURE
+  PEINTURE
+  AUTRE
+}
+
+enum MaintenancePriority {
+  FAIBLE
+  MOYENNE
+  URGENTE
+}
+
+enum MaintenanceStatus {
+  RECU
+  EN_COURS
+  RESOLU
+  REJETE
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum DocumentType {
+  CNI
+  PASSEPORT
+  ATTESTATION_RESIDENCE
+  QUITTANCE
+  CONTRAT
+  AUTRE
+}
+
+enum ReportScope {
+  GLOBAL
+  OWNER
+  PROPERTY
+}
+
+// ---------------------------------------------------------------------------
+// AUTH / USERS / PERMISSIONS
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String        @id @default(uuid())
+  fullName     String
+  email        String        @unique
+  phone        String        @unique
+  passwordHash String
+  role         UserRole
+  avatarUrl    String?
+  status       AccountStatus @default(PENDING)
+  lastLoginAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  owner       Owner?
+  tenant      Tenant?
+  permissions UserPermission[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  maintenanceComments MaintenanceComment[]
+
+  @@map("users")
+}
+
+model Permission {
+  id    String @id @default(uuid())
+  key   String @unique
+  label String
+
+  users UserPermission[]
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  userId       String
+  permissionId String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permissions")
+}
+
+// ---------------------------------------------------------------------------
+// OWNERS / TENANTS
+// ---------------------------------------------------------------------------
+
+model Owner {
+  id               String        @id @default(uuid())
+  userId           String?       @unique
+  fullName         String
+  phone            String
+  email            String?
+  address          String?
+  idDocumentType   DocumentType?
+  idDocumentNumber String?
+  idDocumentUrl    String?
+  commissionRate   Decimal?      @db.Decimal(5, 2)
+  status           AccountStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  properties Property[]
+  leases     Lease[]
+  payments   Payment[]
+  documents  Document[]
+
+  @@map("owners")
+}
+
+model Tenant {
+  id                    String        @id @default(uuid())
+  userId                String?       @unique
+  fullName              String
+  phone                 String
+  email                 String?
+  address               String?
+  idDocumentType        DocumentType?
+  idDocumentNumber      String?
+  photoUrl              String?
+  profession             String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  status                AccountStatus @default(ACTIVE)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  user                 User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  currentProperties    Property[]          @relation("PropertyCurrentTenant")
+  leases               Lease[]
+  payments             Payment[]
+  maintenanceRequests  MaintenanceRequest[]
+  documents            Document[]
+
+  @@map("tenants")
+}
+
+// ---------------------------------------------------------------------------
+// PROPERTIES
+// ---------------------------------------------------------------------------
+
+model Property {
+  id             String         @id @default(uuid())
+  name           String
+  type           PropertyType
+  description    String?
+  address        String
+  commune        String
+  city           String         @default("Abidjan")
+  country        String         @default("Côte d'Ivoire")
+  latitude       Decimal?       @db.Decimal(10, 6)
+  longitude      Decimal?       @db.Decimal(10, 6)
+  rooms          Int?
+  bedrooms       Int?
+  bathrooms      Int?
+  surfaceM2      Decimal?       @db.Decimal(10, 2)
+  rentAmount     Decimal        @db.Decimal(14, 2)
+  deposit        Decimal        @db.Decimal(14, 2) @default(0)
+  advance        Decimal        @db.Decimal(14, 2) @default(0)
+  status         PropertyStatus @default(VACANT)
+  ownerId        String
+  currentTenantId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  archivedAt     DateTime?
+
+  owner               Owner                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  currentTenant       Tenant?              @relation("PropertyCurrentTenant", fields: [currentTenantId], references: [id], onDelete: SetNull)
+  images              PropertyImage[]
+  leases              Lease[]
+  payments            Payment[]
+  maintenanceRequests MaintenanceRequest[]
+  documents           Document[]
+
+  @@map("properties")
+  @@index([ownerId])
+  @@index([status])
+  @@index([commune])
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  url        String
+  isCover    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_images")
+}
+
+// ---------------------------------------------------------------------------
+// LEASES (CONTRATS)
+// ---------------------------------------------------------------------------
+
+model Lease {
+  id                String          @id @default(uuid())
+  contractNumber    String          @unique
+  propertyId        String
+  ownerId           String
+  tenantId          String
+  startDate         DateTime
+  endDate           DateTime
+  rentAmount        Decimal         @db.Decimal(14, 2)
+  deposit           Decimal         @db.Decimal(14, 2)
+  advance           Decimal         @db.Decimal(14, 2)
+  specialConditions String?
+  documentUrl       String?
+  signatureStatus   SignatureStatus @default(UNSIGNED)
+  status            LeaseStatus     @default(ACTIVE)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  property  Property   @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  owner     Owner      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payments  Payment[]
+  documents Document[]
+
+  @@map("leases")
+  @@index([propertyId])
+  @@index([tenantId])
+  @@index([ownerId])
+}
+
+// ---------------------------------------------------------------------------
+// PAYMENTS / RECEIPTS
+// ---------------------------------------------------------------------------
+
+model Payment {
+  id              String        @id @default(uuid())
+  tenantId        String
+  propertyId      String
+  ownerId         String
+  leaseId         String?
+  amount          Decimal       @db.Decimal(14, 2)
+  periodMonth     DateTime
+  paymentDate     DateTime      @default(now())
+  method          PaymentMethod
+  transactionRef  String?
+  status          PaymentStatus @default(PENDING)
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  owner    Owner    @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  lease    Lease?   @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+  receipt  Receipt?
+  documents Document[]
+
+  @@map("payments")
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model Receipt {
+  id            String   @id @default(uuid())
+  paymentId     String   @unique
+  receiptNumber String   @unique
+  pdfUrl        String?
+  issuedAt      DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@map("receipts")
+}
+
+// ---------------------------------------------------------------------------
+// MAINTENANCE
+// ---------------------------------------------------------------------------
+
+model MaintenanceRequest {
+  id             String               @id @default(uuid())
+  tenantId       String
+  propertyId     String
+  issueType      MaintenanceIssueType
+  description    String
+  photos         String[]             @default([])
+  submittedAt    DateTime             @default(now())
+  priority       MaintenancePriority  @default(MOYENNE)
+  status         MaintenanceStatus    @default(RECU)
+  technicianId   String?
+  estimatedCost  Decimal?             @db.Decimal(14, 2)
+  finalCost      Decimal?             @db.Decimal(14, 2)
+  adminComment   String?
+  resolvedAt     DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  tenant     Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  property   Property              @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  technician Technician?           @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  comments   MaintenanceComment[]
+
+  @@map("maintenance_requests")
+  @@index([propertyId])
+  @@index([tenantId])
+  @@index([status])
+}
+
+model MaintenanceComment {
+  id                    String   @id @default(uuid())
+  maintenanceRequestId  String
+  authorId              String
+  comment               String
+  createdAt             DateTime @default(now())
+
+  maintenanceRequest MaintenanceRequest @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
+  author             User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("maintenance_comments")
+}
+
+model Technician {
+  id        String   @id @default(uuid())
+  fullName  String
+  phone     String
+  specialty String?
+  createdAt DateTime @default(now())
+
+  maintenanceRequests MaintenanceRequest[]
+
+  @@map("technicians")
+}
+
+// ---------------------------------------------------------------------------
+// NOTIFICATIONS
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  channel   NotificationChannel @default(IN_APP)
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([userId, read])
+}
+
+// ---------------------------------------------------------------------------
+// REPORTS / SETTINGS / DOCUMENTS / AUDIT
+// ---------------------------------------------------------------------------
+
+model FinancialReport {
+  id           String      @id @default(uuid())
+  scope        ReportScope
+  refId        String?
+  periodStart  DateTime
+  periodEnd    DateTime
+  totalRevenue Decimal     @db.Decimal(14, 2) @default(0)
+  totalExpenses Decimal    @db.Decimal(14, 2) @default(0)
+  netBalance   Decimal     @db.Decimal(14, 2) @default(0)
+  data         Json?
+  generatedAt  DateTime    @default(now())
+
+  @@map("financial_reports")
+}
+
+model CompanySettings {
+  id                     String   @id @default(uuid())
+  companyName            String   @default("IVOLOGIS")
+  logoUrl                String?
+  address                String?
+  email                  String?
+  phone                  String?
+  commissionRate         Decimal  @db.Decimal(5, 2) @default(10)
+  currency               String   @default("XOF")
+  enabledPaymentMethods  String[] @default(["ORANGE_MONEY", "MTN_MONEY", "MOOV_MONEY", "WAVE", "CASH", "BANK_TRANSFER"])
+  receiptTemplate        String?
+  contractTemplate       String?
+  language               String   @default("fr")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("company_settings")
+}
+
+model Document {
+  id         String       @id @default(uuid())
+  type       DocumentType
+  url        String
+  propertyId String?
+  tenantId   String?
+  ownerId    String?
+  leaseId    String?
+  paymentId  String?
+  uploadedAt DateTime     @default(now())
+
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenant   Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  owner    Owner?    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  lease    Lease?    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  payment  Payment?  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+  @@index([entityType, entityId])
+}
