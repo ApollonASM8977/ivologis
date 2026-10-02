@@ -2,9 +2,11 @@ import {
   AccountStatus,
   DocumentType,
   LeaseStatus,
+  LeaseType,
   MaintenanceIssueType,
   MaintenancePriority,
   MaintenanceStatus,
+  MaritalStatus,
   PaymentMethod,
   PaymentStatus,
   PropertyStatus,
@@ -113,4 +115,32 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   [DocumentType.QUITTANCE]: "Quittance de loyer",
   [DocumentType.CONTRAT]: "Contrat de bail",
   [DocumentType.AUTRE]: "Autre",
+};
+
+export const LEASE_TYPE_LABELS: Record<LeaseType, string> = {
+  [LeaseType.HABITATION_NUE]: "Bail d'habitation nue",
+  [LeaseType.HABITATION_MEUBLEE]: "Bail d'habitation meublée",
+  [LeaseType.COMMERCIAL]: "Bail commercial",
+  [LeaseType.PROFESSIONNEL]: "Bail professionnel",
+  [LeaseType.TERRAIN]: "Bail de terrain nu",
+};
+
+export const LEASE_TYPE_DESCRIPTIONS: Record<LeaseType, string> = {
+  [LeaseType.HABITATION_NUE]:
+    "Logement non meublé loué à usage d'habitation (villa, appartement, studio).",
+  [LeaseType.HABITATION_MEUBLEE]:
+    "Logement meublé loué à usage d'habitation, avec inventaire du mobilier.",
+  [LeaseType.COMMERCIAL]:
+    "Local loué pour l'exercice d'une activité commerciale (bail 3-6-9, droit au bail).",
+  [LeaseType.PROFESSIONNEL]:
+    "Bureau ou local loué pour l'exercice d'une profession libérale.",
+  [LeaseType.TERRAIN]:
+    "Terrain nu loué pour construction, exploitation ou stockage.",
+};
+
+export const MARITAL_STATUS_LABELS: Record<MaritalStatus, string> = {
+  [MaritalStatus.CELIBATAIRE]: "Célibataire",
+  [MaritalStatus.MARIE]: "Marié(e)",
+  [MaritalStatus.DIVORCE]: "Divorcé(e)",
+  [MaritalStatus.VEUF]: "Veuf(ve)",
 };

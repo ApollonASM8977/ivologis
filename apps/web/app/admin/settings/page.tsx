@@ -5,12 +5,13 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, apiErrorMessage } from "@/lib/api";
-import { PaymentMethod, PAYMENT_METHOD_LABELS } from "@ivologis/shared";
+import { PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
+import { PaymentMethodBadge } from "@/components/payment-method-badge";
 
 interface SettingsForm {
   companyName: string;
@@ -80,9 +81,9 @@ export default function AdminSettingsPage() {
           <CardHeader title="Moyens de paiement activés" subtitle="Visibles par les locataires lors du paiement" />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {Object.values(PaymentMethod).map((method) => (
-              <label key={method} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" value={method} {...register("enabledPaymentMethods")} />
-                {PAYMENT_METHOD_LABELS[method]}
+              <label key={method} className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm hover:bg-gray-50">
+                <input type="checkbox" value={method} className="h-4 w-4 rounded border-gray-300" {...register("enabledPaymentMethods")} />
+                <PaymentMethodBadge method={method} size="sm" />
               </label>
             ))}
           </div>

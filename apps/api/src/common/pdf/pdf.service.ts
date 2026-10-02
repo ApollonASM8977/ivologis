@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { createWriteStream, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 import PDFDocument from "pdfkit";
+import { ContractBlock, ContractDocumentData, buildContractBlocks } from "../documents/contract-builder";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? "./uploads";
 
@@ -69,56 +70,53 @@ export class PdfService {
     return `/uploads/receipts/${filename}`;
   }
 
-  async generateContractPdf(params: {
-    contractNumber: string;
-    companyName: string;
-    ownerName: string;
-    tenantName: string;
-    propertyName: string;
-    propertyAddress: string;
-    startDate: Date;
-    endDate: Date;
-    rentAmount: number | string;
-    deposit: number | string;
-    advance: number | string;
-    specialConditions?: string | null;
-  }): Promise<string> {
+  async generateContractPdf(data: ContractDocumentData): Promise<string> {
     const dir = join(UPLOAD_DIR, "contracts");
     ensureDir(dir);
-    const filename = `${params.contractNumber}.pdf`;
+    const filename = `${data.contractNumber}.pdf`;
     const filePath = join(dir, filename);
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 56 });
     const stream = createWriteStream(filePath);
     doc.pipe(stream);
 
-    doc.fontSize(20).fillColor("#0B1F3A").text(params.companyName, { align: "left" });
-    doc.moveDown(0.5);
-    doc.fontSize(14).fillColor("#111827").text("CONTRAT DE BAIL", { align: "left" });
-    doc.fontSize(10).fillColor("#6B7280").text(`N° ${params.contractNumber}`);
-    doc.moveDown();
+    const blocks: ContractBlock[] = buildContractBlocks(data);
 
-    doc.fontSize(11).fillColor("#111827");
-    doc.text(`Entre le bailleur : ${params.ownerName}`);
-    doc.text(`Et le locataire : ${params.tenantName}`);
-    doc.moveDown();
-    doc.text(`Bien loué : ${params.propertyName} — ${params.propertyAddress}`);
-    doc.text(`Durée : du ${formatDate(params.startDate)} au ${formatDate(params.endDate)}`);
-    doc.moveDown();
-    doc.text(`Loyer mensuel : ${formatXOF(params.rentAmount)}`);
-    doc.text(`Caution : ${formatXOF(params.deposit)}`);
-    doc.text(`Avance : ${formatXOF(params.advance)}`);
-
-    if (params.specialConditions) {
-      doc.moveDown();
-      doc.text("Conditions particulières :");
-      doc.text(params.specialConditions);
+    for (const block of blocks) {
+      switch (block.kind) {
+        case "title":
+          doc.fontSize(18).fillColor("#0B1F3A").font("Helvetica-Bold").text(block.text);
+          break;
+        case "subtitle":
+          doc.moveDown(0.3).fontSize(13).fillColor("#111827").font("Helvetica-Bold").text(block.text);
+          break;
+        case "meta":
+          doc.moveDown(0.15).fontSize(9).fillColor("#6B7280").font("Helvetica").text(block.text);
+          break;
+        case "heading":
+          doc.moveDown(0.6).fontSize(11).fillColor("#0B5FFF").font("Helvetica-Bold").text(block.text);
+          break;
+        case "paragraph":
+          doc.moveDown(0.25).fontSize(10.5).fillColor("#111827").font("Helvetica").text(block.text, {
+            align: "justify",
+            lineGap: 2,
+          });
+          break;
+        case "spacer":
+          doc.moveDown(0.5);
+          break;
+        case "signatures": {
+          doc.moveDown(1);
+          const y = doc.y;
+          const colWidth = (doc.page.width - doc.page.margins.left - doc.page.margins.right) / 2 - 10;
+          doc.fontSize(10).fillColor("#111827").font("Helvetica-Bold");
+          doc.text(block.left, doc.page.margins.left, y, { width: colWidth });
+          doc.text(block.right, doc.page.margins.left + colWidth + 20, y, { width: colWidth });
+          doc.moveDown(3);
+          break;
+        }
+      }
     }
-
-    doc.moveDown(3);
-    doc.text("Signature bailleur : ______________________", { continued: false });
-    doc.moveDown();
-    doc.text("Signature locataire : ______________________");
 
     doc.end();
 

@@ -1,5 +1,6 @@
-import { DocumentType } from "@prisma/client";
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from "class-validator";
+import { DocumentType, MaritalStatus } from "@prisma/client";
+import { Type } from "class-transformer";
+import { IsDateString, IsEmail, IsEnum, IsNumber, IsOptional, IsString, MinLength } from "class-validator";
 
 export class CreateTenantDto {
   @IsString()
@@ -19,6 +20,22 @@ export class CreateTenantDto {
   address?: string;
 
   @IsOptional()
+  @IsString()
+  nationality?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateOfBirth?: string;
+
+  @IsOptional()
+  @IsString()
+  placeOfBirth?: string;
+
+  @IsOptional()
+  @IsEnum(MaritalStatus)
+  maritalStatus?: MaritalStatus;
+
+  @IsOptional()
   @IsEnum(DocumentType)
   idDocumentType?: DocumentType;
 
@@ -36,11 +53,36 @@ export class CreateTenantDto {
 
   @IsOptional()
   @IsString()
+  employer?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  monthlyIncome?: number;
+
+  @IsOptional()
+  @IsString()
   emergencyContactName?: string;
 
   @IsOptional()
   @IsString()
   emergencyContactPhone?: string;
+
+  @IsOptional()
+  @IsString()
+  guarantorName?: string;
+
+  @IsOptional()
+  @IsString()
+  guarantorPhone?: string;
+
+  @IsOptional()
+  @IsString()
+  guarantorAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  guarantorIdDocument?: string;
 
   @IsOptional()
   @IsString()

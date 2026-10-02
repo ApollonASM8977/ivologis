@@ -11,12 +11,41 @@ export class CreateOwnerDto {
   phone: string;
 
   @IsOptional()
+  @IsString()
+  @MinLength(8)
+  secondaryPhone?: string;
+
+  @IsOptional()
   @IsEmail()
   email?: string;
 
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsOptional()
+  @IsString()
+  nationality?: string;
+
+  @IsOptional()
+  @IsString()
+  profession?: string;
+
+  @IsOptional()
+  @IsString()
+  companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  rccmNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  bankName?: string;
+
+  @IsOptional()
+  @IsString()
+  bankAccountNumber?: string;
 
   @IsOptional()
   @IsEnum(DocumentType)

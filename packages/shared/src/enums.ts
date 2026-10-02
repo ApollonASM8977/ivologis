@@ -34,6 +34,21 @@ export enum LeaseStatus {
   TERMINATED = "TERMINATED",
 }
 
+export enum LeaseType {
+  HABITATION_NUE = "HABITATION_NUE",
+  HABITATION_MEUBLEE = "HABITATION_MEUBLEE",
+  COMMERCIAL = "COMMERCIAL",
+  PROFESSIONNEL = "PROFESSIONNEL",
+  TERRAIN = "TERRAIN",
+}
+
+export enum MaritalStatus {
+  CELIBATAIRE = "CELIBATAIRE",
+  MARIE = "MARIE",
+  DIVORCE = "DIVORCE",
+  VEUF = "VEUF",
+}
+
 export enum SignatureStatus {
   SIGNED = "SIGNED",
   UNSIGNED = "UNSIGNED",

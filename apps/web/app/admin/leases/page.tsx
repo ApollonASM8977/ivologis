@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, FileText, Download, XCircle } from "lucide-react";
+import { Plus, FileText, FileType, XCircle } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
-import { formatXOF } from "@ivologis/shared";
+import { formatXOF, LEASE_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -17,12 +18,14 @@ import { LeaseForm, LeaseFormValues } from "@/components/leases/lease-form";
 interface LeaseRow {
   id: string;
   contractNumber: string;
+  type: keyof typeof LEASE_TYPE_LABELS;
   property: { name: string };
   tenant: { fullName: string };
   owner: { fullName: string };
   rentAmount: number;
   status: any;
   documentUrl?: string | null;
+  wordUrl?: string | null;
 }
 
 export default function AdminLeasesPage() {
@@ -46,12 +49,14 @@ export default function AdminLeasesPage() {
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
-  const pdfMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/leases/${id}/pdf`),
-    onSuccess: (res) => {
-      toast.success("PDF généré.");
+  const documentMutation = useMutation({
+    mutationFn: ({ id, format }: { id: string; format: "pdf" | "docx" }) =>
+      api.post(`/leases/${id}/document`, null, { params: { format } }),
+    onSuccess: (res, variables) => {
+      toast.success(variables.format === "docx" ? "Document Word généré." : "Document PDF généré.");
       queryClient.invalidateQueries({ queryKey: ["leases"] });
-      window.open(fileUrl(res.data.documentUrl), "_blank");
+      const url = variables.format === "docx" ? res.data.wordUrl : res.data.documentUrl;
+      window.open(fileUrl(url), "_blank");
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -68,21 +73,33 @@ export default function AdminLeasesPage() {
 
   const columns: Column<LeaseRow>[] = [
     { header: "N° Contrat", cell: (r) => <span className="font-mono text-xs">{r.contractNumber}</span> },
+    { header: "Type", cell: (r) => <Badge color="blue">{LEASE_TYPE_LABELS[r.type]}</Badge> },
     { header: "Bien", cell: (r) => r.property?.name },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
     { header: "Propriétaire", cell: (r) => r.owner?.fullName },
     { header: "Loyer", cell: (r) => formatXOF(r.rentAmount) },
     { header: "Statut", cell: (r) => <LeaseStatusBadge status={r.status} /> },
     {
-      header: "Actions",
+      header: "Document",
       cell: (r) => (
         <div className="flex gap-1">
           <button
-            title="Générer / télécharger le PDF"
-            onClick={() => (r.documentUrl ? window.open(fileUrl(r.documentUrl), "_blank") : pdfMutation.mutate(r.id))}
-            className="rounded p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary"
+            title="Générer / télécharger en PDF"
+            onClick={() =>
+              r.documentUrl ? window.open(fileUrl(r.documentUrl), "_blank") : documentMutation.mutate({ id: r.id, format: "pdf" })
+            }
+            className="rounded px-1.5 py-1 text-xs font-medium text-ink-muted hover:bg-gray-100 hover:text-primary"
           >
-            <Download className="h-4 w-4" />
+            PDF
+          </button>
+          <button
+            title="Générer / télécharger en Word"
+            onClick={() =>
+              r.wordUrl ? window.open(fileUrl(r.wordUrl), "_blank") : documentMutation.mutate({ id: r.id, format: "docx" })
+            }
+            className="flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-ink-muted hover:bg-gray-100 hover:text-primary"
+          >
+            <FileType className="h-3.5 w-3.5" /> Word
           </button>
           {r.status === "ACTIVE" && (
             <button
@@ -102,7 +119,7 @@ export default function AdminLeasesPage() {
     <div>
       <PageHeader
         title="Contrats de bail"
-        subtitle="Gestion des contrats de location"
+        subtitle="Habitation, commercial, professionnel, terrain — avec génération PDF et Word"
         action={
           <Button size="sm" onClick={() => setModalOpen(true)}>
             <Plus className="h-4 w-4" /> Nouveau contrat

@@ -54,11 +54,11 @@ export class LeasesController {
     return this.leasesService.update(id, dto);
   }
 
-  @Post(":id/pdf")
+  @Post(":id/document")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.LEASES_MANAGE)
-  generatePdf(@Param("id") id: string) {
-    return this.leasesService.generateContractPdf(id);
+  generateDocument(@Param("id") id: string, @Query("format") format?: "pdf" | "docx") {
+    return this.leasesService.generateContractDocument(id, format === "docx" ? "docx" : "pdf");
   }
 
   @Post(":id/renew")

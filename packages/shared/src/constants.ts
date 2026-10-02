@@ -28,6 +28,28 @@ export const AUTRES_VILLES = [
 
 export const VILLES_CI = ["Abidjan", ...AUTRES_VILLES];
 
+export const PROPERTY_AMENITIES = [
+  "Climatisation",
+  "Parking",
+  "Piscine",
+  "Gardiennage",
+  "Groupe électrogène",
+  "Forage / eau courante",
+  "Internet / fibre",
+  "Cour clôturée",
+  "Balcon / terrasse",
+  "Cuisine équipée",
+] as const;
+
+export const PAYMENT_METHOD_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  ORANGE_MONEY: { bg: "#FF6600", text: "#FFFFFF", border: "#FF6600" },
+  MTN_MONEY: { bg: "#FFCC00", text: "#111827", border: "#FFCC00" },
+  MOOV_MONEY: { bg: "#0066CC", text: "#FFFFFF", border: "#0066CC" },
+  WAVE: { bg: "#1DC8F2", text: "#001A33", border: "#1DC8F2" },
+  CASH: { bg: "#16A34A", text: "#FFFFFF", border: "#16A34A" },
+  BANK_TRANSFER: { bg: "#0B1F3A", text: "#FFFFFF", border: "#0B1F3A" },
+};
+
 /** Formate un montant en Francs CFA, ex: formatXOF(250000) -> "250 000 FCFA" */
 export function formatXOF(amount: number): string {
   return `${new Intl.NumberFormat("fr-FR").format(Math.round(amount))} FCFA`;

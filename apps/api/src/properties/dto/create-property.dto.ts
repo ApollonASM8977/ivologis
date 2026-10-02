@@ -1,5 +1,7 @@
 import { PropertyType } from "@prisma/client";
 import {
+  IsArray,
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNumber,
@@ -62,6 +64,30 @@ export class CreatePropertyDto {
   @Type(() => Number)
   @IsNumber()
   surfaceM2?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  floor?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  yearBuilt?: number;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  furnished?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  amenities?: string[];
+
+  @IsOptional()
+  @IsString()
+  landmark?: string;
 
   @Type(() => Number)
   @IsNumber()

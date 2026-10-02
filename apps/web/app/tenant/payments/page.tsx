@@ -6,15 +6,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CreditCard, Receipt, Wallet } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
-import { formatXOF, PaymentMethod, PAYMENT_METHOD_LABELS } from "@ivologis/shared";
+import { formatXOF, PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaymentStatusBadge } from "@/components/status-badges";
+import { PaymentMethodBadge } from "@/components/payment-method-badge";
+import { PaymentMethodPicker } from "@/components/payment-method-picker";
 
 interface PayForm {
   amount: number;
@@ -36,9 +38,10 @@ export default function TenantPaymentsPage() {
     queryFn: async () => (await api.get("/payments", { params: { limit: 20 } })).data,
   });
 
-  const { register, handleSubmit, reset } = useForm<PayForm>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<PayForm>({
     defaultValues: { method: PaymentMethod.ORANGE_MONEY },
   });
+  const selectedMethod = watch("method");
 
   const payMutation = useMutation({
     mutationFn: (values: PayForm) =>
@@ -60,7 +63,7 @@ export default function TenantPaymentsPage() {
     { header: "Date", cell: (r: any) => new Date(r.paymentDate).toLocaleDateString("fr-FR") },
     { header: "Mois", cell: (r: any) => new Date(r.periodMonth).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) },
     { header: "Montant", cell: (r: any) => formatXOF(r.amount) },
-    { header: "Moyen", cell: (r: any) => PAYMENT_METHOD_LABELS[r.method as keyof typeof PAYMENT_METHOD_LABELS] },
+    { header: "Moyen", cell: (r: any) => <PaymentMethodBadge method={r.method as PaymentMethod} size="sm" /> },
     { header: "Statut", cell: (r: any) => <PaymentStatusBadge status={r.status} /> },
     {
       header: "Quittance",
@@ -109,13 +112,8 @@ export default function TenantPaymentsPage() {
           </div>
           <div>
             <Label>Moyen de paiement</Label>
-            <Select {...register("method", { required: true })}>
-              {Object.values(PaymentMethod).map((m) => (
-                <option key={m} value={m}>
-                  {PAYMENT_METHOD_LABELS[m]}
-                </option>
-              ))}
-            </Select>
+            <input type="hidden" {...register("method", { required: true })} />
+            <PaymentMethodPicker value={selectedMethod} onChange={(m) => setValue("method", m)} />
           </div>
           <p className="text-xs text-ink-muted">
             Intégration Mobile Money réelle à venir — ce paiement est simulé pour la démonstration.

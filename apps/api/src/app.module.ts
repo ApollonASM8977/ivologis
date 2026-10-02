@@ -5,6 +5,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuditModule } from "./audit/audit.module";
 import { PdfModule } from "./common/pdf/pdf.module";
+import { DocxModule } from "./common/docx/docx.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
@@ -26,6 +27,7 @@ import { SettingsModule } from "./settings/settings.module";
     PrismaModule,
     AuditModule,
     PdfModule,
+    DocxModule,
     NotificationsModule,
     AuthModule,
     UsersModule,

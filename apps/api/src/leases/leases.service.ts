@@ -3,6 +3,8 @@ import { LeaseStatus, PropertyStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
 import { PdfService } from "../common/pdf/pdf.service";
+import { DocxService } from "../common/docx/docx.service";
+import { PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { CreateLeaseDto } from "./dto/create-lease.dto";
 import { RenewLeaseDto } from "./dto/renew-lease.dto";
 import { UpdateLeaseDto } from "./dto/update-lease.dto";
@@ -18,6 +20,7 @@ export class LeasesService {
   constructor(
     private prisma: PrismaService,
     private pdfService: PdfService,
+    private docxService: DocxService,
   ) {}
 
   async create(dto: CreateLeaseDto) {
@@ -34,6 +37,7 @@ export class LeasesService {
       const lease = await tx.lease.create({
         data: {
           contractNumber: generateContractNumber(),
+          type: dto.type,
           propertyId: dto.propertyId,
           ownerId: property.ownerId,
           tenantId: dto.tenantId,
@@ -43,6 +47,7 @@ export class LeasesService {
           deposit: dto.deposit,
           advance: dto.advance,
           specialConditions: dto.specialConditions,
+          details: dto.details as any,
         },
       });
 
@@ -120,22 +125,40 @@ export class LeasesService {
     });
   }
 
-  async generateContractPdf(id: string) {
+  async generateContractDocument(id: string, format: "pdf" | "docx") {
     const lease = await this.findOne(id);
-    const pdfUrl = await this.pdfService.generateContractPdf({
+
+    const documentData = {
       contractNumber: lease.contractNumber,
+      type: lease.type,
       companyName: "IVOLOGIS",
       ownerName: lease.owner.fullName,
+      ownerPhone: lease.owner.phone,
+      ownerAddress: lease.owner.address,
       tenantName: lease.tenant.fullName,
+      tenantPhone: lease.tenant.phone,
+      tenantAddress: lease.tenant.address,
+      tenantIdDocument: lease.tenant.idDocumentNumber,
       propertyName: lease.property.name,
-      propertyAddress: `${lease.property.address}, ${lease.property.commune}`,
+      propertyAddress: lease.property.address,
+      propertyCommune: lease.property.commune,
+      propertyTypeLabel: PROPERTY_TYPE_LABELS[lease.property.type],
+      surfaceM2: lease.property.surfaceM2 as any,
       startDate: lease.startDate,
       endDate: lease.endDate,
       rentAmount: lease.rentAmount as any,
       deposit: lease.deposit as any,
       advance: lease.advance as any,
       specialConditions: lease.specialConditions,
-    });
+      details: lease.details as any,
+    };
+
+    if (format === "docx") {
+      const wordUrl = await this.docxService.generateContractDocx(documentData);
+      return this.prisma.lease.update({ where: { id }, data: { wordUrl } });
+    }
+
+    const pdfUrl = await this.pdfService.generateContractPdf(documentData);
     return this.prisma.lease.update({ where: { id }, data: { documentUrl: pdfUrl } });
   }
 

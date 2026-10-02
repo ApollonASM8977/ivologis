@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, AccountStatus, PropertyType, PropertyStatus, PaymentMethod, PaymentStatus, MaintenanceIssueType, MaintenancePriority, MaintenanceStatus, LeaseStatus } from "@prisma/client";
+import { PrismaClient, UserRole, AccountStatus, PropertyType, PropertyStatus, PaymentMethod, PaymentStatus, MaintenanceIssueType, MaintenancePriority, MaintenanceStatus, LeaseStatus, LeaseType } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -134,6 +134,11 @@ async function main() {
       bedrooms: 4,
       bathrooms: 3,
       surfaceM2: 350,
+      floor: 0,
+      yearBuilt: 2018,
+      furnished: true,
+      amenities: ["Climatisation", "Piscine", "Gardiennage", "Groupe électrogène", "Cour clôturée", "Parking"],
+      landmark: "Près de la pharmacie Riviera 3, face à l'école internationale",
       rentAmount: 350000,
       deposit: 700000,
       advance: 350000,
@@ -154,6 +159,11 @@ async function main() {
       bedrooms: 1,
       bathrooms: 1,
       surfaceM2: 30,
+      floor: 2,
+      yearBuilt: 2021,
+      furnished: true,
+      amenities: ["Climatisation", "Internet / fibre", "Cuisine équipée"],
+      landmark: "Immeuble bleu en face de la station Total",
       rentAmount: 150000,
       deposit: 300000,
       advance: 150000,
@@ -222,10 +232,20 @@ async function main() {
   const oneYearLater = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
 
-  async function createLease(propertyId: string, ownerId: string, tenantId: string, rentAmount: number, deposit: number, advance: number) {
+  async function createLease(
+    propertyId: string,
+    ownerId: string,
+    tenantId: string,
+    rentAmount: number,
+    deposit: number,
+    advance: number,
+    type: LeaseType = LeaseType.HABITATION_NUE,
+    details?: Record<string, unknown>,
+  ) {
     const lease = await prisma.lease.create({
       data: {
         contractNumber: `BAIL-${now.getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+        type,
         propertyId,
         ownerId,
         tenantId,
@@ -234,6 +254,7 @@ async function main() {
         rentAmount,
         deposit,
         advance,
+        details: details as any,
         status: LeaseStatus.ACTIVE,
         signatureStatus: "SIGNED",
       },
@@ -242,9 +263,22 @@ async function main() {
     return lease;
   }
 
-  const leaseVilla = await createLease(villa.id, kouadio.id, yao.id, 350000, 700000, 350000);
-  const leaseStudio = await createLease(studio.id, fatou.id, aicha.id, 150000, 300000, 150000);
-  const leaseAppart = await createLease(appartement.id, marc.id, bamba.id, 250000, 500000, 250000);
+  const leaseVilla = await createLease(villa.id, kouadio.id, yao.id, 350000, 700000, 350000, LeaseType.HABITATION_MEUBLEE, {
+    furnitureInventory: "Salon complet (canapé 6 places, table basse), salle à manger 6 couverts, 3 chambres équipées (lit, armoire, climatiseur), cuisine équipée (cuisinière, réfrigérateur).",
+    occupantsCount: "4",
+    guarantorName: "Konan Affoué",
+    guarantorPhone: "+2250700000050",
+    guarantorAddress: "Cocody, Angré",
+    noticePeriodMonths: "3",
+  });
+  const leaseStudio = await createLease(studio.id, fatou.id, aicha.id, 150000, 300000, 150000, LeaseType.HABITATION_NUE, {
+    occupantsCount: "1",
+    noticePeriodMonths: "1",
+  });
+  const leaseAppart = await createLease(appartement.id, marc.id, bamba.id, 250000, 500000, 250000, LeaseType.HABITATION_NUE, {
+    occupantsCount: "3",
+    noticePeriodMonths: "2",
+  });
 
   // --- Paiements ------------------------------------------------------------
   async function createPaidPayment(leaseId: string, tenantId: string, propertyId: string, ownerId: string, amount: number, monthsAgo: number, method: PaymentMethod) {

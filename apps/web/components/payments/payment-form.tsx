@@ -3,9 +3,10 @@
 import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { PaymentMethod, PAYMENT_METHOD_LABELS } from "@ivologis/shared";
+import { PaymentMethod } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { PaymentMethodPicker } from "@/components/payment-method-picker";
 
 export interface PaymentFormValues {
   tenantId: string;
@@ -19,9 +20,10 @@ export interface PaymentFormValues {
 }
 
 export function PaymentForm({ loading, onSubmit }: { loading?: boolean; onSubmit: (v: PaymentFormValues) => void }) {
-  const { register, handleSubmit, setValue } = useForm<PaymentFormValues>({
+  const { register, handleSubmit, setValue, watch } = useForm<PaymentFormValues>({
     defaultValues: { periodMonth: new Date().toISOString().slice(0, 10), method: PaymentMethod.CASH },
   });
+  const selectedMethod = watch("method");
 
   const { data: tenants } = useQuery({
     queryKey: ["tenants", "all-for-select"],
@@ -51,26 +53,22 @@ export function PaymentForm({ loading, onSubmit }: { loading?: boolean; onSubmit
         <input type="hidden" {...register("propertyId", { required: true })} />
       </div>
 
+      <div>
+        <Label>Moyen de paiement</Label>
+        <input type="hidden" {...register("method", { required: true })} />
+        <PaymentMethodPicker value={selectedMethod} onChange={(m) => setValue("method", m)} />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label>Montant (FCFA)</Label>
           <Input type="number" {...register("amount", { required: true, valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Moyen de paiement</Label>
-          <Select {...register("method", { required: true })}>
-            {Object.values(PaymentMethod).map((m) => (
-              <option key={m} value={m}>
-                {PAYMENT_METHOD_LABELS[m]}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div>
           <Label>Mois concerné</Label>
           <Input type="date" {...register("periodMonth", { required: true })} />
         </div>
-        <div>
+        <div className="col-span-2">
           <Label>Référence transaction</Label>
           <Input {...register("transactionRef")} />
         </div>

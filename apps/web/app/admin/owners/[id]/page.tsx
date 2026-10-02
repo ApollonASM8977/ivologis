@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Building2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatXOF } from "@ivologis/shared";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { PropertyStatusBadge } from "@/components/status-badges";
 
@@ -55,6 +55,46 @@ export default function OwnerDetailPage() {
           <p className="mt-1 text-sm font-medium text-ink">{owner.address ?? "—"}</p>
         </Card>
       </div>
+
+      <Card className="mt-4">
+        <CardHeader title="Informations complémentaires" />
+        <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+          <div>
+            <p className="text-ink-muted">Téléphone secondaire</p>
+            <p className="font-medium text-ink">{owner.secondaryPhone ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-ink-muted">Nationalité</p>
+            <p className="font-medium text-ink">{owner.nationality ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-ink-muted">Profession</p>
+            <p className="font-medium text-ink">{owner.profession ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-ink-muted">Société</p>
+            <p className="font-medium text-ink">{owner.companyName ?? "—"}</p>
+          </div>
+          {owner.rccmNumber && (
+            <div>
+              <p className="text-ink-muted">N° RCCM</p>
+              <p className="font-medium text-ink">{owner.rccmNumber}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-ink-muted">Pièce d&apos;identité</p>
+            <p className="font-medium text-ink">{owner.idDocumentNumber ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-ink-muted">Banque</p>
+            <p className="font-medium text-ink">{owner.bankName ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-ink-muted">N° de compte</p>
+            <p className="font-medium text-ink">{owner.bankAccountNumber ?? "—"}</p>
+          </div>
+        </div>
+      </Card>
 
       <h2 className="mb-3 mt-6 text-base font-semibold text-ink">Biens du propriétaire</h2>
       {owner.properties?.length ? (

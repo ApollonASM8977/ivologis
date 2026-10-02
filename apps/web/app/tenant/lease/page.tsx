@@ -1,11 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, FileType as FileTypeIcon } from "lucide-react";
 import { api, fileUrl } from "@/lib/api";
-import { formatXOF, SIGNATURE_STATUS_LABELS } from "@ivologis/shared";
+import { formatXOF, SIGNATURE_STATUS_LABELS, LEASE_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
@@ -34,7 +35,10 @@ export default function TenantLeasePage() {
 
       <Card className="max-w-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <LeaseStatusBadge status={lease.status} />
+          <div className="flex items-center gap-2">
+            <LeaseStatusBadge status={lease.status} />
+            <Badge color="blue">{LEASE_TYPE_LABELS[lease.type as keyof typeof LEASE_TYPE_LABELS]}</Badge>
+          </div>
           <span className="text-sm text-ink-muted">{SIGNATURE_STATUS_LABELS[lease.signatureStatus as keyof typeof SIGNATURE_STATUS_LABELS]}</span>
         </div>
 
@@ -72,12 +76,23 @@ export default function TenantLeasePage() {
           </div>
         )}
 
-        {lease.documentUrl && (
-          <a href={fileUrl(lease.documentUrl)} target="_blank" className="mt-6 inline-block">
-            <Button size="sm">
-              <Download className="h-4 w-4" /> Télécharger le contrat (PDF)
-            </Button>
-          </a>
+        {(lease.documentUrl || lease.wordUrl) && (
+          <div className="mt-6 flex gap-2">
+            {lease.documentUrl && (
+              <a href={fileUrl(lease.documentUrl)} target="_blank">
+                <Button size="sm">
+                  <Download className="h-4 w-4" /> PDF
+                </Button>
+              </a>
+            )}
+            {lease.wordUrl && (
+              <a href={fileUrl(lease.wordUrl)} target="_blank">
+                <Button size="sm" variant="secondary">
+                  <FileTypeIcon className="h-4 w-4" /> Word
+                </Button>
+              </a>
+            )}
+          </div>
         )}
       </Card>
     </div>

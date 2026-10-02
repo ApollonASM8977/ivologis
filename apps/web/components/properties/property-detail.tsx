@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Archive, MapPin, Pencil, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Archive, MapPin, Pencil, Image as ImageIcon, X, Sofa } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { LoadingState } from "@/components/ui/empty-state";
@@ -44,16 +45,27 @@ export function PropertyDetail({ id, listHref }: { id: string; listHref: string 
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("isCover", "true");
-      return api.post(`/properties/${id}/images`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    mutationFn: async (files: FileList) => {
+      const hasNoCover = !property?.images?.some((img: any) => img.isCover);
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("file", files[i]);
+        formData.append("isCover", hasNoCover && i === 0 ? "true" : "false");
+        await api.post(`/properties/${id}/images`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
     },
     onSuccess: () => {
-      toast.success("Image ajoutée.");
+      toast.success("Photo(s) ajoutée(s).");
+      queryClient.invalidateQueries({ queryKey: ["properties", id] });
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
+  const deleteImageMutation = useMutation({
+    mutationFn: (imageId: string) => api.delete(`/properties/images/${imageId}`),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", id] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -112,7 +124,36 @@ export function PropertyDetail({ id, listHref }: { id: string; listHref: string 
           <p className="text-xs font-medium uppercase text-ink-muted">Surface</p>
           <p className="mt-1 text-sm font-semibold text-ink">{property.surfaceM2 ? `${property.surfaceM2} m²` : "—"}</p>
         </Card>
+        <Card>
+          <p className="text-xs font-medium uppercase text-ink-muted">Étage</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.floor !== null && property.floor !== undefined ? (property.floor === 0 ? "Rez-de-chaussée" : `${property.floor}e étage`) : "—"}</p>
+        </Card>
+        <Card>
+          <p className="text-xs font-medium uppercase text-ink-muted">Année de construction</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.yearBuilt ?? "—"}</p>
+        </Card>
+        <Card>
+          <p className="flex items-center gap-1 text-xs font-medium uppercase text-ink-muted"><Sofa className="h-3.5 w-3.5" /> Meublé</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.furnished ? "Oui" : "Non"}</p>
+        </Card>
+        {property.landmark && (
+          <Card className="sm:col-span-2 lg:col-span-3">
+            <p className="text-xs font-medium uppercase text-ink-muted">Repère</p>
+            <p className="mt-1 text-sm font-semibold text-ink">{property.landmark}</p>
+          </Card>
+        )}
       </div>
+
+      {!!property.amenities?.length && (
+        <Card className="mt-4">
+          <CardHeader title="Équipements" />
+          <div className="flex flex-wrap gap-2">
+            {property.amenities.map((a: string) => (
+              <Badge key={a} color="blue">{a}</Badge>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <Card className="mt-4">
         <CardHeader
@@ -122,18 +163,33 @@ export function PropertyDetail({ id, listHref }: { id: string; listHref: string 
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
-                onChange={(e) => e.target.files?.[0] && uploadMutation.mutate(e.target.files[0])}
+                onChange={(e) => e.target.files?.length && uploadMutation.mutate(e.target.files)}
               />
-              + Ajouter une photo
+              + Ajouter des photos
             </label>
           }
         />
         {property.images?.length ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {property.images.map((img: any) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={img.id} src={fileUrl(img.url)} alt={property.name} className="h-32 w-full rounded-lg object-cover" />
+              <div key={img.id} className="group relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={fileUrl(img.url)} alt={property.name} className="h-32 w-full rounded-lg object-cover" />
+                {img.isCover && (
+                  <span className="absolute left-1.5 top-1.5 rounded bg-primary/90 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    Couverture
+                  </span>
+                )}
+                <button
+                  onClick={() => deleteImageMutation.mutate(img.id)}
+                  className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  title="Supprimer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
           </div>
         ) : (

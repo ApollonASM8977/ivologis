@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Wallet, Download, Receipt, AlertTriangle } from "lucide-react";
 import { api, apiErrorMessage, fileUrl, API_URL } from "@/lib/api";
-import { formatXOF, PAYMENT_METHOD_LABELS } from "@ivologis/shared";
+import { formatXOF, PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaymentStatusBadge } from "@/components/status-badges";
+import { PaymentMethodBadge } from "@/components/payment-method-badge";
 import { PaymentForm, PaymentFormValues } from "@/components/payments/payment-form";
 
 interface PaymentRow {
@@ -58,7 +59,7 @@ export default function AdminPaymentsPage() {
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
     { header: "Bien", cell: (r) => r.property?.name },
     { header: "Montant", cell: (r) => formatXOF(r.amount) },
-    { header: "Moyen", cell: (r) => PAYMENT_METHOD_LABELS[r.method as keyof typeof PAYMENT_METHOD_LABELS] },
+    { header: "Moyen", cell: (r) => <PaymentMethodBadge method={r.method as PaymentMethod} size="sm" /> },
     { header: "Statut", cell: (r) => <PaymentStatusBadge status={r.status} /> },
     {
       header: "Quittance",

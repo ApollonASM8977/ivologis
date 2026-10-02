@@ -47,6 +47,21 @@ enum LeaseStatus {
   TERMINATED
 }
 
+enum LeaseType {
+  HABITATION_NUE
+  HABITATION_MEUBLEE
+  COMMERCIAL
+  PROFESSIONNEL
+  TERRAIN
+}
+
+enum MaritalStatus {
+  CELIBATAIRE
+  MARIE
+  DIVORCE
+  VEUF
+}
+
 enum SignatureStatus {
   SIGNED
   UNSIGNED
@@ -168,8 +183,15 @@ model Owner {
   userId           String?       @unique
   fullName         String
   phone            String
+  secondaryPhone   String?
   email            String?
   address          String?
+  nationality      String?       @default("Ivoirienne")
+  profession       String?
+  companyName      String?
+  rccmNumber       String?
+  bankName         String?
+  bankAccountNumber String?
   idDocumentType   DocumentType?
   idDocumentNumber String?
   idDocumentUrl    String?
@@ -194,12 +216,22 @@ model Tenant {
   phone                 String
   email                 String?
   address               String?
+  nationality           String?       @default("Ivoirienne")
+  dateOfBirth           DateTime?
+  placeOfBirth          String?
+  maritalStatus         MaritalStatus?
   idDocumentType        DocumentType?
   idDocumentNumber      String?
   photoUrl              String?
   profession             String?
+  employer              String?
+  monthlyIncome         Decimal?      @db.Decimal(14, 2)
   emergencyContactName  String?
   emergencyContactPhone String?
+  guarantorName         String?
+  guarantorPhone        String?
+  guarantorAddress      String?
+  guarantorIdDocument   String?
   status                AccountStatus @default(ACTIVE)
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
@@ -233,6 +265,11 @@ model Property {
   bedrooms       Int?
   bathrooms      Int?
   surfaceM2      Decimal?       @db.Decimal(10, 2)
+  floor          Int?
+  yearBuilt      Int?
+  furnished      Boolean        @default(false)
+  amenities      String[]       @default([])
+  landmark       String?
   rentAmount     Decimal        @db.Decimal(14, 2)
   deposit        Decimal        @db.Decimal(14, 2) @default(0)
   advance        Decimal        @db.Decimal(14, 2) @default(0)
@@ -276,6 +313,7 @@ model PropertyImage {
 model Lease {
   id                String          @id @default(uuid())
   contractNumber    String          @unique
+  type              LeaseType       @default(HABITATION_NUE)
   propertyId        String
   ownerId           String
   tenantId          String
@@ -285,7 +323,11 @@ model Lease {
   deposit           Decimal         @db.Decimal(14, 2)
   advance           Decimal         @db.Decimal(14, 2)
   specialConditions String?
+  /// Champs spécifiques au type de contrat (inventaire mobilier, activité
+  /// commerciale, pas-de-porte, usage du terrain, garant, préavis, etc.)
+  details           Json?
   documentUrl       String?
+  wordUrl           String?
   signatureStatus   SignatureStatus @default(UNSIGNED)
   status            LeaseStatus     @default(ACTIVE)
   createdAt         DateTime        @default(now())
