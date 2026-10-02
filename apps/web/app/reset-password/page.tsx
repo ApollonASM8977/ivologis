@@ -8,6 +8,7 @@ import { api, apiErrorMessage } from "@/lib/api";
 import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -30,15 +31,19 @@ function ResetPasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Label>Nouveau mot de passe</Label>
-        <Input type="password" placeholder="8 caractères minimum" {...register("newPassword", { required: true, minLength: 8 })} />
-      </div>
-      <Button type="submit" className="w-full" loading={loading} disabled={!token}>
-        Réinitialiser
-      </Button>
-      {!token && <p className="text-xs text-danger">Lien invalide : jeton manquant.</p>}
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <StaggerContainer className="space-y-4">
+        <StaggerItem>
+          <Label>Nouveau mot de passe</Label>
+          <Input type="password" placeholder="8 caractères minimum" {...register("newPassword", { required: true, minLength: 8 })} />
+        </StaggerItem>
+        <StaggerItem>
+          <Button type="submit" className="w-full" loading={loading} disabled={!token}>
+            Réinitialiser
+          </Button>
+          {!token && <p className="mt-2 text-xs text-danger">Lien invalide : jeton manquant.</p>}
+        </StaggerItem>
+      </StaggerContainer>
     </form>
   );
 }

@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "motion/react";
 import { LoadingState } from "./empty-state";
 
 export interface Column<T> {
@@ -49,18 +50,22 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {rows.map((row) => (
-              <tr
+            {rows.map((row, i) => (
+              <motion.tr
                 key={rowKey(row)}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
+                whileHover={onRowClick ? { backgroundColor: "rgba(249,250,251,1)" } : undefined}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`hover:bg-gray-50/60 ${onRowClick ? "cursor-pointer" : ""}`}
+                className={onRowClick ? "cursor-pointer" : ""}
               >
                 {columns.map((col) => (
                   <td key={col.header} className={`px-4 py-3 align-middle ${col.className ?? ""}`}>
                     {col.cell(row)}
                   </td>
                 ))}
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>

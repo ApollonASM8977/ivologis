@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Bell, LogOut, Menu } from "lucide-react";
 import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { USER_ROLE_LABELS } from "@ivologis/shared";
@@ -37,14 +38,32 @@ export function Topbar({ navItems }: { navItems: NavItem[] }) {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="relative rounded-full p-2 hover:bg-gray-50">
-            <Bell className="h-5 w-5 text-ink-muted" />
-            {!!data?.unreadCount && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] text-white">
-                {data.unreadCount > 9 ? "9+" : data.unreadCount}
-              </span>
-            )}
-          </button>
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            className="relative rounded-full p-2 hover:bg-gray-50"
+          >
+            <motion.span
+              animate={data?.unreadCount ? { rotate: [0, -12, 10, -8, 0] } : {}}
+              transition={{ duration: 0.6, repeat: data?.unreadCount ? Infinity : 0, repeatDelay: 3.5 }}
+              className="block"
+            >
+              <Bell className="h-5 w-5 text-ink-muted" />
+            </motion.span>
+            <AnimatePresence>
+              {!!data?.unreadCount && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                  className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] text-white"
+                >
+                  {data.unreadCount > 9 ? "9+" : data.unreadCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
 
           <div className="hidden items-center gap-3 sm:flex">
             <div className="text-right">
@@ -56,9 +75,15 @@ export function Topbar({ navItems }: { navItems: NavItem[] }) {
             </div>
           </div>
 
-          <button onClick={logout} className="rounded-full p-2 text-ink-muted hover:bg-gray-50" title="Déconnexion">
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={logout}
+            className="rounded-full p-2 text-ink-muted hover:bg-gray-50"
+            title="Déconnexion"
+          >
             <LogOut className="h-5 w-5" />
-          </button>
+          </motion.button>
         </div>
       </header>
 

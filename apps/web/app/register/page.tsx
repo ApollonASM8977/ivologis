@@ -11,6 +11,7 @@ import { UserRole } from "@ivologis/shared";
 import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 
 interface RegisterForm {
   fullName: string;
@@ -44,34 +45,38 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout title="Créer un compte" subtitle="Réservé aux propriétaires externes et locataires déjà enregistrés">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <Label>Je suis</Label>
-          <Select {...register("role")}>
-            <option value={UserRole.OWNER}>Propriétaire externe</option>
-            <option value={UserRole.TENANT}>Locataire</option>
-          </Select>
-        </div>
-        <div>
-          <Label>Nom complet</Label>
-          <Input placeholder="Ex : Kouadio Jean" {...register("fullName", { required: true })} />
-        </div>
-        <div>
-          <Label>Email</Label>
-          <Input type="email" placeholder="vous@exemple.ci" {...register("email", { required: true })} />
-        </div>
-        <div>
-          <Label>Téléphone</Label>
-          <Input placeholder="+225 07 00 00 00 00" {...register("phone", { required: true })} />
-        </div>
-        <div>
-          <Label>Mot de passe</Label>
-          <Input type="password" placeholder="8 caractères minimum" {...register("password", { required: true, minLength: 8 })} />
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <StaggerContainer className="space-y-4">
+          <StaggerItem>
+            <Label>Je suis</Label>
+            <Select {...register("role")}>
+              <option value={UserRole.OWNER}>Propriétaire externe</option>
+              <option value={UserRole.TENANT}>Locataire</option>
+            </Select>
+          </StaggerItem>
+          <StaggerItem>
+            <Label>Nom complet</Label>
+            <Input placeholder="Ex : Kouadio Jean" {...register("fullName", { required: true })} />
+          </StaggerItem>
+          <StaggerItem>
+            <Label>Email</Label>
+            <Input type="email" placeholder="vous@exemple.ci" {...register("email", { required: true })} />
+          </StaggerItem>
+          <StaggerItem>
+            <Label>Téléphone</Label>
+            <Input placeholder="+225 07 00 00 00 00" {...register("phone", { required: true })} />
+          </StaggerItem>
+          <StaggerItem>
+            <Label>Mot de passe</Label>
+            <Input type="password" placeholder="8 caractères minimum" {...register("password", { required: true, minLength: 8 })} />
+          </StaggerItem>
 
-        <Button type="submit" className="w-full" loading={loading}>
-          Créer mon compte
-        </Button>
+          <StaggerItem>
+            <Button type="submit" className="w-full" loading={loading}>
+              Créer mon compte
+            </Button>
+          </StaggerItem>
+        </StaggerContainer>
       </form>
 
       <p className="mt-6 text-center text-sm text-ink-muted">
