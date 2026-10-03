@@ -1,6 +1,7 @@
 "use client";
 
-import { Building, Building2, KeyRound, LineChart, Wallet } from "lucide-react";
+import { Building2, KeyRound, LineChart, Wallet } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { motion } from "motion/react";
 
 const floatIcons = [
@@ -66,10 +67,7 @@ export function AuthLayout({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
-            <Building className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-bold">IVOLOGIS</span>
+          <BrandLogo size="md" inverse />
         </motion.div>
 
         <motion.div
@@ -105,10 +103,7 @@ export function AuthLayout({
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <div className="mb-8 lg:hidden">
-            <div className="flex items-center gap-2 text-primary-dark">
-              <Building className="h-6 w-6" />
-              <span className="text-xl font-bold">IVOLOGIS</span>
-            </div>
+            <BrandLogo size="md" />
           </div>
           <h1 className="text-2xl font-bold text-ink">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}

@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { MotionConfig } from "motion/react";
+import { ScrollProgress } from "@/components/marketing/scroll-progress";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         Aller au contenu
       </a>
       <div className="min-h-screen bg-white text-ink">
+        <ScrollProgress />
         <SiteHeader />
         <main id="contenu">{children}</main>
         <SiteFooter />

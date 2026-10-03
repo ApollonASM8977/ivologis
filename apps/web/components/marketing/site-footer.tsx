@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-gray-100 bg-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-base font-bold text-primary-dark">IVOLOGIS</p>
+          <BrandLogo size="sm" animate={false} />
           <p className="mt-2 text-sm text-ink-muted">Gestion immobilière locative pour la Côte d&apos;Ivoire.</p>
         </div>
         <div>

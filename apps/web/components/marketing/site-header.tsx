@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 
 const LINKS = [
   { href: "/#fonctionnalites", label: "Fonctionnalités" },
@@ -19,9 +20,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <Link href="/" className="flex items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-primary">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">I</span>
-          <span className="text-base font-bold tracking-tight text-primary-dark">IVOLOGIS</span>
+        <Link href="/" className="rounded-md focus-visible:outline-2 focus-visible:outline-primary">
+          <BrandLogo size="sm" />
         </Link>
 
         <nav aria-label="Navigation principale" className="hidden items-center gap-7 md:flex">
