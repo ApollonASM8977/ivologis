@@ -553,3 +553,17 @@ model AuditLog {
   @@map("audit_logs")
   @@index([entityType, entityId])
 }
+
+model ContactRequest {
+  id            String   @id @default(uuid())
+  fullName      String
+  email         String
+  phone         String?
+  organization  String?
+  portfolioSize String?
+  message       String
+  handled       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@map("contact_requests")
+}

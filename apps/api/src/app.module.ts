@@ -18,6 +18,7 @@ import { PaymentsModule } from "./payments/payments.module";
 import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { ReportsModule } from "./reports/reports.module";
 import { SettingsModule } from "./settings/settings.module";
+import { ContactModule } from "./contact/contact.module";
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SettingsModule } from "./settings/settings.module";
     MaintenanceModule,
     ReportsModule,
     SettingsModule,
+    ContactModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

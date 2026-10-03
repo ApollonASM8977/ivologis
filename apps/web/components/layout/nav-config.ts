@@ -15,6 +15,7 @@ import {
   UserCog,
   HardHat,
   History,
+  Inbox,
 } from "lucide-react";
 
 export interface NavItem {
@@ -33,6 +34,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Maintenance", href: "/admin/maintenance", icon: Wrench },
   { label: "Techniciens", href: "/admin/technicians", icon: HardHat },
   { label: "Statistiques", href: "/admin/reports", icon: BarChart3 },
+  { label: "Demandes de démo", href: "/admin/contact-requests", icon: Inbox },
   { label: "Équipe", href: "/admin/team", icon: UserCog },
   { label: "Journal d'activité", href: "/admin/audit-log", icon: History },
   { label: "Paramètres", href: "/admin/settings", icon: Settings },

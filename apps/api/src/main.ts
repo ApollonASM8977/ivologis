@@ -7,6 +7,10 @@ import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
 async function bootstrap() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET doit être défini.");
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.use(
@@ -15,7 +19,7 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(",") ?? "*",
+    origin: (process.env.CORS_ORIGIN ?? "http://localhost:3000").split(",").map((o) => o.trim()),
     credentials: true,
   });
 

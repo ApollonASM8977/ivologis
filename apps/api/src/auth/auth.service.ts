@@ -173,10 +173,10 @@ export class AuthService {
       { expiresIn: "1h" },
     );
 
-    // Placeholder : en attendant l'intégration d'un fournisseur email/SMS réel,
-    // le lien est journalisé côté serveur pour les tests en local.
-    // eslint-disable-next-line no-console
-    console.log(`[IVOLOGIS] Lien de réinitialisation pour ${email}: /reset-password?token=${resetToken}`);
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.log(`[IVOLOGIS][dev] Lien de réinitialisation pour ${email}: /reset-password?token=${resetToken}`);
+    }
 
     return { message: "Si ce compte existe, un lien de réinitialisation a été envoyé." };
   }

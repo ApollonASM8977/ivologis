@@ -27,8 +27,20 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 );
 Textarea.displayName = "Textarea";
 
-export function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <label className={clsx("mb-1.5 block text-sm font-medium text-ink", className)}>{children}</label>;
+export function Label({
+  children,
+  className,
+  htmlFor,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  htmlFor?: string;
+}) {
+  return (
+    <label htmlFor={htmlFor} className={clsx("mb-1.5 block text-sm font-medium text-ink", className)}>
+      {children}
+    </label>
+  );
 }
 
 export function FieldError({ children }: { children?: React.ReactNode }) {

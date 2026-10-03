@@ -24,8 +24,9 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       setSession: (token, user) => {
-        Cookies.set("ivologis_token", token, { expires: 7, sameSite: "lax" });
-        Cookies.set("ivologis_role", user.role, { expires: 7, sameSite: "lax" });
+        const secure = typeof window !== "undefined" && window.location.protocol === "https:";
+        Cookies.set("ivologis_token", token, { expires: 7, sameSite: "lax", secure });
+        Cookies.set("ivologis_role", user.role, { expires: 7, sameSite: "lax", secure });
         set({ user });
       },
       clearSession: () => {

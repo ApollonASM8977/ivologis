@@ -7,37 +7,48 @@ const ROLE_HOME: Record<string, string> = {
   TENANT: "/tenant/dashboard",
 };
 
-const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+const MARKETING_PATHS = ["/securite", "/mentions-legales", "/confidentialite"];
+
+function matches(pathname: string, paths: string[]) {
+  return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`) || pathname.startsWith(`${p}?`));
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("ivologis_token")?.value;
   const role = request.cookies.get("ivologis_role")?.value;
-
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isLoggedIn = !!token && !!role;
 
   if (pathname === "/") {
-    const dest = token && role ? ROLE_HOME[role] ?? "/login" : "/login";
-    return NextResponse.redirect(new URL(dest, request.url));
+    return isLoggedIn && ROLE_HOME[role ?? ""]
+      ? NextResponse.redirect(new URL(ROLE_HOME[role ?? ""], request.url))
+      : NextResponse.next();
   }
 
-  if (!token && !isPublic) {
+  if (matches(pathname, MARKETING_PATHS)) {
+    return NextResponse.next();
+  }
+
+  const isAuthPage = matches(pathname, AUTH_PATHS);
+
+  if (!token && !isAuthPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (token && isPublic) {
+  if (token && isAuthPage) {
     return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
   }
 
-  if (token && role) {
+  if (isLoggedIn) {
     if (pathname.startsWith("/admin") && role !== "SUPER_ADMIN" && role !== "ADMIN_AGENT") {
-      return NextResponse.redirect(new URL(ROLE_HOME[role] ?? "/login", request.url));
+      return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
     }
     if (pathname.startsWith("/owner") && role !== "OWNER") {
-      return NextResponse.redirect(new URL(ROLE_HOME[role] ?? "/login", request.url));
+      return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
     }
     if (pathname.startsWith("/tenant") && role !== "TENANT") {
-      return NextResponse.redirect(new URL(ROLE_HOME[role] ?? "/login", request.url));
+      return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
     }
   }
 
@@ -45,5 +56,17 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/login", "/register", "/forgot-password", "/reset-password", "/admin/:path*", "/owner/:path*", "/tenant/:path*"],
+  matcher: [
+    "/",
+    "/securite",
+    "/mentions-legales",
+    "/confidentialite",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/admin/:path*",
+    "/owner/:path*",
+    "/tenant/:path*",
+  ],
 };
