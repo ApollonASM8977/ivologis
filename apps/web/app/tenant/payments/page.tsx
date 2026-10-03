@@ -19,7 +19,6 @@ import { PaymentMethodBadge } from "@/components/payment-method-badge";
 import { PaymentMethodPicker } from "@/components/payment-method-picker";
 
 interface PayForm {
-  amount: number;
   method: PaymentMethod;
 }
 
@@ -44,12 +43,7 @@ export default function TenantPaymentsPage() {
   const selectedMethod = watch("method");
 
   const payMutation = useMutation({
-    mutationFn: (values: PayForm) =>
-      api.post("/payments/simulate", {
-        ...values,
-        propertyId: property.id,
-        periodMonth: new Date().toISOString().slice(0, 10),
-      }),
+    mutationFn: (values: PayForm) => api.post("/payments/pay-rent", { method: values.method }),
     onSuccess: () => {
       toast.success("Paiement confirmé ! Votre quittance est disponible.");
       queryClient.invalidateQueries({ queryKey: ["payments"] });
@@ -106,9 +100,9 @@ export default function TenantPaymentsPage() {
           <p className="font-semibold text-primary">{formatXOF(property?.rentAmount ?? 0)}</p>
         </Card>
         <form onSubmit={handleSubmit((v) => payMutation.mutate(v))} className="space-y-4">
-          <div>
-            <Label>Montant à payer (FCFA)</Label>
-            <Input type="number" defaultValue={property?.rentAmount} {...register("amount", { required: true, valueAsNumber: true })} />
+          <div className="rounded-xl bg-primary/5 px-4 py-3">
+            <p className="text-xs text-ink-muted">Montant du loyer du mois</p>
+            <p className="text-lg font-semibold text-primary">{formatXOF(property?.rentAmount ?? 0)}</p>
           </div>
           <div>
             <Label>Moyen de paiement</Label>

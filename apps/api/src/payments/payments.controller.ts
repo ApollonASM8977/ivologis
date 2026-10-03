@@ -11,6 +11,7 @@ import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { assertOwnsResource, assertOwnsTenantResource } from "../common/utils/scope.util";
 import { PaymentsService } from "./payments.service";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
+import { PayRentDto } from "./dto/pay-rent.dto";
 import { PaymentFilterDto } from "./dto/payment-filter.dto";
 
 function scopeFor(user: AuthenticatedUser) {
@@ -60,10 +61,16 @@ export class PaymentsController {
   }
 
   @Post("simulate")
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.TENANT)
-  simulate(@Body() dto: CreatePaymentDto, @CurrentUser() user: AuthenticatedUser) {
-    const payload = user.role === UserRole.TENANT ? { ...dto, tenantId: user.tenantId! } : dto;
-    return this.paymentsService.simulateMobileMoneyPayment(payload);
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.PAYMENTS_MANAGE)
+  simulate(@Body() dto: CreatePaymentDto) {
+    return this.paymentsService.simulateMobileMoneyPayment(dto);
+  }
+
+  @Post("pay-rent")
+  @Roles(UserRole.TENANT)
+  payRent(@Body() dto: PayRentDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.paymentsService.payOwnRent(user.tenantId!, dto.method);
   }
 
   @Post(":id/confirm")

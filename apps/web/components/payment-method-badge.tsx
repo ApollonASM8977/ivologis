@@ -3,8 +3,8 @@ import { PaymentLogo } from "./payment-logo";
 
 export function PaymentMethodBadge({ method, size = "md" }: { method: PaymentMethod; size?: "sm" | "md" }) {
   const colors = PAYMENT_METHOD_COLORS[method] ?? { bg: "#6B7280", text: "#FFFFFF", border: "#6B7280" };
-  const logoClass = size === "sm" ? "h-4 w-6" : "h-5 w-8";
-  const padding = size === "sm" ? "py-0.5 pl-0.5 pr-2 text-[11px]" : "py-0.5 pl-1 pr-2.5 text-xs";
+  const logoClass = size === "sm" ? "h-7 w-10" : "h-9 w-14";
+  const padding = size === "sm" ? "py-0.5 pl-0.5 pr-2.5 text-[11px]" : "py-1 pl-1 pr-3 text-xs";
 
   return (
     <span

@@ -1,10 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { LeaseStatus, PaymentStatus } from "@prisma/client";
+import type { PaymentMethod } from "@prisma/client";
+import { randomUUID } from "crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { PdfService } from "../common/pdf/pdf.service";
 import { toSkipTake } from "../common/dto/pagination.dto";
 import { NotificationsService } from "../notifications/notifications.service";
-import { formatXOF, PAYMENT_METHOD_LABELS, PaymentMethod } from "@ivologis/shared";
+import { formatXOF, PAYMENT_METHOD_LABELS } from "@ivologis/shared";
 import { StorageService } from "../storage/storage.service";
 import { SettingsService } from "../settings/settings.service";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
@@ -12,8 +14,7 @@ import { PaymentFilterDto } from "./dto/payment-filter.dto";
 
 function generateReceiptNumber() {
   const year = new Date().getFullYear();
-  const random = Math.floor(10000 + Math.random() * 90000);
-  return `QUIT-${year}-${random}`;
+  return `QUIT-${year}-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
 function startOfMonth(date: Date) {
@@ -38,8 +39,14 @@ export class PaymentsService {
     const property = await this.prisma.property.findUnique({ where: { id: dto.propertyId } });
     if (!property) throw new NotFoundException("Bien introuvable.");
 
+    const periodMonth = startOfMonth(new Date(dto.periodMonth));
     let leaseId = dto.leaseId;
-    if (!leaseId) {
+    if (leaseId) {
+      const lease = await this.prisma.lease.findUnique({ where: { id: leaseId } });
+      if (!lease || lease.propertyId !== dto.propertyId || lease.tenantId !== dto.tenantId) {
+        throw new BadRequestException("Ce contrat ne correspond pas au bien et au locataire indiqués.");
+      }
+    } else {
       const activeLease = await this.prisma.lease.findFirst({
         where: { propertyId: dto.propertyId, tenantId: dto.tenantId, status: LeaseStatus.ACTIVE },
       });
@@ -48,6 +55,15 @@ export class PaymentsService {
 
     const status = dto.status ?? PaymentStatus.PAID;
 
+    if (status === PaymentStatus.PAID && leaseId) {
+      const alreadyPaid = await this.prisma.payment.findFirst({
+        where: { leaseId, periodMonth, status: PaymentStatus.PAID },
+      });
+      if (alreadyPaid) {
+        throw new ConflictException("Un paiement a déjà été enregistré pour cette période.");
+      }
+    }
+
     const payment = await this.prisma.payment.create({
       data: {
         tenantId: dto.tenantId,
@@ -55,7 +71,7 @@ export class PaymentsService {
         ownerId: property.ownerId,
         leaseId,
         amount: dto.amount,
-        periodMonth: startOfMonth(new Date(dto.periodMonth)),
+        periodMonth,
         paymentDate: dto.paymentDate ? new Date(dto.paymentDate) : new Date(),
         method: dto.method,
         transactionRef: dto.transactionRef,
@@ -93,6 +109,24 @@ export class PaymentsService {
       ...dto,
       status: PaymentStatus.PAID,
       transactionRef: dto.transactionRef ?? `SIM-${Date.now()}`,
+    });
+  }
+
+  /** Le locataire règle son loyer : montant, bien et période viennent du bail actif, jamais du client. */
+  async payOwnRent(tenantId: string, method: PaymentMethod) {
+    const lease = await this.prisma.lease.findFirst({
+      where: { tenantId, status: LeaseStatus.ACTIVE },
+      orderBy: { startDate: "desc" },
+    });
+    if (!lease) throw new BadRequestException("Aucun bail actif ne vous est rattaché.");
+
+    return this.simulateMobileMoneyPayment({
+      tenantId,
+      propertyId: lease.propertyId,
+      leaseId: lease.id,
+      amount: Number(lease.rentAmount),
+      periodMonth: startOfMonth(new Date()).toISOString(),
+      method,
     });
   }
 
@@ -159,7 +193,7 @@ export class PaymentsService {
       amount: payment.amount as any,
       periodMonth: payment.periodMonth,
       paymentDate: payment.paymentDate,
-      method: PAYMENT_METHOD_LABELS[payment.method as PaymentMethod] ?? payment.method,
+      method: PAYMENT_METHOD_LABELS[payment.method as keyof typeof PAYMENT_METHOD_LABELS] ?? payment.method,
     });
 
     return this.prisma.receipt.upsert({

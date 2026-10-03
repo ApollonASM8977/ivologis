@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { randomUUID } from "crypto";
 import { LeaseStatus, PropertyStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
@@ -14,8 +15,7 @@ import { UpdateLeaseDto } from "./dto/update-lease.dto";
 
 function generateContractNumber() {
   const year = new Date().getFullYear();
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `BAIL-${year}-${random}`;
+  return `BAIL-${year}-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
 @Injectable()
