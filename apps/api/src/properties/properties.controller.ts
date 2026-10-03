@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,9 +14,6 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
-import { extname } from "path";
-import { randomUUID } from "crypto";
 import { UserRole } from "@prisma/client";
 import { PERMISSION_KEYS } from "@ivologis/shared";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
@@ -26,6 +24,8 @@ import { RequirePermissions } from "../common/decorators/permissions.decorator";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { assertOwnsResource } from "../common/utils/scope.util";
+import { imageUploadOptions } from "../common/uploads/upload.options";
+import { StorageService } from "../storage/storage.service";
 import { PropertiesService } from "./properties.service";
 import { CreatePropertyDto } from "./dto/create-property.dto";
 import { UpdatePropertyDto } from "./dto/update-property.dto";
@@ -34,7 +34,10 @@ import { PropertyFilterDto } from "./dto/property-filter.dto";
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller("properties")
 export class PropertiesController {
-  constructor(private propertiesService: PropertiesService) {}
+  constructor(
+    private propertiesService: PropertiesService,
+    private storage: StorageService,
+  ) {}
 
   @Get("me")
   @Roles(UserRole.TENANT)
@@ -90,25 +93,13 @@ export class PropertiesController {
       const property = await this.propertiesService.findOne(id);
       assertOwnsResource(user, property.ownerId);
     }
-    return this.propertiesService.archive(id);
+    return this.propertiesService.archive(id, user.id);
   }
 
   @Post(":id/images")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   @UseInterceptors(
-    FileInterceptor("file", {
-      storage: diskStorage({
-        destination: process.env.UPLOAD_DIR ?? "./uploads",
-        filename: (_req, file, cb) => {
-          cb(null, `${randomUUID()}${extname(file.originalname)}`);
-        },
-      }),
-      limits: { fileSize: 5 * 1024 * 1024 },
-      fileFilter: (_req, file, cb) => {
-        const allowed = [".jpg", ".jpeg", ".png", ".webp"];
-        cb(null, allowed.includes(extname(file.originalname).toLowerCase()));
-      },
-    }),
+    FileInterceptor("file", imageUploadOptions(5)),
   )
   async uploadImage(
     @Param("id") id: string,
@@ -116,16 +107,24 @@ export class PropertiesController {
     @Body("isCover") isCover: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
+    if (!file) throw new BadRequestException("Aucune image reçue.");
     if (user.role === UserRole.OWNER) {
       const property = await this.propertiesService.findOne(id);
       assertOwnsResource(user, property.ownerId);
     }
-    return this.propertiesService.addImage(id, `/uploads/${file.filename}`, isCover === "true");
+    const url = await this.storage.save({
+      buffer: file.buffer,
+      filename: file.originalname,
+      mimeType: file.mimetype,
+    });
+    return this.propertiesService.addImage(id, url, isCover === "true");
   }
 
   @Delete("images/:imageId")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
-  removeImage(@Param("imageId") imageId: string) {
+  async removeImage(@Param("imageId") imageId: string, @CurrentUser() user: AuthenticatedUser) {
+    const image = await this.propertiesService.findImage(imageId);
+    if (user.role === UserRole.OWNER) assertOwnsResource(user, image.property.ownerId);
     return this.propertiesService.removeImage(imageId);
   }
 }

@@ -4,7 +4,9 @@ import { PrismaService } from "../prisma/prisma.service";
 import { PdfService } from "../common/pdf/pdf.service";
 import { toSkipTake } from "../common/dto/pagination.dto";
 import { NotificationsService } from "../notifications/notifications.service";
-import { formatXOF } from "@ivologis/shared";
+import { formatXOF, PAYMENT_METHOD_LABELS, PaymentMethod } from "@ivologis/shared";
+import { StorageService } from "../storage/storage.service";
+import { SettingsService } from "../settings/settings.service";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 import { PaymentFilterDto } from "./dto/payment-filter.dto";
 
@@ -24,6 +26,8 @@ export class PaymentsService {
     private prisma: PrismaService,
     private pdfService: PdfService,
     private notifications: NotificationsService,
+    private storage: StorageService,
+    private settings: SettingsService,
   ) {}
 
   async create(dto: CreatePaymentDto) {
@@ -142,23 +146,26 @@ export class PaymentsService {
   async generateReceipt(paymentId: string) {
     const payment = await this.findOne(paymentId);
     const receiptNumber = generateReceiptNumber();
+    const company = await this.settings.get();
+    const previous = await this.prisma.receipt.findUnique({ where: { paymentId } });
+    await this.storage.deleteByUrl(previous?.pdfUrl);
 
     const pdfUrl = await this.pdfService.generateReceiptPdf({
       receiptNumber,
-      companyName: "IVOLOGIS",
+      companyName: company.companyName,
       tenantName: payment.tenant.fullName,
       propertyName: payment.property.name,
       propertyAddress: `${payment.property.address}, ${payment.property.commune}`,
       amount: payment.amount as any,
       periodMonth: payment.periodMonth,
       paymentDate: payment.paymentDate,
-      method: payment.method,
+      method: PAYMENT_METHOD_LABELS[payment.method as PaymentMethod] ?? payment.method,
     });
 
     return this.prisma.receipt.upsert({
       where: { paymentId },
       create: { paymentId, receiptNumber, pdfUrl },
-      update: { pdfUrl },
+      update: { receiptNumber, pdfUrl },
     });
   }
 
@@ -202,6 +209,26 @@ export class PaymentsService {
       }
     }
     return overdue;
+  }
+
+  async sendOverdueReminder(leaseId: string) {
+    const lease = await this.prisma.lease.findUnique({
+      where: { id: leaseId },
+      include: { tenant: true, property: true },
+    });
+    if (!lease) throw new NotFoundException("Contrat introuvable.");
+    if (!lease.tenant.userId) {
+      throw new BadRequestException("Ce locataire n'a pas de compte de connexion à notifier.");
+    }
+
+    await this.notifications.notify({
+      userId: lease.tenant.userId,
+      type: "PAYMENT_REMINDER",
+      title: "Rappel de paiement",
+      message: `Votre loyer pour ${lease.property.name} (${formatXOF(Number(lease.rentAmount))}) est en attente ce mois-ci. Merci de régulariser votre situation rapidement.`,
+    });
+
+    return { message: "Rappel envoyé au locataire." };
   }
 
   async exportCsv(filter: PaymentFilterDto, scope: { ownerId?: string; tenantId?: string }) {

@@ -1,4 +1,5 @@
-import { Controller, ForbiddenException, Get, Param, UseGuards } from "@nestjs/common";
+import { Controller, ForbiddenException, Get, Param, Query, Res, UseGuards } from "@nestjs/common";
+import { Response } from "express";
 import { UserRole } from "@prisma/client";
 import { PERMISSION_KEYS } from "@ivologis/shared";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
@@ -11,6 +12,7 @@ import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { assertOwnsResource } from "../common/utils/scope.util";
 import { PrismaService } from "../prisma/prisma.service";
 import { ReportsService } from "./reports.service";
+import { ownerStatementCsv, ownerStatementPdf } from "./owner-statement.renderer";
 
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller("reports")
@@ -43,6 +45,32 @@ export class ReportsController {
       throw new ForbiddenException("Vous n'avez pas accès à ce relevé.");
     }
     return this.reportsService.ownerFinancialReport(id);
+  }
+
+  @Get("owner/:id/export")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  async exportOwnerStatement(
+    @Param("id") id: string,
+    @Query("format") format: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Res() res: Response,
+  ) {
+    if (user.role === UserRole.OWNER && user.ownerId !== id) {
+      throw new ForbiddenException("Vous n'avez pas accès à ce relevé.");
+    }
+    const statement = await this.reportsService.ownerStatement(id);
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    if (format === "csv") {
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="releve-financier-${stamp}.csv"`);
+      return res.send(ownerStatementCsv(statement));
+    }
+
+    const pdf = await ownerStatementPdf(statement);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="releve-financier-${stamp}.pdf"`);
+    return res.send(pdf);
   }
 
   @Get("property/:id")

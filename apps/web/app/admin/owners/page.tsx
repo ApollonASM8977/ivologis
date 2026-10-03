@@ -14,6 +14,7 @@ import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AccountStatusBadge } from "@/components/status-badges";
 import { OwnerForm, OwnerFormValues } from "@/components/owners/owner-form";
+import { SearchInput, useDebouncedValue } from "@/components/ui/search-input";
 
 interface OwnerRow {
   id: string;
@@ -37,11 +38,13 @@ function AdminOwnersPageContent() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim());
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["owners", page],
-    queryFn: async () => (await api.get("/owners", { params: { page, limit: 10 } })).data,
+    queryKey: ["owners", page, debouncedSearch],
+    queryFn: async () => (await api.get("/owners", { params: { page, limit: 10, search: debouncedSearch || undefined } })).data,
   });
 
   const createMutation = useMutation({
@@ -74,8 +77,19 @@ function AdminOwnersPageContent() {
         }
       />
 
+      <div className="mb-4">
+        <SearchInput
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+          placeholder="Rechercher par nom, téléphone ou email…"
+        />
+      </div>
+
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={Users} title="Aucun propriétaire" action={<Button onClick={() => setModalOpen(true)}>Ajouter un propriétaire</Button>} />
+        <EmptyState icon={Users} title={debouncedSearch ? "Aucun résultat" : "Aucun propriétaire"} description={debouncedSearch ? `Aucun propriétaire ne correspond à « ${debouncedSearch} ».` : undefined} action={<Button onClick={() => setModalOpen(true)}>Ajouter un propriétaire</Button>} />
       ) : (
         <DataTable
           columns={columns}

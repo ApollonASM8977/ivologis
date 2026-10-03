@@ -13,6 +13,7 @@ import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
 import { TenantForm, TenantFormValues } from "@/components/tenants/tenant-form";
+import { SearchInput, useDebouncedValue } from "@/components/ui/search-input";
 
 interface TenantRow {
   id: string;
@@ -35,11 +36,13 @@ function AdminTenantsPageContent() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim());
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["tenants", page],
-    queryFn: async () => (await api.get("/tenants", { params: { page, limit: 10 } })).data,
+    queryKey: ["tenants", page, debouncedSearch],
+    queryFn: async () => (await api.get("/tenants", { params: { page, limit: 10, search: debouncedSearch || undefined } })).data,
   });
 
   const createMutation = useMutation({
@@ -74,8 +77,19 @@ function AdminTenantsPageContent() {
         }
       />
 
+      <div className="mb-4">
+        <SearchInput
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+          placeholder="Rechercher par nom ou téléphone…"
+        />
+      </div>
+
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={UserRound} title="Aucun locataire" action={<Button onClick={() => setModalOpen(true)}>Ajouter un locataire</Button>} />
+        <EmptyState icon={UserRound} title={debouncedSearch ? "Aucun résultat" : "Aucun locataire"} description={debouncedSearch ? `Aucun locataire ne correspond à « ${debouncedSearch} ».` : undefined} action={<Button onClick={() => setModalOpen(true)}>Ajouter un locataire</Button>} />
       ) : (
         <DataTable
           columns={columns}

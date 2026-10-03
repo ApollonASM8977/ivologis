@@ -31,6 +31,13 @@ export class PaymentsController {
     return this.paymentsService.findOverdue(scope);
   }
 
+  @Post("overdue/:leaseId/remind")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.PAYMENTS_MANAGE)
+  sendReminder(@Param("leaseId") leaseId: string) {
+    return this.paymentsService.sendOverdueReminder(leaseId);
+  }
+
   @Get("export")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   @Header("Content-Type", "text/csv")

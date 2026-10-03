@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { FileDown, FileSpreadsheet } from "lucide-react";
+import { api, apiErrorMessage, downloadFile } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 import { formatXOF } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -21,11 +25,38 @@ export default function OwnerReportsPage() {
     enabled: !!owner?.id,
   });
 
+  const [exporting, setExporting] = useState<string | null>(null);
+
+  async function exportStatement(format: "pdf" | "csv") {
+    if (!owner?.id) return;
+    setExporting(format);
+    try {
+      await downloadFile(`/reports/owner/${owner.id}/export?format=${format}`, `releve-financier.${format}`);
+    } catch (error) {
+      toast.error(apiErrorMessage(error));
+    } finally {
+      setExporting(null);
+    }
+  }
+
   if (isLoading || !report) return <LoadingState />;
 
   return (
     <div>
-      <PageHeader title="Relevé financier" subtitle="Synthèse de vos revenus locatifs" />
+      <PageHeader
+        title="Relevé financier"
+        subtitle="Synthèse de vos revenus locatifs"
+        action={
+          <div className="flex gap-2">
+            <Button size="sm" variant="secondary" loading={exporting === "csv"} onClick={() => exportStatement("csv")}>
+              <FileSpreadsheet className="h-4 w-4" /> CSV
+            </Button>
+            <Button size="sm" loading={exporting === "pdf"} onClick={() => exportStatement("pdf")}>
+              <FileDown className="h-4 w-4" /> Exporter PDF
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Revenus totaux" value={formatXOF(report.totalRevenue)} icon={TrendingUp} tone="success" />

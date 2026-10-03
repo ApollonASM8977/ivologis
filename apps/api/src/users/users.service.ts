@@ -2,14 +2,20 @@ import { ConflictException, Injectable, NotFoundException } from "@nestjs/common
 import * as bcrypt from "bcryptjs";
 import { AccountStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
+import { StorageService } from "../storage/storage.service";
 import { CreateAdminDto } from "./dto/create-admin.dto";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+    private storage: StorageService,
+  ) {}
 
-  async createAdmin(dto: CreateAdminDto) {
+  async createAdmin(dto: CreateAdminDto, actorId?: string) {
     const existing = await this.prisma.user.findFirst({
       where: { OR: [{ email: dto.email }, { phone: dto.phone }] },
     });
@@ -37,6 +43,14 @@ export class UsersService {
       include: { permissions: { include: { permission: true } } },
     });
 
+    await this.audit.log({
+      userId: actorId,
+      action: "CREATE_ADMIN",
+      entityType: "User",
+      entityId: user.id,
+      metadata: { fullName: user.fullName, permissions: dto.permissions ?? [] },
+    });
+
     const { passwordHash: _omit, ...rest } = user;
     return rest;
   }
@@ -57,13 +71,23 @@ export class UsersService {
     return users.map(({ passwordHash, ...rest }) => rest);
   }
 
-  async updateStatus(id: string, status: AccountStatus) {
+  async updateStatus(id: string, status: AccountStatus, actorId?: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException("Utilisateur introuvable.");
-    return this.prisma.user.update({ where: { id }, data: { status } });
+    const updated = await this.prisma.user.update({ where: { id }, data: { status } });
+
+    await this.audit.log({
+      userId: actorId,
+      action: "UPDATE_USER_STATUS",
+      entityType: "User",
+      entityId: id,
+      metadata: { fullName: user.fullName, previousStatus: user.status, newStatus: status },
+    });
+
+    return updated;
   }
 
-  async updatePermissions(id: string, permissionKeys: string[]) {
+  async updatePermissions(id: string, permissionKeys: string[], actorId?: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException("Utilisateur introuvable.");
 
@@ -78,6 +102,14 @@ export class UsersService {
       }),
     ]);
 
+    await this.audit.log({
+      userId: actorId,
+      action: "UPDATE_PERMISSIONS",
+      entityType: "User",
+      entityId: id,
+      metadata: { fullName: user.fullName, permissions: permissionKeys },
+    });
+
     return this.prisma.user.findUnique({
       where: { id },
       include: { permissions: { include: { permission: true } } },
@@ -86,6 +118,15 @@ export class UsersService {
 
   async updateProfile(id: string, dto: UpdateProfileDto) {
     return this.prisma.user.update({ where: { id }, data: dto });
+  }
+
+  async updateAvatar(id: string, url: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException("Utilisateur introuvable.");
+    await this.storage.deleteByUrl(user.avatarUrl);
+    const updated = await this.prisma.user.update({ where: { id }, data: { avatarUrl: url } });
+    const { passwordHash: _omit, ...rest } = updated;
+    return rest;
   }
 
   async listPermissions() {

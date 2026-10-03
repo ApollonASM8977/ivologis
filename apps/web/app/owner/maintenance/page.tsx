@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Wrench } from "lucide-react";
 import { api } from "@/lib/api";
@@ -21,6 +22,7 @@ interface MaintenanceRow {
 }
 
 export default function OwnerMaintenancePage() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
@@ -38,12 +40,18 @@ export default function OwnerMaintenancePage() {
 
   return (
     <div>
-      <PageHeader title="Maintenance" subtitle="Demandes concernant vos biens" />
+      <PageHeader title="Maintenance" subtitle="Demandes concernant vos biens — cliquez pour suivre et échanger" />
 
       {!isLoading && data?.data?.length === 0 ? (
         <EmptyState icon={Wrench} title="Aucune demande de maintenance" />
       ) : (
-        <DataTable columns={columns} rows={data?.data ?? []} loading={isLoading} rowKey={(r) => r.id} page={page} limit={10} total={data?.total} onPageChange={setPage} />
+        <DataTable columns={columns} rows={data?.data ?? []} loading={isLoading} rowKey={(r) => r.id}
+          onRowClick={(r) => router.push(`/owner/maintenance/${r.id}`)}
+          page={page}
+          limit={10}
+          total={data?.total}
+          onPageChange={setPage}
+        />
       )}
     </div>
   );

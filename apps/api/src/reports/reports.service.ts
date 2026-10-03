@@ -152,6 +152,36 @@ export class ReportsService {
     };
   }
 
+  async ownerStatement(ownerId: string) {
+    const [owner, summary, payments, maintenance, settings] = await Promise.all([
+      this.prisma.owner.findUnique({ where: { id: ownerId }, select: { fullName: true } }),
+      this.ownerFinancialReport(ownerId),
+      this.prisma.payment.findMany({
+        where: { ownerId, status: PaymentStatus.PAID },
+        orderBy: { paymentDate: "desc" },
+        take: 1000,
+        include: { property: { select: { name: true } }, tenant: { select: { fullName: true } } },
+      }),
+      this.prisma.maintenanceRequest.findMany({
+        where: { property: { ownerId } },
+        orderBy: { createdAt: "desc" },
+        take: 1000,
+        include: { property: { select: { name: true } } },
+      }),
+      this.prisma.companySettings.findFirst(),
+    ]);
+
+    return {
+      owner,
+      summary,
+      payments,
+      maintenance,
+      companyName: settings?.companyName ?? "IVOLOGIS",
+      commissionRate: Number(settings?.commissionRate ?? 10),
+      generatedAt: new Date(),
+    };
+  }
+
   async propertyReport(propertyId: string) {
     const [payments, maintenanceRequests, leases] = await Promise.all([
       this.prisma.payment.findMany({ where: { propertyId }, orderBy: { paymentDate: "desc" } }),

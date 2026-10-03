@@ -64,14 +64,14 @@ export class LeasesController {
   @Post(":id/renew")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.LEASES_MANAGE)
-  renew(@Param("id") id: string, @Body() dto: RenewLeaseDto) {
-    return this.leasesService.renew(id, dto);
+  renew(@Param("id") id: string, @Body() dto: RenewLeaseDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.leasesService.renew(id, dto, user.id);
   }
 
   @Post(":id/terminate")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.LEASES_MANAGE)
-  terminate(@Param("id") id: string) {
-    return this.leasesService.terminate(id);
+  terminate(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.leasesService.terminate(id, user.id);
   }
 }

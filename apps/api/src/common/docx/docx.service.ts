@@ -1,6 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { join } from "path";
 import {
   AlignmentType,
   Document,
@@ -14,12 +12,7 @@ import {
   WidthType,
 } from "docx";
 import { ContractBlock, ContractDocumentData, buildContractBlocks } from "../documents/contract-builder";
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? "./uploads";
-
-function ensureDir(dir: string) {
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-}
+import { StorageService } from "../../storage/storage.service";
 
 const BRAND_BLUE = "0B5FFF";
 const BRAND_DARK = "0B1F3A";
@@ -28,12 +21,9 @@ const INK_MUTED = "6B7280";
 
 @Injectable()
 export class DocxService {
-  async generateContractDocx(data: ContractDocumentData): Promise<string> {
-    const dir = join(UPLOAD_DIR, "contracts");
-    ensureDir(dir);
-    const filename = `${data.contractNumber}.docx`;
-    const filePath = join(dir, filename);
+  constructor(private storage: StorageService) {}
 
+  async generateContractDocx(data: ContractDocumentData): Promise<string> {
     const blocks: ContractBlock[] = buildContractBlocks(data);
     const children: (Paragraph | Table)[] = [];
 
@@ -132,8 +122,11 @@ export class DocxService {
     });
 
     const buffer = await Packer.toBuffer(doc);
-    writeFileSync(filePath, buffer);
 
-    return `/uploads/contracts/${filename}`;
+    return this.storage.save({
+      buffer,
+      filename: `${data.contractNumber}.docx`,
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
   }
 }

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Wallet, Download, Receipt, AlertTriangle } from "lucide-react";
-import { api, apiErrorMessage, fileUrl, API_URL } from "@/lib/api";
+import { Plus, Wallet, Download, Receipt, AlertTriangle, FileDown } from "lucide-react";
+import { api, apiErrorMessage, downloadFile, fileUrl } from "@/lib/api";
 import { formatXOF, PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,16 @@ export default function AdminPaymentsPage() {
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
+  const receiptMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/payments/${id}/receipt`),
+    onSuccess: (res) => {
+      toast.success("Quittance générée.");
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      window.open(fileUrl(res.data.pdfUrl), "_blank");
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
   const columns: Column<PaymentRow>[] = [
     { header: "Date", cell: (r) => new Date(r.paymentDate).toLocaleDateString("fr-FR") },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
@@ -63,14 +73,17 @@ export default function AdminPaymentsPage() {
     { header: "Statut", cell: (r) => <PaymentStatusBadge status={r.status} /> },
     {
       header: "Quittance",
-      cell: (r) =>
-        r.receipt?.pdfUrl ? (
-          <a href={fileUrl(r.receipt.pdfUrl)} target="_blank" className="text-primary hover:underline">
-            <Receipt className="h-4 w-4" />
-          </a>
-        ) : (
-          "—"
-        ),
+      cell: (r) => (
+        <button
+          title="Générer la quittance PDF"
+          onClick={() => receiptMutation.mutate(r.id)}
+          disabled={receiptMutation.isPending}
+          className="flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-ink-muted hover:bg-gray-100 hover:text-primary disabled:opacity-50"
+        >
+          {r.receipt?.pdfUrl ? <Receipt className="h-3.5 w-3.5" /> : <FileDown className="h-3.5 w-3.5" />}
+          PDF
+        </button>
+      ),
     },
   ];
 
@@ -84,11 +97,9 @@ export default function AdminPaymentsPage() {
             <Button size="sm" onClick={() => setModalOpen(true)}>
               <Plus className="h-4 w-4" /> Enregistrer un paiement
             </Button>
-            <a href={`${API_URL}/api/payments/export`} target="_blank">
-              <Button size="sm" variant="secondary">
-                <Download className="h-4 w-4" /> Exporter CSV
-              </Button>
-            </a>
+            <Button size="sm" variant="secondary" onClick={() => downloadFile("/payments/export", "paiements.csv").catch((e) => toast.error(apiErrorMessage(e)))}>
+              <Download className="h-4 w-4" /> Exporter CSV
+            </Button>
           </div>
         }
       />

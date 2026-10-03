@@ -1,19 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, FileText, FileType, XCircle } from "lucide-react";
+import { Plus, FileText, FileType, XCircle, RefreshCw } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { formatXOF, LEASE_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
+import { Input, Label } from "@/components/ui/input";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
 import { LeaseForm, LeaseFormValues } from "@/components/leases/lease-form";
+
+interface RenewFormValues {
+  newEndDate: string;
+  newRentAmount?: number;
+}
 
 interface LeaseRow {
   id: string;
@@ -32,6 +39,8 @@ export default function AdminLeasesPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
+  const [renewTarget, setRenewTarget] = useState<LeaseRow | null>(null);
+  const { register: registerRenew, handleSubmit: handleRenewSubmit, reset: resetRenew } = useForm<RenewFormValues>();
 
   const { data, isLoading } = useQuery({
     queryKey: ["leases", page],
@@ -71,6 +80,18 @@ export default function AdminLeasesPage() {
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
+  const renewMutation = useMutation({
+    mutationFn: ({ id, values }: { id: string; values: RenewFormValues }) =>
+      api.post(`/leases/${id}/renew`, values),
+    onSuccess: () => {
+      toast.success("Contrat renouvelé.");
+      queryClient.invalidateQueries({ queryKey: ["leases"] });
+      setRenewTarget(null);
+      resetRenew();
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
   const columns: Column<LeaseRow>[] = [
     { header: "N° Contrat", cell: (r) => <span className="font-mono text-xs">{r.contractNumber}</span> },
     { header: "Type", cell: (r) => <Badge color="blue">{LEASE_TYPE_LABELS[r.type]}</Badge> },
@@ -84,31 +105,39 @@ export default function AdminLeasesPage() {
       cell: (r) => (
         <div className="flex gap-1">
           <button
-            title="Générer / télécharger en PDF"
-            onClick={() =>
-              r.documentUrl ? window.open(fileUrl(r.documentUrl), "_blank") : documentMutation.mutate({ id: r.id, format: "pdf" })
-            }
+            title="Générer le contrat en PDF"
+            onClick={() => documentMutation.mutate({ id: r.id, format: "pdf" })}
             className="rounded px-1.5 py-1 text-xs font-medium text-ink-muted hover:bg-gray-100 hover:text-primary"
           >
             PDF
           </button>
           <button
-            title="Générer / télécharger en Word"
-            onClick={() =>
-              r.wordUrl ? window.open(fileUrl(r.wordUrl), "_blank") : documentMutation.mutate({ id: r.id, format: "docx" })
-            }
+            title="Générer le contrat en Word"
+            onClick={() => documentMutation.mutate({ id: r.id, format: "docx" })}
             className="flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-ink-muted hover:bg-gray-100 hover:text-primary"
           >
             <FileType className="h-3.5 w-3.5" /> Word
           </button>
           {r.status === "ACTIVE" && (
-            <button
-              title="Résilier le contrat"
-              onClick={() => confirm("Résilier ce contrat ?") && terminateMutation.mutate(r.id)}
-              className="rounded p-1.5 text-ink-muted hover:bg-red-50 hover:text-danger"
-            >
-              <XCircle className="h-4 w-4" />
-            </button>
+            <>
+              <button
+                title="Renouveler le contrat"
+                onClick={() => {
+                  setRenewTarget(r);
+                  resetRenew({ newRentAmount: r.rentAmount });
+                }}
+                className="rounded p-1.5 text-ink-muted hover:bg-green-50 hover:text-success"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </button>
+              <button
+                title="Résilier le contrat"
+                onClick={() => confirm("Résilier ce contrat ?") && terminateMutation.mutate(r.id)}
+                className="rounded p-1.5 text-ink-muted hover:bg-red-50 hover:text-danger"
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            </>
           )}
         </div>
       ),
@@ -135,6 +164,29 @@ export default function AdminLeasesPage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nouveau contrat de bail" width="max-w-2xl">
         <LeaseForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
+      </Modal>
+
+      <Modal
+        open={!!renewTarget}
+        onClose={() => setRenewTarget(null)}
+        title={`Renouveler — ${renewTarget?.contractNumber ?? ""}`}
+      >
+        <form
+          onSubmit={handleRenewSubmit((values) => renewTarget && renewMutation.mutate({ id: renewTarget.id, values }))}
+          className="space-y-4"
+        >
+          <div>
+            <Label>Nouvelle date de fin</Label>
+            <Input type="date" {...registerRenew("newEndDate", { required: true })} />
+          </div>
+          <div>
+            <Label>Nouveau loyer (optionnel)</Label>
+            <Input type="number" {...registerRenew("newRentAmount", { valueAsNumber: true })} />
+          </div>
+          <Button type="submit" className="w-full" loading={renewMutation.isPending}>
+            Renouveler le contrat
+          </Button>
+        </form>
       </Modal>
     </div>
   );

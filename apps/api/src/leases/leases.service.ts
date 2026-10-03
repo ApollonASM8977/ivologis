@@ -4,6 +4,9 @@ import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
 import { PdfService } from "../common/pdf/pdf.service";
 import { DocxService } from "../common/docx/docx.service";
+import { AuditService } from "../audit/audit.service";
+import { StorageService } from "../storage/storage.service";
+import { SettingsService } from "../settings/settings.service";
 import { PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { CreateLeaseDto } from "./dto/create-lease.dto";
 import { RenewLeaseDto } from "./dto/renew-lease.dto";
@@ -21,6 +24,9 @@ export class LeasesService {
     private prisma: PrismaService,
     private pdfService: PdfService,
     private docxService: DocxService,
+    private audit: AuditService,
+    private storage: StorageService,
+    private settings: SettingsService,
   ) {}
 
   async create(dto: CreateLeaseDto) {
@@ -99,9 +105,9 @@ export class LeasesService {
     return this.prisma.lease.update({ where: { id }, data: dto });
   }
 
-  async renew(id: string, dto: RenewLeaseDto) {
+  async renew(id: string, dto: RenewLeaseDto, actorId?: string) {
     const lease = await this.findOne(id);
-    return this.prisma.lease.update({
+    const updated = await this.prisma.lease.update({
       where: { id },
       data: {
         endDate: new Date(dto.newEndDate),
@@ -109,11 +115,21 @@ export class LeasesService {
         status: LeaseStatus.ACTIVE,
       },
     });
+
+    await this.audit.log({
+      userId: actorId,
+      action: "RENEW_LEASE",
+      entityType: "Lease",
+      entityId: id,
+      metadata: { contractNumber: lease.contractNumber, newEndDate: dto.newEndDate, newRentAmount: dto.newRentAmount },
+    });
+
+    return updated;
   }
 
-  async terminate(id: string) {
+  async terminate(id: string, actorId?: string) {
     const lease = await this.findOne(id);
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.property.update({
         where: { id: lease.propertyId },
         data: { status: PropertyStatus.VACANT, currentTenantId: null },
@@ -123,15 +139,28 @@ export class LeasesService {
         data: { status: LeaseStatus.TERMINATED },
       });
     });
+
+    await this.audit.log({
+      userId: actorId,
+      action: "TERMINATE_LEASE",
+      entityType: "Lease",
+      entityId: id,
+      metadata: { contractNumber: lease.contractNumber },
+    });
+
+    return result;
   }
 
   async generateContractDocument(id: string, format: "pdf" | "docx") {
     const lease = await this.findOne(id);
+    const company = await this.settings.get();
 
     const documentData = {
       contractNumber: lease.contractNumber,
       type: lease.type,
-      companyName: "IVOLOGIS",
+      companyName: company.companyName,
+      companyAddress: company.address,
+      companyContact: [company.phone, company.email].filter(Boolean).join(" · "),
       ownerName: lease.owner.fullName,
       ownerPhone: lease.owner.phone,
       ownerAddress: lease.owner.address,
@@ -154,12 +183,14 @@ export class LeasesService {
     };
 
     if (format === "docx") {
+      await this.storage.deleteByUrl(lease.wordUrl);
       const wordUrl = await this.docxService.generateContractDocx(documentData);
       return this.prisma.lease.update({ where: { id }, data: { wordUrl } });
     }
 
-    const pdfUrl = await this.pdfService.generateContractPdf(documentData);
-    return this.prisma.lease.update({ where: { id }, data: { documentUrl: pdfUrl } });
+    await this.storage.deleteByUrl(lease.documentUrl);
+    const documentUrl = await this.pdfService.generateContractPdf(documentData);
+    return this.prisma.lease.update({ where: { id }, data: { documentUrl } });
   }
 
   /** À exécuter périodiquement pour marquer les contrats arrivés à échéance. */

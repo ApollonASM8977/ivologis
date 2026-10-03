@@ -4,6 +4,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuditModule } from "./audit/audit.module";
+import { StorageModule } from "./storage/storage.module";
 import { PdfModule } from "./common/pdf/pdf.module";
 import { DocxModule } from "./common/docx/docx.module";
 import { NotificationsModule } from "./notifications/notifications.module";
@@ -26,6 +27,7 @@ import { SettingsModule } from "./settings/settings.module";
     }),
     PrismaModule,
     AuditModule,
+    StorageModule,
     PdfModule,
     DocxModule,
     NotificationsModule,

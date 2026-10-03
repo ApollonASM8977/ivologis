@@ -14,13 +14,16 @@ export class MaintenanceService {
   ) {}
 
   async create(dto: CreateMaintenanceDto, tenantId: string) {
-    const property = await this.prisma.property.findUnique({ where: { id: dto.propertyId } });
+    const property = await this.prisma.property.findUnique({
+      where: { id: dto.propertyId },
+      include: { owner: { select: { userId: true } } },
+    });
     if (!property) throw new NotFoundException("Bien introuvable.");
     if (property.currentTenantId !== tenantId) {
       throw new ForbiddenException("Vous ne pouvez signaler un problème que pour votre logement actuel.");
     }
 
-    return this.prisma.maintenanceRequest.create({
+    const request = await this.prisma.maintenanceRequest.create({
       data: {
         tenantId,
         propertyId: dto.propertyId,
@@ -30,6 +33,26 @@ export class MaintenanceService {
         photos: dto.photos ?? [],
       },
     });
+
+    const admins = await this.prisma.user.findMany({
+      where: { role: "SUPER_ADMIN" },
+      select: { id: true },
+    });
+    const recipients = new Set<string>(admins.map((a) => a.id));
+    if (property.owner?.userId) recipients.add(property.owner.userId);
+
+    await Promise.all(
+      Array.from(recipients).map((userId) =>
+        this.notifications.notify({
+          userId,
+          type: "MAINTENANCE_NEW",
+          title: "Nouvelle demande de maintenance",
+          message: `${property.name} : nouvelle demande (${dto.issueType.toLowerCase()}) signalée par le locataire.`,
+        }),
+      ),
+    );
+
+    return request;
   }
 
   async findAll(
@@ -99,11 +122,34 @@ export class MaintenanceService {
   }
 
   async addComment(maintenanceRequestId: string, authorId: string, comment: string) {
-    await this.findOne(maintenanceRequestId);
+    const request = await this.findOne(maintenanceRequestId);
     if (!comment?.trim()) throw new BadRequestException("Le commentaire ne peut pas être vide.");
-    return this.prisma.maintenanceComment.create({
+
+    const created = await this.prisma.maintenanceComment.create({
       data: { maintenanceRequestId, authorId, comment },
       include: { author: { select: { fullName: true, role: true } } },
     });
+
+    const property = await this.prisma.property.findUnique({
+      where: { id: request.propertyId },
+      include: { owner: { select: { userId: true } } },
+    });
+
+    const recipients = new Set<string>();
+    if (request.tenant.userId && request.tenant.userId !== authorId) recipients.add(request.tenant.userId);
+    if (property?.owner?.userId && property.owner.userId !== authorId) recipients.add(property.owner.userId);
+
+    await Promise.all(
+      Array.from(recipients).map((userId) =>
+        this.notifications.notify({
+          userId,
+          type: "MAINTENANCE_NEW",
+          title: "Nouveau commentaire",
+          message: `${created.author.fullName} a commenté la demande concernant "${request.property.name}".`,
+        }),
+      ),
+    );
+
+    return created;
   }
 }

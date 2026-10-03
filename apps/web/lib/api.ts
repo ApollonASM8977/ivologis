@@ -43,3 +43,17 @@ export function fileUrl(path?: string | null): string | undefined {
   if (path.startsWith("http")) return path;
   return `${API_URL}${path}`;
 }
+
+export async function downloadFile(path: string, fallbackName: string) {
+  const res = await api.get(path, { responseType: "blob" });
+  const disposition: string = res.headers["content-disposition"] ?? "";
+  const match = /filename="?([^";]+)"?/.exec(disposition);
+  const url = URL.createObjectURL(res.data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = match?.[1] ?? fallbackName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

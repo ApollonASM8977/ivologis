@@ -294,6 +294,17 @@ model Property {
   @@index([commune])
 }
 
+model StoredFile {
+  id        String   @id @default(uuid())
+  filename  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@map("stored_files")
+}
+
 model PropertyImage {
   id         String   @id @default(uuid())
   propertyId String

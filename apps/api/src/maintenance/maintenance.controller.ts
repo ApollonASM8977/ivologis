@@ -53,12 +53,7 @@ export class MaintenanceController {
   @Get(":id")
   async findOne(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     const request = await this.maintenanceService.findOne(id);
-    if (user.role === UserRole.TENANT && request.tenantId !== user.tenantId) {
-      throw new ForbiddenException("Vous n'avez pas accès à cette demande.");
-    }
-    if (user.role === UserRole.OWNER && (request as any).property.ownerId !== user.ownerId) {
-      throw new ForbiddenException("Vous n'avez pas accès à cette demande.");
-    }
+    this.assertCanAccess(request, user);
     return request;
   }
 
@@ -71,11 +66,22 @@ export class MaintenanceController {
 
   @Post(":id/comments")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER, UserRole.TENANT)
-  addComment(
+  async addComment(
     @Param("id") id: string,
     @Body() dto: AddCommentDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
+    const request = await this.maintenanceService.findOne(id);
+    this.assertCanAccess(request, user);
     return this.maintenanceService.addComment(id, user.id, dto.comment);
+  }
+
+  private assertCanAccess(request: { tenantId: string; property: { ownerId: string } }, user: AuthenticatedUser) {
+    if (user.role === UserRole.TENANT && request.tenantId !== user.tenantId) {
+      throw new ForbiddenException("Vous n'avez pas accès à cette demande.");
+    }
+    if (user.role === UserRole.OWNER && request.property.ownerId !== user.ownerId) {
+      throw new ForbiddenException("Vous n'avez pas accès à cette demande.");
+    }
   }
 }

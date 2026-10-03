@@ -3,13 +3,19 @@ import { PropertyStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { toSkipTake } from "../common/dto/pagination.dto";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
+import { AuditService } from "../audit/audit.service";
+import { StorageService } from "../storage/storage.service";
 import { CreatePropertyDto } from "./dto/create-property.dto";
 import { UpdatePropertyDto } from "./dto/update-property.dto";
 import { PropertyFilterDto } from "./dto/property-filter.dto";
 
 @Injectable()
 export class PropertiesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+    private storage: StorageService,
+  ) {}
 
   async create(dto: CreatePropertyDto, user: AuthenticatedUser) {
     let ownerId = dto.ownerId;
@@ -116,12 +122,22 @@ export class PropertiesService {
     return this.prisma.property.update({ where: { id }, data: rest });
   }
 
-  async archive(id: string) {
-    await this.findOne(id);
-    return this.prisma.property.update({
+  async archive(id: string, actorId?: string) {
+    const property = await this.findOne(id);
+    const updated = await this.prisma.property.update({
       where: { id },
       data: { archivedAt: new Date(), status: PropertyStatus.SUSPENDU },
     });
+
+    await this.audit.log({
+      userId: actorId,
+      action: "ARCHIVE_PROPERTY",
+      entityType: "Property",
+      entityId: id,
+      metadata: { name: property.name },
+    });
+
+    return updated;
   }
 
   async addImage(propertyId: string, url: string, isCover: boolean) {
@@ -135,8 +151,20 @@ export class PropertiesService {
     return this.prisma.propertyImage.create({ data: { propertyId, url, isCover } });
   }
 
+  async findImage(imageId: string) {
+    const image = await this.prisma.propertyImage.findUnique({
+      where: { id: imageId },
+      include: { property: { select: { ownerId: true } } },
+    });
+    if (!image) throw new NotFoundException("Photo introuvable.");
+    return image;
+  }
+
   async removeImage(imageId: string) {
-    return this.prisma.propertyImage.delete({ where: { id: imageId } });
+    const image = await this.findImage(imageId);
+    await this.prisma.propertyImage.delete({ where: { id: imageId } });
+    await this.storage.deleteByUrl(image.url);
+    return { message: "Photo supprimée." };
   }
 
   async findForTenant(tenantId: string) {

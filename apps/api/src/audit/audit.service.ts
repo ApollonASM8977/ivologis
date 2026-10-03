@@ -26,4 +26,19 @@ export class AuditService {
       },
     });
   }
+
+  async findAll(pagination: { page?: number; limit?: number } = {}) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 30;
+    const [data, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { user: { select: { fullName: true, role: true } } },
+      }),
+      this.prisma.auditLog.count(),
+    ]);
+    return { data, total, page, limit };
+  }
 }
