@@ -19,6 +19,8 @@ import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { ReportsModule } from "./reports/reports.module";
 import { SettingsModule } from "./settings/settings.module";
 import { ContactModule } from "./contact/contact.module";
+import { SearchModule } from "./search/search.module";
+import { TenantRequestsModule } from "./tenant-requests/tenant-requests.module";
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { ContactModule } from "./contact/contact.module";
     ReportsModule,
     SettingsModule,
     ContactModule,
+    SearchModule,
+    TenantRequestsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

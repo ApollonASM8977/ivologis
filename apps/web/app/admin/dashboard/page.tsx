@@ -1,5 +1,6 @@
 "use client";
 
+import { RevisionsDueCard } from "@/components/leases/revisions-due-card";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Building2, Users, UserRound, Wallet, AlertTriangle, Wrench, Plus, Download } from "lucide-react";
@@ -103,6 +104,7 @@ export default function AdminDashboardPage() {
           </div>
         </>
       )}
+      <div className="mt-4"><RevisionsDueCard /></div>
     </div>
   );
 }

@@ -9,4 +9,5 @@ export interface AuthenticatedUser {
   permissions: string[];
   ownerId: string | null;
   tenantId: string | null;
+  sessionId?: string | null;
 }

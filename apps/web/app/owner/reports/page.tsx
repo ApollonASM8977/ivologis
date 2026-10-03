@@ -1,5 +1,6 @@
 "use client";
 
+import { PayoutsCard } from "@/components/owners/payouts-card";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -80,6 +81,7 @@ export default function OwnerReportsPage() {
           )}
         </div>
       </Card>
+      <div className="mt-6"><PayoutsCard ownerId={owner?.id ?? ""} canRecord={false} /></div>
     </div>
   );
 }

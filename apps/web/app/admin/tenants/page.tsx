@@ -4,7 +4,8 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, UserRound } from "lucide-react";
+import { Plus, UserRound, Upload } from "lucide-react";
+import { ImportTenantsDialog } from "@/components/tenants/import-tenants-dialog";
 import { api, apiErrorMessage } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ function AdminTenantsPageContent() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim());
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["tenants", page, debouncedSearch],
@@ -71,9 +73,14 @@ function AdminTenantsPageContent() {
         title="Locataires"
         subtitle="Tous les locataires gérés par IVOLOGIS"
         action={
-          <Button size="sm" onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4" /> Ajouter un locataire
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="secondary" onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4" /> Importer CSV
+            </Button>
+            <Button size="sm" onClick={() => setModalOpen(true)}>
+              <Plus className="h-4 w-4" /> Ajouter un locataire
+            </Button>
+          </div>
         }
       />
 
@@ -103,6 +110,8 @@ function AdminTenantsPageContent() {
           onRowClick={(row) => router.push(`/admin/tenants/${row.id}`)}
         />
       )}
+
+      <ImportTenantsDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un locataire" width="max-w-2xl">
         <TenantForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />

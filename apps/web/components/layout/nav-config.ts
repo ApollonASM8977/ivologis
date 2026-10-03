@@ -16,6 +16,7 @@ import {
   HardHat,
   History,
   Inbox,
+  Mail,
 } from "lucide-react";
 
 export interface NavItem {
@@ -35,6 +36,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Techniciens", href: "/admin/technicians", icon: HardHat },
   { label: "Statistiques", href: "/admin/reports", icon: BarChart3 },
   { label: "Demandes de démo", href: "/admin/contact-requests", icon: Inbox },
+  { label: "Demandes locataires", href: "/admin/tenant-requests", icon: Mail },
   { label: "Équipe", href: "/admin/team", icon: UserCog },
   { label: "Journal d'activité", href: "/admin/audit-log", icon: History },
   { label: "Paramètres", href: "/admin/settings", icon: Settings },
@@ -58,5 +60,6 @@ export const TENANT_NAV: NavItem[] = [
   { label: "Mon contrat", href: "/tenant/lease", icon: FileText },
   { label: "Paiements", href: "/tenant/payments", icon: Receipt },
   { label: "Maintenance", href: "/tenant/maintenance", icon: ClipboardList },
+  { label: "Résiliation & demandes", href: "/tenant/requests", icon: Mail },
   { label: "Profil", href: "/tenant/profile", icon: UserCircle },
 ];

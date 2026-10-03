@@ -17,6 +17,7 @@ import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
 import { LeaseForm, LeaseFormValues } from "@/components/leases/lease-form";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface RenewFormValues {
   newEndDate: string;
@@ -41,6 +42,7 @@ export default function AdminLeasesPage() {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [renewTarget, setRenewTarget] = useState<LeaseRow | null>(null);
+  const [terminateTarget, setTerminateTarget] = useState<LeaseRow | null>(null);
   const { register: registerRenew, handleSubmit: handleRenewSubmit, reset: resetRenew } = useForm<RenewFormValues>();
 
   const { data, isLoading } = useQuery({
@@ -133,7 +135,7 @@ export default function AdminLeasesPage() {
               </button>
               <button
                 title="Résilier le contrat"
-                onClick={() => confirm("Résilier ce contrat ?") && terminateMutation.mutate(r.id)}
+                onClick={() => setTerminateTarget(r)}
                 className="rounded p-1.5 text-ink-muted hover:bg-red-50 hover:text-danger"
               >
                 <XCircle className="h-4 w-4" />
@@ -166,6 +168,17 @@ export default function AdminLeasesPage() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nouveau contrat de bail" width="max-w-2xl">
         <LeaseForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
       </Modal>
+
+      <ConfirmDialog
+        open={!!terminateTarget}
+        danger
+        title="Résilier le contrat"
+        message={`Le bail ${terminateTarget?.contractNumber ?? ""} sera résilié et le bien repassera en vacant. Cette action est tracée dans le journal d'activité.`}
+        confirmLabel="Résilier le contrat"
+        loading={terminateMutation.isPending}
+        onClose={() => setTerminateTarget(null)}
+        onConfirm={() => terminateTarget && terminateMutation.mutate(terminateTarget.id, { onSettled: () => setTerminateTarget(null) })}
+      />
 
       <Modal
         open={!!renewTarget}

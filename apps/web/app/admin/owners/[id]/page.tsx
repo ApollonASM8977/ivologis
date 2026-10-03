@@ -1,5 +1,6 @@
 "use client";
 
+import { PayoutsCard } from "@/components/owners/payouts-card";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Building2 } from "lucide-react";
@@ -115,6 +116,7 @@ export default function OwnerDetailPage() {
       ) : (
         <EmptyState icon={Building2} title="Aucun bien pour ce propriétaire" />
       )}
+      <div className="mt-4"><PayoutsCard ownerId={id} canRecord /></div>
     </div>
   );
 }

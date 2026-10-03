@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -48,6 +49,16 @@ export class TenantsController {
   @RequirePermissions(PERMISSION_KEYS.TENANTS_MANAGE)
   create(@Body() dto: CreateTenantDto) {
     return this.tenantsService.create(dto);
+  }
+
+  @Post("import")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.TENANTS_MANAGE)
+  importRows(@Body("rows") rows: unknown[]) {
+    if (!Array.isArray(rows) || rows.length === 0 || rows.length > 200) {
+      throw new BadRequestException("Importez entre 1 et 200 locataires à la fois.");
+    }
+    return this.tenantsService.importRows(rows);
   }
 
   @Get(":id")

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
-import { Check } from "lucide-react";
+import { Check, Copy, ShieldCheck } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuthStore, ROLE_HOME } from "@/lib/auth-store";
 import { AuthLayout } from "@/components/auth-layout";
@@ -26,7 +26,30 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [needs2fa, setNeeds2fa] = useState(false);
+  const [setup, setSetup] = useState<{ setupToken: string; secret: string; otpauthUrl: string } | null>(null);
   const { register, handleSubmit } = useForm<LoginForm>();
+  const confirmForm = useForm<{ code: string }>();
+
+  function finish(data: { accessToken: string; user: any }) {
+    setSession(data.accessToken, data.user);
+    toast.success(`Bienvenue, ${data.user.fullName.split(" ")[0]} !`);
+    setSuccess(true);
+    setTimeout(() => {
+      router.push(ROLE_HOME[data.user.role as keyof typeof ROLE_HOME] ?? "/login");
+    }, 550);
+  }
+
+  async function confirmSetup(values: { code: string }) {
+    if (!setup) return;
+    setLoading(true);
+    try {
+      const { data } = await api.post("/auth/2fa/mandatory-confirm", { setupToken: setup.setupToken, code: values.code.trim() });
+      finish(data);
+    } catch (error) {
+      toast.error(apiErrorMessage(error));
+      setLoading(false);
+    }
+  }
 
   async function onSubmit(values: LoginForm) {
     setLoading(true);
@@ -43,16 +66,44 @@ export default function LoginPage() {
         toast.message("Saisissez le code affiché dans votre application d'authentification.");
         return;
       }
-      setSession(data.accessToken, data.user);
-      toast.success(`Bienvenue, ${data.user.fullName.split(" ")[0]} !`);
-      setSuccess(true);
-      setTimeout(() => {
-        router.push(ROLE_HOME[data.user.role as keyof typeof ROLE_HOME] ?? "/login");
-      }, 550);
+      if (data.requires2faSetup) {
+        const { data: setupData } = await api.post("/auth/2fa/mandatory-setup", { setupToken: data.setupToken });
+        setSetup({ setupToken: data.setupToken, secret: setupData.secret, otpauthUrl: setupData.otpauthUrl });
+        setLoading(false);
+        return;
+      }
+      finish(data);
     } catch (error) {
       toast.error(apiErrorMessage(error));
       setLoading(false);
     }
+  }
+
+  if (setup) {
+    return (
+      <AuthLayout title="Sécurisez votre compte" subtitle="La double authentification est obligatoire pour les équipes IVOLOGIS">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <div className="flex gap-3 rounded-xl bg-primary/5 p-4 text-sm text-ink">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+            <p>Ajoutez ce compte dans Google Authenticator, Microsoft Authenticator ou Authy, avec la clé ci-dessous.</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 font-mono text-sm tracking-widest text-ink ring-1 ring-gray-200">
+            <span className="flex-1 break-all">{setup.secret}</span>
+            <button type="button" aria-label="Copier la clé" onClick={() => navigator.clipboard?.writeText(setup.secret).then(() => toast.success("Clé copiée."))} className="rounded p-1 text-ink-muted hover:bg-gray-100 hover:text-primary">
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+          <a href={setup.otpauthUrl} className="inline-block text-sm font-medium text-primary hover:underline">Ouvrir directement dans mon application</a>
+          <form onSubmit={confirmForm.handleSubmit(confirmSetup)} className="space-y-4">
+            <div>
+              <Label htmlFor="setup-code">Code à 6 chiffres affiché dans l&apos;application</Label>
+              <Input id="setup-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456" autoFocus {...confirmForm.register("code", { required: true, pattern: /^\d{6}$/ })} />
+            </div>
+            <Button type="submit" className="w-full" loading={loading}>Activer et me connecter</Button>
+          </form>
+        </motion.div>
+      </AuthLayout>
+    );
   }
 
   return (

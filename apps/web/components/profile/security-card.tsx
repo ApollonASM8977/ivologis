@@ -13,6 +13,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { SessionsList } from "@/components/profile/sessions-list";
 
 interface SetupResponse {
   secret: string;
@@ -160,6 +161,7 @@ export function SecurityCard() {
           </form>
         )}
 
+        <SessionsList />
         <div className="border-t border-gray-100 pt-5">
           <p className="font-medium text-ink">Sessions</p>
           <p className="mb-3 text-sm text-ink-muted">Ferme la session sur tous vos appareils, y compris celui-ci.</p>

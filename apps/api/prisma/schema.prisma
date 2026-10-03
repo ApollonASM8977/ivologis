@@ -153,6 +153,7 @@ model User {
   notifications Notification[]
   auditLogs     AuditLog[]
   maintenanceComments MaintenanceComment[]
+  sessions            Session[]
 
   @@map("users")
 }
@@ -207,6 +208,7 @@ model Owner {
   properties Property[]
   leases     Lease[]
   payments   Payment[]
+  payouts    OwnerPayout[]
   documents  Document[]
 
   @@map("owners")
@@ -243,6 +245,7 @@ model Tenant {
   currentProperties    Property[]          @relation("PropertyCurrentTenant")
   leases               Lease[]
   payments             Payment[]
+  requests             TenantRequest[]
   maintenanceRequests  MaintenanceRequest[]
   documents            Document[]
 
@@ -343,6 +346,11 @@ model Lease {
   documentUrl       String?
   wordUrl           String?
   signatureStatus   SignatureStatus @default(UNSIGNED)
+  rentRevisionDate    DateTime?
+  revisionRatePercent Decimal?      @db.Decimal(5, 2)
+  depositRefund       Decimal?      @db.Decimal(14, 2)
+  depositDeductions   Json?
+  depositSettledAt    DateTime?
   status            LeaseStatus     @default(ACTIVE)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
@@ -350,8 +358,10 @@ model Lease {
   property  Property   @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   owner     Owner      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  payments  Payment[]
-  documents Document[]
+  payments    Payment[]
+  documents   Document[]
+  inspections Inspection[]
+  tenantRequests TenantRequest[]
 
   @@map("leases")
   @@index([propertyId])
@@ -569,4 +579,85 @@ model ContactRequest {
   createdAt     DateTime @default(now())
 
   @@map("contact_requests")
+}
+
+enum InspectionType {
+  ENTREE
+  SORTIE
+}
+
+enum TenantRequestType {
+  RESILIATION
+  AUTRE
+}
+
+enum TenantRequestStatus {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+}
+
+model Inspection {
+  id             String         @id @default(uuid())
+  leaseId        String
+  type           InspectionType
+  inspectionDate DateTime
+  rooms          Json
+  generalNotes   String?
+  createdAt      DateTime       @default(now())
+
+  lease Lease @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+
+  @@index([leaseId])
+  @@map("inspections")
+}
+
+model OwnerPayout {
+  id        String        @id @default(uuid())
+  ownerId   String
+  amount    Decimal       @db.Decimal(14, 2)
+  method    PaymentMethod
+  reference String?
+  notes     String?
+  paidAt    DateTime      @default(now())
+
+  owner Owner @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  @@index([ownerId])
+  @@map("owner_payouts")
+}
+
+model TenantRequest {
+  id            String              @id @default(uuid())
+  tenantId      String
+  leaseId       String?
+  type          TenantRequestType
+  status        TenantRequestStatus @default(EN_ATTENTE)
+  effectiveDate DateTime?
+  message       String
+  attachmentUrl String?
+  adminResponse String?
+  handledAt     DateTime?
+  createdAt     DateTime            @default(now())
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lease  Lease?  @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@map("tenant_requests")
+}
+
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
 }

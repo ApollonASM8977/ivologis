@@ -20,7 +20,8 @@ export class StorageService {
           where: { pdfUrl: url },
           select: { payment: { select: { ownerId: true, tenantId: true } } },
         });
-    const owned = lease ?? receipt?.payment;
+    const request = lease || receipt ? null : await this.prisma.tenantRequest.findFirst({ where: { attachmentUrl: url }, select: { tenantId: true } });
+    const owned = lease ?? receipt?.payment ?? (request ? { ownerId: null, tenantId: request.tenantId } : null);
     if (!owned) throw new NotFoundException("Document introuvable.");
 
     const isStaff = user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN_AGENT;

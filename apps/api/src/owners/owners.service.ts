@@ -3,12 +3,67 @@ import * as bcrypt from "bcryptjs";
 import { AccountStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
+import { SettingsService } from "../settings/settings.service";
+import { AuditService } from "../audit/audit.service";
+import { CreatePayoutDto } from "./dto/create-payout.dto";
 import { CreateOwnerDto } from "./dto/create-owner.dto";
 import { UpdateOwnerDto } from "./dto/update-owner.dto";
 
 @Injectable()
 export class OwnersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private settings: SettingsService,
+    private audit: AuditService,
+  ) {}
+
+  async createPayout(ownerId: string, dto: CreatePayoutDto, actorId?: string) {
+    await this.findOne(ownerId);
+    const payout = await this.prisma.ownerPayout.create({
+      data: {
+        ownerId,
+        amount: dto.amount,
+        method: dto.method,
+        reference: dto.reference?.trim() || null,
+        notes: dto.notes?.trim() || null,
+        paidAt: dto.paidAt ? new Date(dto.paidAt) : new Date(),
+      },
+    });
+    await this.audit.log({
+      userId: actorId,
+      action: "CREATE_OWNER_PAYOUT",
+      entityType: "Owner",
+      entityId: ownerId,
+      metadata: { amount: dto.amount, method: dto.method, reference: payout.reference },
+    });
+    return payout;
+  }
+
+  async listPayouts(ownerId: string) {
+    return this.prisma.ownerPayout.findMany({ where: { ownerId }, orderBy: { paidAt: "desc" }, take: 100 });
+  }
+
+  async balance(ownerId: string) {
+    const [collected, maintenance, paidOut, company] = await Promise.all([
+      this.prisma.payment.aggregate({ where: { ownerId, status: "PAID" }, _sum: { amount: true } }),
+      this.prisma.maintenanceRequest.aggregate({ where: { property: { ownerId } }, _sum: { finalCost: true } }),
+      this.prisma.ownerPayout.aggregate({ where: { ownerId }, _sum: { amount: true } }),
+      this.settings.get(),
+    ]);
+    const gross = Number(collected._sum.amount ?? 0);
+    const commissionRate = Number(company.commissionRate);
+    const commission = Math.round((gross * commissionRate) / 100);
+    const maintenanceCosts = Number(maintenance._sum.finalCost ?? 0);
+    const payouts = Number(paidOut._sum.amount ?? 0);
+    return {
+      gross,
+      commissionRate,
+      commission,
+      maintenanceCosts,
+      paidOut: payouts,
+      balanceDue: gross - commission - maintenanceCosts - payouts,
+    };
+  }
 
   async create(dto: CreateOwnerDto) {
     const existing = await this.prisma.owner.findFirst({ where: { phone: dto.phone } });

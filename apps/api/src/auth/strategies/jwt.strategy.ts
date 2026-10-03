@@ -8,6 +8,7 @@ import { AuthenticatedUser } from "../../common/types/authenticated-user";
 interface JwtPayload {
   sub: string;
   tv?: number;
+  sid?: string;
 }
 
 @Injectable()
@@ -40,6 +41,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException("Session expirée. Reconnectez-vous.");
     }
 
+    let sessionId: string | null = null;
+    if (payload.sid) {
+      const session = await this.prisma.session.findUnique({ where: { id: payload.sid } });
+      if (!session || session.revokedAt) {
+        throw new UnauthorizedException("Cette session a été fermée. Reconnectez-vous.");
+      }
+      sessionId = session.id;
+      if (Date.now() - session.lastSeenAt.getTime() > 5 * 60_000) {
+        await this.prisma.session.update({ where: { id: session.id }, data: { lastSeenAt: new Date() } });
+      }
+    }
+
     return {
       id: user.id,
       fullName: user.fullName,
@@ -48,6 +61,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       permissions: user.permissions.map((p) => p.permission.key),
       ownerId: user.owner?.id ?? null,
       tenantId: user.tenant?.id ?? null,
+      sessionId,
     };
   }
 }

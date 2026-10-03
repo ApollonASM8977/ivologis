@@ -4,11 +4,34 @@ import { AccountStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
 import { CreateTenantDto } from "./dto/create-tenant.dto";
+import { plainToInstance } from "class-transformer";
+import { validate } from "class-validator";
 import { UpdateTenantDto } from "./dto/update-tenant.dto";
 
 @Injectable()
 export class TenantsService {
   constructor(private prisma: PrismaService) {}
+
+  async importRows(rows: unknown[]) {
+    const errors: { line: number; message: string }[] = [];
+    let created = 0;
+    for (const [index, raw] of rows.entries()) {
+      const line = index + 2;
+      const dto = plainToInstance(CreateTenantDto, raw as Record<string, unknown>);
+      const problems = await validate(dto, { whitelist: true, forbidNonWhitelisted: true });
+      if (problems.length) {
+        errors.push({ line, message: problems.flatMap((p) => Object.values(p.constraints ?? {})).join(" ") });
+        continue;
+      }
+      try {
+        await this.create(dto);
+        created += 1;
+      } catch (error) {
+        errors.push({ line, message: error instanceof Error ? error.message : "Erreur inconnue" });
+      }
+    }
+    return { created, errors };
+  }
 
   async create(dto: CreateTenantDto) {
     const existing = await this.prisma.tenant.findFirst({ where: { phone: dto.phone } });

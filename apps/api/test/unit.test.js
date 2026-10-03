@@ -128,3 +128,42 @@ test("lien signé : valide avant expiration, refusé après, refusé si altéré
   assert.equal(verifyFileSignature("/api/files/abc", params.get("exp"), params.get("sig"), "autre-secret", now + 60), false, "mauvais secret");
   assert.equal(verifyFileSignature("/api/files/abc", undefined, undefined, secret, now), false, "sans signature");
 });
+
+const { CreateInspectionDto } = require("../dist/src/leases/dto/create-inspection.dto.js");
+const { DepositSettlementDto } = require("../dist/src/leases/dto/deposit-settlement.dto.js");
+const { CreatePayoutDto } = require("../dist/src/owners/dto/create-payout.dto.js");
+const { CreateTenantRequestDto } = require("../dist/src/tenant-requests/dto/create-tenant-request.dto.js");
+
+async function errorsOf(Dto, payload) {
+  const dto = plainToInstance(Dto, payload);
+  const errors = await validate(dto, { whitelist: true, forbidNonWhitelisted: true });
+  return errors.map((e) => e.property);
+}
+
+test("état des lieux : pièces et états contrôlés", async () => {
+  const valid = {
+    type: "ENTREE",
+    inspectionDate: "2026-10-01",
+    rooms: [{ name: "Salon", condition: "BON", notes: "RAS", photoUrls: ["/api/files/x"] }],
+  };
+  assert.deepEqual(await errorsOf(CreateInspectionDto, valid), []);
+  assert.ok((await errorsOf(CreateInspectionDto, { ...valid, rooms: [{ name: "Salon", condition: "PARFAIT" }] })).includes("rooms"));
+  assert.ok((await errorsOf(CreateInspectionDto, { ...valid, type: "AUTRE" })).includes("type"));
+});
+
+test("restitution du dépôt : retenues positives uniquement", async () => {
+  assert.deepEqual(await errorsOf(DepositSettlementDto, { deductions: [{ label: "Peinture", amount: 15000 }] }), []);
+  assert.ok((await errorsOf(DepositSettlementDto, { deductions: [{ label: "Peinture", amount: -1 }] })).includes("deductions"));
+});
+
+test("versement propriétaire : montant strictement positif et moyen connu", async () => {
+  assert.deepEqual(await errorsOf(CreatePayoutDto, { amount: 150000, method: "BANK_TRANSFER", reference: "VIR-42" }), []);
+  assert.ok((await errorsOf(CreatePayoutDto, { amount: 0, method: "CASH" })).includes("amount"));
+  assert.ok((await errorsOf(CreatePayoutDto, { amount: 1000, method: "BITCOIN" })).includes("method"));
+});
+
+test("demande locataire : type et message contrôlés", async () => {
+  assert.deepEqual(await errorsOf(CreateTenantRequestDto, { type: "RESILIATION", effectiveDate: "2027-01-31", message: "Je souhaite résilier mon bail." }), []);
+  assert.ok((await errorsOf(CreateTenantRequestDto, { type: "RESILIATION", message: "court" })).includes("message"));
+  assert.ok((await errorsOf(CreateTenantRequestDto, { type: "INCONNU", message: "Un message suffisant ici." })).includes("type"));
+});

@@ -13,6 +13,7 @@ import { assertOwnsResource } from "../common/utils/scope.util";
 import { OwnersService } from "./owners.service";
 import { CreateOwnerDto } from "./dto/create-owner.dto";
 import { UpdateOwnerDto } from "./dto/update-owner.dto";
+import { CreatePayoutDto } from "./dto/create-payout.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller("owners")
@@ -70,5 +71,26 @@ export class OwnersController {
   @Roles(UserRole.SUPER_ADMIN)
   updateStatus(@Param("id") id: string, @Body("status") status: AccountStatus) {
     return this.ownersService.updateStatus(id, status);
+  }
+
+  @Get(":id/payouts")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  async listPayouts(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    if (user.role === UserRole.OWNER) assertOwnsResource(user, id);
+    return this.ownersService.listPayouts(id);
+  }
+
+  @Get(":id/balance")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  async balance(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    if (user.role === UserRole.OWNER) assertOwnsResource(user, id);
+    return this.ownersService.balance(id);
+  }
+
+  @Post(":id/payouts")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.PAYMENTS_MANAGE)
+  createPayout(@Param("id") id: string, @Body() dto: CreatePayoutDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.ownersService.createPayout(id, dto, user.id);
   }
 }

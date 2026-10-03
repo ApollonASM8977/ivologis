@@ -9,9 +9,9 @@ const config: Config = {
           DEFAULT: "#0B5FFF",
           dark: "#0B1F3A",
         },
-        success: "#16A34A",
+        success: "#15803D",
         danger: "#DC2626",
-        warning: "#F59E0B",
+        warning: "#B45309",
         surface: "#F8FAFC",
         ink: {
           DEFAULT: "#111827",

@@ -15,6 +15,12 @@ import { authenticator } from "otplib";
 import { publicUser } from "../common/utils/public-user";
 
 const SELF_REGISTER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.TENANT];
+const INTERNAL_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT];
+
+export interface SessionMeta {
+  userAgent?: string;
+  ip?: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -24,8 +30,12 @@ export class AuthService {
     private audit: AuditService,
   ) {}
 
-  private async issueToken(user: { id: string; tokenVersion: number }) {
-    return this.jwt.signAsync({ sub: user.id, tv: user.tokenVersion });
+  private async issueToken(user: { id: string; tokenVersion: number }, meta?: SessionMeta) {
+    const session = await this.prisma.session.create({
+      data: { userId: user.id, userAgent: meta?.userAgent?.slice(0, 300) ?? null, ip: meta?.ip ?? null },
+      select: { id: true },
+    });
+    return this.jwt.signAsync({ sub: user.id, tv: user.tokenVersion, sid: session.id });
   }
 
   private passwordFingerprint(passwordHash: string) {
@@ -36,7 +46,7 @@ export class AuthService {
     return publicUser(user);
   }
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, meta?: SessionMeta) {
     const role = dto.role ?? UserRole.OWNER;
     if (!SELF_REGISTER_ROLES.includes(role)) {
       throw new BadRequestException(
@@ -126,11 +136,11 @@ export class AuthService {
       entityId: user.id,
     });
 
-    const accessToken = await this.issueToken(user);
+    const accessToken = await this.issueToken(user, meta);
     return { accessToken, user: this.sanitizeUser(user) };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, meta?: SessionMeta) {
     const user = await this.prisma.user.findFirst({
       where: { OR: [{ email: dto.identifier }, { phone: dto.identifier }] },
     });
@@ -148,6 +158,11 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException("Identifiants incorrects.");
+    }
+
+    if (INTERNAL_ROLES.includes(user.role) && !user.totpEnabled) {
+      const setupToken = await this.jwt.signAsync({ sub: user.id, purpose: "2fa-setup" }, { expiresIn: "15m" });
+      return { requires2faSetup: true as const, setupToken };
     }
 
     if (user.totpEnabled) {
@@ -171,7 +186,7 @@ export class AuthService {
       entityId: user.id,
     });
 
-    const accessToken = await this.issueToken(user);
+    const accessToken = await this.issueToken(user, meta);
     return { accessToken, user: this.sanitizeUser(user) };
   }
 
@@ -223,7 +238,10 @@ export class AuthService {
   }
 
   async logoutEverywhere(userId: string) {
-    await this.prisma.user.update({ where: { id: userId }, data: { tokenVersion: { increment: 1 } } });
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { tokenVersion: { increment: 1 } } }),
+      this.prisma.session.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+    ]);
     return { message: "Toutes les sessions ont été fermées." };
   }
 
@@ -268,6 +286,57 @@ export class AuthService {
     });
     await this.audit.log({ userId, action: "DISABLE_2FA", entityType: "User", entityId: userId });
     return { message: "Double authentification désactivée." };
+  }
+
+  private async verifySetupToken(setupToken: string) {
+    let payload: { sub: string; purpose: string };
+    try {
+      payload = await this.jwt.verifyAsync(setupToken);
+    } catch {
+      throw new UnauthorizedException("Session de configuration expirée. Reconnectez-vous.");
+    }
+    if (payload.purpose !== "2fa-setup") throw new UnauthorizedException("Jeton invalide.");
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user || !INTERNAL_ROLES.includes(user.role)) throw new UnauthorizedException("Jeton invalide.");
+    return user;
+  }
+
+  async mandatorySetup(setupToken: string) {
+    const user = await this.verifySetupToken(setupToken);
+    if (user.totpEnabled) throw new BadRequestException("La double authentification est déjà activée.");
+    const secret = authenticator.generateSecret();
+    await this.prisma.user.update({ where: { id: user.id }, data: { totpSecret: secret } });
+    return { secret, otpauthUrl: authenticator.keyuri(user.email, "IVOLOGIS", secret) };
+  }
+
+  async mandatoryConfirm(setupToken: string, code: string, meta?: SessionMeta) {
+    const user = await this.verifySetupToken(setupToken);
+    if (!user.totpSecret || !authenticator.check(code, user.totpSecret)) {
+      throw new BadRequestException("Code invalide. Vérifiez l'heure de votre téléphone et réessayez.");
+    }
+    const updated = await this.prisma.user.update({ where: { id: user.id }, data: { totpEnabled: true } });
+    await this.audit.log({ userId: user.id, action: "ENABLE_2FA", entityType: "User", entityId: user.id });
+    const accessToken = await this.issueToken(updated, meta);
+    return { accessToken, user: this.sanitizeUser(updated) };
+  }
+
+  async listSessions(userId: string, currentSessionId?: string | null) {
+    const sessions = await this.prisma.session.findMany({
+      where: { userId, revokedAt: null },
+      orderBy: { lastSeenAt: "desc" },
+      select: { id: true, userAgent: true, ip: true, createdAt: true, lastSeenAt: true },
+      take: 50,
+    });
+    return sessions.map((x) => ({ ...x, current: x.id === currentSessionId }));
+  }
+
+  async revokeSession(userId: string, sessionId: string) {
+    const result = await this.prisma.session.updateMany({
+      where: { id: sessionId, userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    if (result.count === 0) throw new BadRequestException("Session introuvable ou déjà fermée.");
+    return { message: "Session fermée." };
   }
 
   async me(userId: string) {
