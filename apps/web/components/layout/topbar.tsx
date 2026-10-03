@@ -25,7 +25,7 @@ export function Topbar({ navItems }: { navItems: NavItem[] }) {
     <>
       <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-100 bg-white/80 px-4 backdrop-blur lg:px-8">
         <div className="flex items-center gap-3">
-          <button className="lg:hidden" onClick={() => setMobileOpen(true)}>
+          <button className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Ouvrir le menu">
             <Menu className="h-5 w-5 text-ink" />
           </button>
           <span className="text-base font-bold text-primary-dark lg:hidden">IVOLOGIS</span>

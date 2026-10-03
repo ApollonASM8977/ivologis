@@ -68,6 +68,8 @@ export function NotificationPanel() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.92 }}
         onClick={() => setOpen((v) => !v)}
+        aria-label={unreadCount ? `Notifications, ${unreadCount} non lue(s)` : "Notifications"}
+        aria-expanded={open}
         className="relative rounded-full p-2 hover:bg-gray-50"
       >
         <motion.span

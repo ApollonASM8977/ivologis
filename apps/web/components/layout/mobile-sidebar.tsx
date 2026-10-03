@@ -29,7 +29,7 @@ export function MobileSidebar({
             </div>
             <p className="font-bold text-primary-dark">IVOLOGIS</p>
           </div>
-          <button onClick={onClose}>
+          <button onClick={onClose} aria-label="Fermer le menu">
             <X className="h-5 w-5" />
           </button>
         </div>
