@@ -12,7 +12,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:studio": "prisma studio",
-    "test": "nest build && node --test test/unit.test.js"
+    "test": "nest build && node --test test/unit.test.js",
+    "test:integration": "node --test test/api.integration.test.js"
   },
   "dependencies": {
     "@ivologis/shared": "*",

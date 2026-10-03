@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentLink } from "@/components/document-link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Wallet, Receipt, Download } from "lucide-react";
@@ -42,9 +43,9 @@ export default function OwnerPaymentsPage() {
       header: "Quittance",
       cell: (r) =>
         r.receipt?.pdfUrl ? (
-          <a href={fileUrl(r.receipt.pdfUrl)} target="_blank" className="text-primary hover:underline">
+          <DocumentLink path={r.receipt.pdfUrl} className="text-primary hover:underline">
             <Receipt className="h-4 w-4" />
-          </a>
+          </DocumentLink>
         ) : (
           "—"
         ),

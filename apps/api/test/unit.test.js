@@ -113,3 +113,18 @@ test("démo : téléphone renseigné mais incorrect rejeté", async () => {
   });
   assert.deepEqual(errors, ["phone"]);
 });
+
+const { signFilePath, verifyFileSignature } = require("../dist/src/common/utils/signed-url.js");
+
+test("lien signé : valide avant expiration, refusé après, refusé si altéré", () => {
+  const secret = "test-secret";
+  const now = 1_000_000;
+  const signed = signFilePath("/api/files/abc", secret, now);
+  const params = new URLSearchParams(signed.split("?")[1]);
+  assert.equal(verifyFileSignature("/api/files/abc", params.get("exp"), params.get("sig"), secret, now + 60), true);
+  assert.equal(verifyFileSignature("/api/files/abc", params.get("exp"), params.get("sig"), secret, now + 60 * 60), false, "expiré");
+  assert.equal(verifyFileSignature("/api/files/autre", params.get("exp"), params.get("sig"), secret, now + 60), false, "autre fichier");
+  assert.equal(verifyFileSignature("/api/files/abc", params.get("exp"), "00", secret, now + 60), false, "signature courte");
+  assert.equal(verifyFileSignature("/api/files/abc", params.get("exp"), params.get("sig"), "autre-secret", now + 60), false, "mauvais secret");
+  assert.equal(verifyFileSignature("/api/files/abc", undefined, undefined, secret, now), false, "sans signature");
+});

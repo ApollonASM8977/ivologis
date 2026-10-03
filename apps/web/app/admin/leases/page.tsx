@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, FileText, FileType, XCircle, RefreshCw } from "lucide-react";
-import { api, apiErrorMessage, fileUrl } from "@/lib/api";
+import { api, apiErrorMessage, openDocument } from "@/lib/api";
 import { formatXOF, LEASE_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,7 @@ export default function AdminLeasesPage() {
       toast.success(variables.format === "docx" ? "Document Word généré." : "Document PDF généré.");
       queryClient.invalidateQueries({ queryKey: ["leases"] });
       const url = variables.format === "docx" ? res.data.wordUrl : res.data.documentUrl;
-      window.open(fileUrl(url), "_blank");
+      openDocument(url).catch((e) => toast.error(apiErrorMessage(e)));
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -93,7 +94,7 @@ export default function AdminLeasesPage() {
   });
 
   const columns: Column<LeaseRow>[] = [
-    { header: "N° Contrat", cell: (r) => <span className="font-mono text-xs">{r.contractNumber}</span> },
+    { header: "N° Contrat", cell: (r) => <Link href={`/admin/leases/${r.id}`} className="font-mono text-xs font-semibold text-primary hover:underline">{r.contractNumber}</Link> },
     { header: "Type", cell: (r) => <Badge color="blue">{LEASE_TYPE_LABELS[r.type]}</Badge> },
     { header: "Bien", cell: (r) => r.property?.name },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },

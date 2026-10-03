@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Wallet, Download, Receipt, AlertTriangle, FileDown } from "lucide-react";
-import { api, apiErrorMessage, downloadFile, fileUrl } from "@/lib/api";
+import { api, apiErrorMessage, downloadFile, openDocument } from "@/lib/api";
 import { formatXOF, PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,7 @@ export default function AdminPaymentsPage() {
     onSuccess: (res) => {
       toast.success("Quittance générée.");
       queryClient.invalidateQueries({ queryKey: ["payments"] });
-      window.open(fileUrl(res.data.pdfUrl), "_blank");
+      openDocument(res.data.pdfUrl).catch((e) => toast.error(apiErrorMessage(e)));
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });

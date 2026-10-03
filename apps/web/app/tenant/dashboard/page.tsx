@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentLink } from "@/components/document-link";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -188,9 +189,9 @@ export default function TenantDashboardPage() {
                             <PaymentMethodBadge method={p.method} size="sm" />
                             <PaymentStatusBadge status={p.status} />
                             {p.receipt?.pdfUrl && (
-                              <a href={fileUrl(p.receipt.pdfUrl)} target="_blank" rel="noreferrer" className="rounded-md p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary" aria-label="Télécharger la quittance">
+                              <DocumentLink path={p.receipt.pdfUrl} className="rounded-md p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary" aria-label="Télécharger la quittance">
                                 <Receipt className="h-4 w-4" />
-                              </a>
+                              </DocumentLink>
                             )}
                           </div>
                         </div>

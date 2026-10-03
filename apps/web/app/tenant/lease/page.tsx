@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentLink } from "@/components/document-link";
 import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, FileType as FileTypeIcon } from "lucide-react";
 import { api, fileUrl } from "@/lib/api";
@@ -79,18 +80,18 @@ export default function TenantLeasePage() {
         {(lease.documentUrl || lease.wordUrl) && (
           <div className="mt-6 flex gap-2">
             {lease.documentUrl && (
-              <a href={fileUrl(lease.documentUrl)} target="_blank">
+              <DocumentLink path={lease.documentUrl}>
                 <Button size="sm">
                   <Download className="h-4 w-4" /> PDF
                 </Button>
-              </a>
+              </DocumentLink>
             )}
             {lease.wordUrl && (
-              <a href={fileUrl(lease.wordUrl)} target="_blank">
+              <DocumentLink path={lease.wordUrl}>
                 <Button size="sm" variant="secondary">
                   <FileTypeIcon className="h-4 w-4" /> Word
                 </Button>
-              </a>
+              </DocumentLink>
             )}
           </div>
         )}

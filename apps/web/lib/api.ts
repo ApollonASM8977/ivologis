@@ -57,3 +57,16 @@ export async function downloadFile(path: string, fallbackName: string) {
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+export async function openDocument(path: string) {
+  const popup = typeof window !== "undefined" ? window.open("", "_blank") : null;
+  try {
+    const { data } = await api.post("/files/sign", { url: path });
+    const target = fileUrl(data.url) as string;
+    if (popup) popup.location.href = target;
+    else window.location.href = target;
+  } catch (error) {
+    popup?.close();
+    throw error;
+  }
+}

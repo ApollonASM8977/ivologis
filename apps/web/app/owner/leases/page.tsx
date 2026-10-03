@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { DocumentLink } from "@/components/document-link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Download, FileType } from "lucide-react";
@@ -32,7 +34,7 @@ export default function OwnerLeasesPage() {
   });
 
   const columns: Column<LeaseRow>[] = [
-    { header: "N° Contrat", cell: (r) => <span className="font-mono text-xs">{r.contractNumber}</span> },
+    { header: "N° Contrat", cell: (r) => <Link href={`/owner/leases/${r.id}`} className="font-mono text-xs font-semibold text-primary hover:underline">{r.contractNumber}</Link> },
     { header: "Type", cell: (r) => <Badge color="blue">{LEASE_TYPE_LABELS[r.type]}</Badge> },
     { header: "Bien", cell: (r) => r.property?.name },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
@@ -43,14 +45,14 @@ export default function OwnerLeasesPage() {
       cell: (r) => (
         <div className="flex gap-2">
           {r.documentUrl && (
-            <a href={fileUrl(r.documentUrl)} target="_blank" className="flex items-center gap-1 text-primary hover:underline" title="PDF">
+            <DocumentLink path={r.documentUrl} className="flex items-center gap-1 text-primary hover:underline" title="PDF">
               <Download className="h-4 w-4" /> PDF
-            </a>
+            </DocumentLink>
           )}
           {r.wordUrl && (
-            <a href={fileUrl(r.wordUrl)} target="_blank" className="flex items-center gap-1 text-primary hover:underline" title="Word">
+            <DocumentLink path={r.wordUrl} className="flex items-center gap-1 text-primary hover:underline" title="Word">
               <FileType className="h-4 w-4" /> Word
-            </a>
+            </DocumentLink>
           )}
           {!r.documentUrl && !r.wordUrl && "—"}
         </div>

@@ -22,7 +22,7 @@ export function AuthLayout({
 }) {
   return (
     <div className="flex min-h-screen">
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary-dark p-12 text-white lg:flex">
+      <aside aria-label="Présentation IVOLOGIS" className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary-dark p-12 text-white lg:flex">
         {/* Animated gradient blobs */}
         <motion.div
           className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-primary/40 blur-3xl"
@@ -93,9 +93,9 @@ export function AuthLayout({
         >
           © {new Date().getFullYear()} IVOLOGIS — Abidjan, Côte d&apos;Ivoire
         </motion.p>
-      </div>
+      </aside>
 
-      <div className="flex w-full flex-col items-center justify-center bg-surface px-6 py-12 lg:w-1/2">
+      <main id="contenu" className="flex w-full flex-col items-center justify-center bg-surface px-6 py-12 lg:w-1/2">
         <motion.div
           className="w-full max-w-sm"
           initial={{ opacity: 0, y: 18 }}
@@ -109,7 +109,7 @@ export function AuthLayout({
           {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </motion.div>
-      </div>
+      </main>
     </div>
   );
 }

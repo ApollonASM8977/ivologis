@@ -149,7 +149,7 @@ function DashboardMockup() {
       >
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm font-semibold text-ink">Vue d&apos;ensemble</p>
-          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold text-success">À jour</span>
+          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-800">À jour</span>
         </div>
         <div className="grid grid-cols-3 gap-3">
           {[

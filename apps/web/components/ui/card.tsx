@@ -23,7 +23,7 @@ export function CardHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <h3 className="text-base font-semibold text-ink">{title}</h3>
+        <h2 className="text-base font-semibold text-ink">{title}</h2>
         {subtitle && <p className="mt-0.5 text-sm text-ink-muted">{subtitle}</p>}
       </div>
       {action}

@@ -1,11 +1,37 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuthenticatedUser } from "../common/types/authenticated-user";
 
 const FILE_URL_PREFIX = "/api/files/";
 
 @Injectable()
 export class StorageService {
   constructor(private prisma: PrismaService) {}
+
+  async authorizeDocument(url: string, user: AuthenticatedUser) {
+    const lease = await this.prisma.lease.findFirst({
+      where: { OR: [{ documentUrl: url }, { wordUrl: url }] },
+      select: { ownerId: true, tenantId: true },
+    });
+    const receipt = lease
+      ? null
+      : await this.prisma.receipt.findFirst({
+          where: { pdfUrl: url },
+          select: { payment: { select: { ownerId: true, tenantId: true } } },
+        });
+    const owned = lease ?? receipt?.payment;
+    if (!owned) throw new NotFoundException("Document introuvable.");
+
+    const isStaff = user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN_AGENT;
+    const allowed =
+      isStaff ||
+      (user.role === UserRole.OWNER && owned.ownerId === user.ownerId) ||
+      (user.role === UserRole.TENANT && owned.tenantId === user.tenantId);
+    if (!allowed) throw new ForbiddenException("Vous n'avez pas accès à ce document.");
+
+    return url;
+  }
 
   async save(params: { buffer: Buffer; filename: string; mimeType: string }): Promise<string> {
     const file = await this.prisma.storedFile.create({
