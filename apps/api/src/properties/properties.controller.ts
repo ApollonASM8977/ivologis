@@ -24,7 +24,7 @@ import { RequirePermissions } from "../common/decorators/permissions.decorator";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { assertOwnsResource } from "../common/utils/scope.util";
-import { imageUploadOptions } from "../common/uploads/upload.options";
+import { imageUploadOptions } from "../common/image-upload/image-upload.options";
 import { StorageService } from "../storage/storage.service";
 import { PropertiesService } from "./properties.service";
 import { CreatePropertyDto } from "./dto/create-property.dto";

@@ -20,7 +20,7 @@ import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { UsersService } from "./users.service";
 import { CreateAdminDto } from "./dto/create-admin.dto";
 import { UpdateProfileDto, UpdatePermissionsDto } from "./dto/update-profile.dto";
-import { imageUploadOptions } from "../common/uploads/upload.options";
+import { imageUploadOptions } from "../common/image-upload/image-upload.options";
 import { StorageService } from "../storage/storage.service";
 
 @UseGuards(JwtAuthGuard, RolesGuard)
