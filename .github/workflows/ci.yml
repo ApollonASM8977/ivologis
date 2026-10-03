@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Compiler le paquet partagé
+        run: npm run build:shared
+
+      - name: Générer le client Prisma
+        run: npm run prisma:generate
+
+      - name: Vérifier les types de l'API
+        run: npx tsc --noEmit -p apps/api/tsconfig.json
+
+      - name: Tests unitaires de l'API
+        run: npm run test --workspace=@ivologis/api
+
+      - name: Vérifier les types du web
+        run: npx tsc --noEmit -p apps/web/tsconfig.json
+
+      - name: Construire le web
+        run: npm run build:web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1

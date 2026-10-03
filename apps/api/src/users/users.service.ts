@@ -3,6 +3,7 @@ import * as bcrypt from "bcryptjs";
 import { AccountStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { publicUser } from "../common/utils/public-user";
 import { StorageService } from "../storage/storage.service";
 import { CreateAdminDto } from "./dto/create-admin.dto";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
@@ -51,8 +52,7 @@ export class UsersService {
       metadata: { fullName: user.fullName, permissions: dto.permissions ?? [] },
     });
 
-    const { passwordHash: _omit, ...rest } = user;
-    return rest;
+    return publicUser(user);
   }
 
   async listAdmins() {
@@ -61,14 +61,14 @@ export class UsersService {
       include: { permissions: { include: { permission: true } } },
       orderBy: { createdAt: "desc" },
     });
-    return admins.map(({ passwordHash, ...rest }) => rest);
+    return admins.map((admin) => publicUser(admin));
   }
 
   async listAll() {
     const users = await this.prisma.user.findMany({
       orderBy: { createdAt: "desc" },
     });
-    return users.map(({ passwordHash, ...rest }) => rest);
+    return users.map((u) => publicUser(u));
   }
 
   async updateStatus(id: string, status: AccountStatus, actorId?: string) {
@@ -125,8 +125,7 @@ export class UsersService {
     if (!user) throw new NotFoundException("Utilisateur introuvable.");
     await this.storage.deleteByUrl(user.avatarUrl);
     const updated = await this.prisma.user.update({ where: { id }, data: { avatarUrl: url } });
-    const { passwordHash: _omit, ...rest } = updated;
-    return rest;
+    return publicUser(updated);
   }
 
   async listPermissions() {

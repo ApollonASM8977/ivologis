@@ -8,6 +8,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/empty-state";
 import { TenantForm, TenantFormValues } from "@/components/tenants/tenant-form";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
+import { SecurityCard } from "@/components/profile/security-card";
 
 export default function TenantProfilePage() {
   const queryClient = useQueryClient();
@@ -33,6 +34,9 @@ export default function TenantProfilePage() {
       <Card className="mb-4 max-w-2xl">
         <AvatarUploader />
       </Card>
+      <div className="mb-4">
+        <SecurityCard />
+      </div>
       <Card className="max-w-2xl">
         <CardHeader title="Informations" />
         <TenantForm

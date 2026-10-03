@@ -7,6 +7,7 @@ import { AuthenticatedUser } from "../../common/types/authenticated-user";
 
 interface JwtPayload {
   sub: string;
+  tv?: number;
 }
 
 @Injectable()
@@ -34,6 +35,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     if (user.status !== AccountStatus.ACTIVE) {
       throw new UnauthorizedException("Ce compte n'est pas actif.");
+    }
+    if ((payload.tv ?? 0) !== user.tokenVersion) {
+      throw new UnauthorizedException("Session expirée. Reconnectez-vous.");
     }
 
     return {

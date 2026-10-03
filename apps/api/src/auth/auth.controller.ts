@@ -7,6 +7,13 @@ import { ForgotPasswordDto, ResetPasswordDto } from "./dto/forgot-password.dto";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
+import { IsString, Length } from "class-validator";
+
+class TwoFactorCodeDto {
+  @IsString()
+  @Length(6, 6)
+  code: string;
+}
 
 @Controller("auth")
 export class AuthController {
@@ -25,9 +32,31 @@ export class AuthController {
 
   @Post("logout")
   logout() {
-    // Le token est stateless (JWT) : la déconnexion est gérée côté client
-    // en supprimant le token stocké. Journalisation possible ici si besoin.
     return { message: "Déconnecté." };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("logout-all")
+  logoutAll(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.logoutEverywhere(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("2fa/setup")
+  setupTwoFactor(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.setupTwoFactor(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("2fa/enable")
+  enableTwoFactor(@Body() dto: TwoFactorCodeDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.enableTwoFactor(user.id, dto.code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("2fa/disable")
+  disableTwoFactor(@Body() dto: TwoFactorCodeDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.disableTwoFactor(user.id, dto.code);
   }
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })

@@ -17,6 +17,7 @@ import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 interface LoginForm {
   identifier: string;
   password: string;
+  code?: string;
 }
 
 export default function LoginPage() {
@@ -24,12 +25,24 @@ export default function LoginPage() {
   const setSession = useAuthStore((s) => s.setSession);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [needs2fa, setNeeds2fa] = useState(false);
   const { register, handleSubmit } = useForm<LoginForm>();
 
   async function onSubmit(values: LoginForm) {
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/login", values);
+      const payload = {
+        identifier: values.identifier,
+        password: values.password,
+        ...(needs2fa && values.code ? { code: values.code.trim() } : {}),
+      };
+      const { data } = await api.post("/auth/login", payload);
+      if (data.requires2fa) {
+        setNeeds2fa(true);
+        setLoading(false);
+        toast.message("Saisissez le code affiché dans votre application d'authentification.");
+        return;
+      }
       setSession(data.accessToken, data.user);
       toast.success(`Bienvenue, ${data.user.fullName.split(" ")[0]} !`);
       setSuccess(true);
@@ -83,9 +96,31 @@ export default function LoginPage() {
               </Link>
             </StaggerItem>
 
+            <AnimatePresence initial={false}>
+              {needs2fa && (
+                <motion.div
+                  key="2fa"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <Label>Code de vérification (6 chiffres)</Label>
+                  <Input
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="123456"
+                    autoFocus
+                    {...register("code", { required: needs2fa, pattern: { value: /^\d{6}$/, message: "6 chiffres" } })}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <StaggerItem>
               <Button type="submit" className="w-full" loading={loading}>
-                Se connecter
+                {needs2fa ? "Valider le code" : "Se connecter"}
               </Button>
             </StaggerItem>
           </StaggerContainer>

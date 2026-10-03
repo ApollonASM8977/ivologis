@@ -11,6 +11,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { AuditService } from "../audit/audit.service";
+import { authenticator } from "otplib";
+import { publicUser } from "../common/utils/public-user";
 
 const SELF_REGISTER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.TENANT];
 
@@ -22,13 +24,16 @@ export class AuthService {
     private audit: AuditService,
   ) {}
 
-  private async issueToken(userId: string) {
-    return this.jwt.signAsync({ sub: userId });
+  private async issueToken(user: { id: string; tokenVersion: number }) {
+    return this.jwt.signAsync({ sub: user.id, tv: user.tokenVersion });
   }
 
-  private sanitizeUser(user: { passwordHash: string } & Record<string, any>) {
-    const { passwordHash, ...rest } = user;
-    return rest;
+  private passwordFingerprint(passwordHash: string) {
+    return passwordHash.slice(-16);
+  }
+
+  private sanitizeUser(user: Record<string, any>) {
+    return publicUser(user);
   }
 
   async register(dto: RegisterDto) {
@@ -121,7 +126,7 @@ export class AuthService {
       entityId: user.id,
     });
 
-    const accessToken = await this.issueToken(user.id);
+    const accessToken = await this.issueToken(user);
     return { accessToken, user: this.sanitizeUser(user) };
   }
 
@@ -145,6 +150,15 @@ export class AuthService {
       throw new UnauthorizedException("Identifiants incorrects.");
     }
 
+    if (user.totpEnabled) {
+      if (!dto.code) {
+        return { requires2fa: true as const };
+      }
+      if (!user.totpSecret || !authenticator.check(dto.code, user.totpSecret)) {
+        throw new UnauthorizedException("Code de vérification invalide.");
+      }
+    }
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -157,7 +171,7 @@ export class AuthService {
       entityId: user.id,
     });
 
-    const accessToken = await this.issueToken(user.id);
+    const accessToken = await this.issueToken(user);
     return { accessToken, user: this.sanitizeUser(user) };
   }
 
@@ -169,7 +183,7 @@ export class AuthService {
     }
 
     const resetToken = await this.jwt.signAsync(
-      { sub: user.id, purpose: "reset" },
+      { sub: user.id, purpose: "reset", h: this.passwordFingerprint(user.passwordHash) },
       { expiresIn: "1h" },
     );
 
@@ -182,7 +196,7 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string) {
-    let payload: { sub: string; purpose: string };
+    let payload: { sub: string; purpose: string; h: string };
     try {
       payload = await this.jwt.verifyAsync(token);
     } catch {
@@ -192,13 +206,68 @@ export class AuthService {
       throw new BadRequestException("Lien de réinitialisation invalide.");
     }
 
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user || this.passwordFingerprint(user.passwordHash) !== payload.h) {
+      throw new BadRequestException("Ce lien a déjà été utilisé. Demandez un nouveau lien.");
+    }
+
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await this.prisma.user.update({
-      where: { id: payload.sub },
-      data: { passwordHash },
+      where: { id: user.id },
+      data: { passwordHash, tokenVersion: { increment: 1 } },
     });
 
+    await this.audit.log({ userId: user.id, action: "PASSWORD_RESET", entityType: "User", entityId: user.id });
+
     return { message: "Mot de passe réinitialisé avec succès." };
+  }
+
+  async logoutEverywhere(userId: string) {
+    await this.prisma.user.update({ where: { id: userId }, data: { tokenVersion: { increment: 1 } } });
+    return { message: "Toutes les sessions ont été fermées." };
+  }
+
+  async setupTwoFactor(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+    if (user.totpEnabled) {
+      throw new BadRequestException("La double authentification est déjà activée.");
+    }
+    const secret = authenticator.generateSecret();
+    await this.prisma.user.update({ where: { id: userId }, data: { totpSecret: secret } });
+    return {
+      secret,
+      otpauthUrl: authenticator.keyuri(user.email, "IVOLOGIS", secret),
+    };
+  }
+
+  async enableTwoFactor(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.totpSecret) {
+      throw new BadRequestException("Lancez d'abord la configuration de la double authentification.");
+    }
+    if (!authenticator.check(code, user.totpSecret)) {
+      throw new BadRequestException("Code invalide. Vérifiez l'heure de votre téléphone et réessayez.");
+    }
+    await this.prisma.user.update({ where: { id: userId }, data: { totpEnabled: true } });
+    await this.audit.log({ userId, action: "ENABLE_2FA", entityType: "User", entityId: userId });
+    return { message: "Double authentification activée." };
+  }
+
+  async disableTwoFactor(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.totpEnabled || !user.totpSecret) {
+      throw new BadRequestException("La double authentification n'est pas activée.");
+    }
+    if (!authenticator.check(code, user.totpSecret)) {
+      throw new BadRequestException("Code invalide.");
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { totpEnabled: false, totpSecret: null },
+    });
+    await this.audit.log({ userId, action: "DISABLE_2FA", entityType: "User", entityId: userId });
+    return { message: "Double authentification désactivée." };
   }
 
   async me(userId: string) {

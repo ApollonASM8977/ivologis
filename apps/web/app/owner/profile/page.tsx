@@ -8,6 +8,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/empty-state";
 import { OwnerForm, OwnerFormValues } from "@/components/owners/owner-form";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
+import { SecurityCard } from "@/components/profile/security-card";
 
 export default function OwnerProfilePage() {
   const queryClient = useQueryClient();
@@ -33,6 +34,9 @@ export default function OwnerProfilePage() {
       <Card className="mb-4 max-w-xl">
         <AvatarUploader />
       </Card>
+      <div className="mb-4">
+        <SecurityCard />
+      </div>
       <Card className="max-w-xl">
         <CardHeader title="Informations" />
         <OwnerForm

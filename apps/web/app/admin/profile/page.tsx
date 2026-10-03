@@ -3,6 +3,7 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
+import { SecurityCard } from "@/components/profile/security-card";
 import { useAuthStore } from "@/lib/auth-store";
 import { USER_ROLE_LABELS } from "@ivologis/shared";
 
@@ -15,6 +16,9 @@ export default function AdminProfilePage() {
       <Card className="mb-4 max-w-xl">
         <AvatarUploader />
       </Card>
+      <div className="mb-4">
+        <SecurityCard />
+      </div>
       <Card className="max-w-xl">
         <CardHeader title="Compte" />
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">

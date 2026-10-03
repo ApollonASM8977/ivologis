@@ -139,6 +139,9 @@ model User {
   passwordHash String
   role         UserRole
   avatarUrl    String?
+  totpSecret   String?
+  totpEnabled  Boolean       @default(false)
+  tokenVersion Int           @default(0)
   status       AccountStatus @default(PENDING)
   lastLoginAt  DateTime?
   createdAt    DateTime      @default(now())
