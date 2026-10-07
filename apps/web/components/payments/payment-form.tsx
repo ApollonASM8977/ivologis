@@ -46,7 +46,7 @@ export function PaymentForm({ loading, onSubmit }: { loading?: boolean; onSubmit
           <option value="">Sélectionner...</option>
           {tenants?.data?.map((t: any) => (
             <option key={t.id} value={t.id}>
-              {t.fullName} {t.currentProperties?.[0] ? `— ${t.currentProperties[0].name}` : ""}
+              {t.fullName} {t.currentProperties?.[0] ? `· ${t.currentProperties[0].name}` : ""}
             </option>
           ))}
         </Select>

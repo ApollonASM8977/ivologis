@@ -73,7 +73,7 @@ function AdminPropertiesPageContent() {
     },
     { header: "Type", cell: (row) => PROPERTY_TYPE_LABELS[row.type as keyof typeof PROPERTY_TYPE_LABELS] },
     { header: "Propriétaire", cell: (row) => row.owner?.fullName },
-    { header: "Locataire", cell: (row) => row.currentTenant?.fullName ?? "—" },
+    { header: "Locataire", cell: (row) => row.currentTenant?.fullName ?? "-" },
     { header: "Loyer", cell: (row) => formatXOF(row.rentAmount) },
     { header: "Statut", cell: (row) => <PropertyStatusBadge status={row.status} /> },
   ];

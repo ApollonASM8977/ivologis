@@ -60,7 +60,7 @@ function AdminOwnersPageContent() {
   const columns: Column<OwnerRow>[] = [
     { header: "Nom", cell: (r) => <span className="font-medium text-ink">{r.fullName}</span> },
     { header: "Téléphone", cell: (r) => r.phone },
-    { header: "Email", cell: (r) => r.email ?? "—" },
+    { header: "Email", cell: (r) => r.email ?? "-" },
     { header: "Biens", cell: (r) => r._count?.properties ?? 0 },
     { header: "Statut", cell: (r) => <AccountStatusBadge status={r.status} /> },
   ];

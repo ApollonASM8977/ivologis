@@ -80,7 +80,7 @@ export function AuthLayout({
             La gestion immobilière,<br />simplifiée pour la Côte d&apos;Ivoire.
           </h2>
           <p className="mt-4 max-w-md text-white/70">
-            Biens, locataires, contrats, paiements Mobile Money et maintenance — tout IVOLOGIS
+            Tout IVOLOGIS : biens, locataires, contrats, paiements Mobile Money et maintenance
             dans une seule plateforme.
           </p>
         </motion.div>
@@ -91,7 +91,7 @@ export function AuthLayout({
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          © {new Date().getFullYear()} IVOLOGIS — Abidjan, Côte d&apos;Ivoire
+          © {new Date().getFullYear()} IVOLOGIS, Abidjan, Côte d&apos;Ivoire
         </motion.p>
       </aside>
 

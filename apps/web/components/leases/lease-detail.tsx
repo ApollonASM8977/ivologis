@@ -133,8 +133,8 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
             <Card>
               <CardHeader title="Parties" />
               <div className="space-y-3">
-                <Party icon={UserRound} title="Bailleur" name={lease.owner?.fullName ?? "—"} lines={[lease.owner?.phone, lease.owner?.email]} />
-                <Party icon={User} title="Locataire" name={lease.tenant?.fullName ?? "—"} lines={[lease.tenant?.phone, lease.tenant?.email]} />
+                <Party icon={UserRound} title="Bailleur" name={lease.owner?.fullName ?? "-"} lines={[lease.owner?.phone, lease.owner?.email]} />
+                <Party icon={User} title="Locataire" name={lease.tenant?.fullName ?? "-"} lines={[lease.tenant?.phone, lease.tenant?.email]} />
               </div>
             </Card>
 
@@ -152,7 +152,7 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
                   <Building2 className="mt-0.5 h-4 w-4 text-ink-muted" />
                   <div>
                     <p className="text-ink-muted">Nature du bien</p>
-                    <p className="font-medium text-ink">{PROPERTY_TYPE_LABELS[lease.property?.type as keyof typeof PROPERTY_TYPE_LABELS] ?? "—"}</p>
+                    <p className="font-medium text-ink">{PROPERTY_TYPE_LABELS[lease.property?.type as keyof typeof PROPERTY_TYPE_LABELS] ?? "-"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

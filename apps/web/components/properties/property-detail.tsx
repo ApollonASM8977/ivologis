@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -122,15 +123,15 @@ export function PropertyDetail({ id, listHref }: { id: string; listHref: string 
         </Card>
         <Card>
           <p className="text-xs font-medium uppercase text-ink-muted">Surface</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{property.surfaceM2 ? `${property.surfaceM2} m²` : "—"}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.surfaceM2 ? `${property.surfaceM2} m²` : "-"}</p>
         </Card>
         <Card>
           <p className="text-xs font-medium uppercase text-ink-muted">Étage</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{property.floor !== null && property.floor !== undefined ? (property.floor === 0 ? "Rez-de-chaussée" : `${property.floor}e étage`) : "—"}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.floor !== null && property.floor !== undefined ? (property.floor === 0 ? "Rez-de-chaussée" : `${property.floor}e étage`) : "-"}</p>
         </Card>
         <Card>
           <p className="text-xs font-medium uppercase text-ink-muted">Année de construction</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{property.yearBuilt ?? "—"}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.yearBuilt ?? "-"}</p>
         </Card>
         <Card>
           <p className="flex items-center gap-1 text-xs font-medium uppercase text-ink-muted"><Sofa className="h-3.5 w-3.5" /> Meublé</p>
@@ -174,9 +175,8 @@ export function PropertyDetail({ id, listHref }: { id: string; listHref: string 
         {property.images?.length ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {property.images.map((img: any) => (
-              <div key={img.id} className="group relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={fileUrl(img.url)} alt={property.name} className="h-32 w-full rounded-lg object-cover" />
+              <div key={img.id} className="group relative h-32 overflow-hidden rounded-lg">
+                <Image src={fileUrl(img.url) ?? ""} alt={property.name} fill sizes="(min-width: 640px) 25vw, 50vw" className="object-cover" />
                 {img.isCover && (
                   <span className="absolute left-1.5 top-1.5 rounded bg-primary/90 px-1.5 py-0.5 text-[10px] font-medium text-white">
                     Couverture

@@ -71,7 +71,7 @@ export function buildContractBlocks(data: ContractDocumentData): ContractBlock[]
   const d = data.details ?? {};
 
   blocks.push({ kind: "title", text: data.companyName });
-  const companyLine = [data.companyAddress, data.companyContact].filter(Boolean).join(" — ");
+  const companyLine = [data.companyAddress, data.companyContact].filter(Boolean).join(" · ");
   if (companyLine) blocks.push({ kind: "meta", text: companyLine });
   blocks.push({ kind: "subtitle", text: LEASE_TYPE_TITLES[data.type] });
   blocks.push({ kind: "meta", text: `N° ${data.contractNumber}` });

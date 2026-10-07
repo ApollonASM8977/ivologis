@@ -30,8 +30,8 @@ export default function OwnerTenantsPage() {
   const columns: Column<TenantRow>[] = [
     { header: "Nom", cell: (r) => <span className="font-medium text-ink">{r.fullName}</span> },
     { header: "Téléphone", cell: (r) => r.phone },
-    { header: "Logement", cell: (r) => r.currentProperties?.[0]?.name ?? "—" },
-    { header: "Contrat", cell: (r) => (r.leases?.[0] ? <LeaseStatusBadge status={r.leases[0].status} /> : "—") },
+    { header: "Logement", cell: (r) => r.currentProperties?.[0]?.name ?? "-" },
+    { header: "Contrat", cell: (r) => (r.leases?.[0] ? <LeaseStatusBadge status={r.leases[0].status} /> : "-") },
   ];
 
   return (

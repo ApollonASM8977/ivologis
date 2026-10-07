@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -86,10 +87,9 @@ export default function OwnerMaintenanceDetailPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.05 }}
                   whileHover={{ scale: 1.02 }}
-                  className="block overflow-hidden rounded-lg"
+                  className="relative block h-28 overflow-hidden rounded-lg"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={fileUrl(url)} alt="Photo du problème" className="h-28 w-full object-cover" />
+                  <Image src={fileUrl(url) ?? ""} alt="Photo du problème" fill sizes="33vw" className="object-cover" />
                 </motion.a>
               ))}
             </div>
@@ -145,13 +145,13 @@ export default function OwnerMaintenanceDetailPage() {
                   <span className="flex items-center gap-2 text-ink-muted">
                     <Banknote className="h-4 w-4" /> Coût estimé
                   </span>
-                  <span className="font-medium text-ink">{request.estimatedCost ? formatXOF(request.estimatedCost) : "—"}</span>
+                  <span className="font-medium text-ink">{request.estimatedCost ? formatXOF(request.estimatedCost) : "-"}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-ink-muted">
                     <Banknote className="h-4 w-4" /> Coût final
                   </span>
-                  <span className="font-medium text-ink">{request.finalCost ? formatXOF(request.finalCost) : "—"}</span>
+                  <span className="font-medium text-ink">{request.finalCost ? formatXOF(request.finalCost) : "-"}</span>
                 </div>
               </div>
             </Card>

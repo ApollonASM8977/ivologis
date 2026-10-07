@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import clsx from "clsx";
 import { fileUrl } from "@/lib/api";
 
@@ -10,6 +11,13 @@ const SIZES = {
   lg: "h-20 w-20 text-2xl",
   xl: "h-28 w-28 text-3xl",
 } as const;
+
+const PIXELS: Record<keyof typeof SIZES, number> = {
+  sm: 32,
+  md: 36,
+  lg: 80,
+  xl: 112,
+};
 
 function initials(name?: string | null) {
   if (!name) return "?";
@@ -45,8 +53,14 @@ export function Avatar({
       )}
     >
       {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt={name ?? ""} onError={() => setFailed(true)} className="h-full w-full object-cover" />
+        <Image
+          src={url}
+          alt={name ?? ""}
+          fill
+          sizes={`${PIXELS[size]}px`}
+          onError={() => setFailed(true)}
+          className="object-cover"
+        />
       ) : (
         initials(name)
       )}

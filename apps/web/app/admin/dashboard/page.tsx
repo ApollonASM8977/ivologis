@@ -3,6 +3,7 @@
 import { RevisionsDueCard } from "@/components/leases/revisions-due-card";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Building2, Users, UserRound, Wallet, AlertTriangle, Wrench, Plus, Download } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatXOF } from "@ivologis/shared";
@@ -11,7 +12,12 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/empty-state";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const RevenueAreaChart = dynamic(() => import("@/components/charts/revenue-area-chart"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full" />,
+});
 
 interface DashboardData {
   totalProperties: number;
@@ -74,21 +80,7 @@ export default function AdminDashboardPage() {
             <Card className="lg:col-span-2">
               <CardHeader title="Revenus mensuels" subtitle="6 derniers mois, paiements confirmés" />
               <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.revenueChart}>
-                    <defs>
-                      <linearGradient id="revenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#0B5FFF" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#0B5FFF" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-                    <Tooltip formatter={(v: any) => formatXOF(Number(v))} />
-                    <Area type="monotone" dataKey="revenue" stroke="#0B5FFF" fill="url(#revenue)" strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <RevenueAreaChart data={data.revenueChart} gradientId="revenue" />
               </div>
             </Card>
 

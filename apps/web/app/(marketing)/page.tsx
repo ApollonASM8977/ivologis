@@ -22,6 +22,7 @@ import {
 import { ContactForm } from "@/components/marketing/contact-form";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { LogoMarquee } from "@/components/marketing/logo-marquee";
+import { useSlowConnection } from "@/lib/use-slow-connection";
 
 const FEATURES = [
   { icon: Building2, title: "Biens immobiliers", text: "Fiche complète : adresse précise, photos, étage, équipements, meublé, repère pour trouver le bien." },
@@ -105,17 +106,17 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
   );
 }
 
-function HeroBlobs() {
+function HeroBlobs({ reduced = false }: { reduced?: boolean }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       <motion.div
-        animate={{ x: [0, 40, -20, 0], y: [0, 30, 10, 0], scale: [1, 1.08, 0.97, 1] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        animate={reduced ? undefined : { x: [0, 40, -20, 0], y: [0, 30, 10, 0], scale: [1, 1.08, 0.97, 1] }}
+        transition={reduced ? undefined : { duration: 18, repeat: Infinity, ease: "easeInOut" }}
         className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/15 blur-3xl"
       />
       <motion.div
-        animate={{ x: [0, -50, 20, 0], y: [0, -20, 30, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+        animate={reduced ? undefined : { x: [0, -50, 20, 0], y: [0, -20, 30, 0] }}
+        transition={reduced ? undefined : { duration: 22, repeat: Infinity, ease: "easeInOut" }}
         className="absolute -right-24 top-40 h-80 w-80 rounded-full bg-sky-300/25 blur-3xl"
       />
     </div>
@@ -236,11 +237,12 @@ export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [audience, setAudience] = useState(0);
   const active = AUDIENCES[audience];
+  const slowConnection = useSlowConnection();
 
   return (
     <>
       <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-white to-white">
-        <HeroBlobs />
+        <HeroBlobs reduced={slowConnection} />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-2 lg:py-24">
           <div>
             <motion.span

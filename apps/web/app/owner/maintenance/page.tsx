@@ -40,7 +40,7 @@ export default function OwnerMaintenancePage() {
 
   return (
     <div>
-      <PageHeader title="Maintenance" subtitle="Demandes concernant vos biens — cliquez pour suivre et échanger" />
+      <PageHeader title="Maintenance" subtitle="Cliquez sur une demande pour suivre l'échange avec votre locataire" />
 
       {!isLoading && data?.data?.length === 0 ? (
         <EmptyState icon={Wrench} title="Aucune demande de maintenance" />

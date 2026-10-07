@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -82,8 +83,9 @@ export default function MaintenanceDetailPage() {
             {!!request.photos?.length && (
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {request.photos.map((url: string, i: number) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={fileUrl(url)} alt="photo" className="h-24 w-full rounded-lg object-cover" />
+                  <span key={i} className="relative block h-24 w-full overflow-hidden rounded-lg">
+                    <Image src={fileUrl(url) ?? ""} alt="Photo du signalement" fill sizes="33vw" className="object-cover" />
+                  </span>
                 ))}
               </div>
             )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -57,8 +58,9 @@ function RoomPhotos({ index, form, leaseId }: { index: number; form: ReturnType<
   return (
     <div className="flex flex-wrap items-center gap-2">
       {photos.map((url, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={url + i} src={fileUrl(url)} alt={`Photo ${i + 1}`} className="h-12 w-12 rounded-lg object-cover ring-1 ring-gray-200" />
+        <span key={url + i} className="relative block h-12 w-12 overflow-hidden rounded-lg ring-1 ring-gray-200">
+          <Image src={fileUrl(url) ?? ""} alt={`Photo ${i + 1}`} fill sizes="48px" className="object-cover" />
+        </span>
       ))}
       <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-2.5 py-1.5 text-xs font-medium text-ink-muted hover:border-primary hover:text-primary">
         <Camera className="h-3.5 w-3.5" />
@@ -182,11 +184,11 @@ function ComparisonView({ leaseId }: { leaseId: string }) {
             {data.rows.map((row: any) => (
               <tr key={row.room}>
                 <td className="px-4 py-2.5 font-medium text-ink">{row.room}</td>
-                <td className="px-4 py-2.5 text-ink-muted">{row.entryCondition ? CONDITIONS[row.entryCondition] : "—"}</td>
+                <td className="px-4 py-2.5 text-ink-muted">{row.entryCondition ? CONDITIONS[row.entryCondition] : "-"}</td>
                 <td className="px-4 py-2.5">
                   <span className={row.worsened ? "font-semibold text-danger" : "text-ink"}>{CONDITIONS[row.exitCondition]}</span>
                 </td>
-                <td className="px-4 py-2.5 text-ink-muted">{row.exitNotes ?? "—"}</td>
+                <td className="px-4 py-2.5 text-ink-muted">{row.exitNotes ?? "-"}</td>
               </tr>
             ))}
           </tbody>
@@ -325,7 +327,7 @@ function RevisionCard({ lease }: { lease: any }) {
         </div>
         <div className="rounded-xl bg-surface p-3">
           <p className="text-ink-muted">Prochaine révision</p>
-          <p className="font-semibold text-ink">{next ? next.toLocaleDateString("fr-FR", { dateStyle: "medium" }) : "—"}</p>
+          <p className="font-semibold text-ink">{next ? next.toLocaleDateString("fr-FR", { dateStyle: "medium" }) : "-"}</p>
         </div>
       </div>
       {lease.revisionRatePercent !== null && lease.revisionRatePercent !== undefined && (

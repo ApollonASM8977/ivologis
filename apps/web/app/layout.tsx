@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: "IVOLOGIS — Gestion immobilière en Côte d'Ivoire", template: "%s — IVOLOGIS" },
+  title: { default: "IVOLOGIS, gestion immobilière en Côte d'Ivoire", template: "%s · IVOLOGIS" },
   description: "Biens, baux, loyers, travaux et relevés propriétaires : la plateforme de gestion locative pour la Côte d'Ivoire.",
   applicationName: "IVOLOGIS",
   openGraph: {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     locale: "fr_CI",
     url: siteUrl,
     siteName: "IVOLOGIS",
-    title: "IVOLOGIS — La gestion locative, simple et sécurisée",
+    title: "IVOLOGIS : la gestion locative, simple et sécurisée",
     description: "Biens, baux, loyers et relevés propriétaires pour la Côte d'Ivoire.",
   },
   twitter: { card: "summary_large_image", title: "IVOLOGIS", description: "Gestion locative pour la Côte d'Ivoire." },

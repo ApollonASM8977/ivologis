@@ -68,7 +68,7 @@ export default function TenantPaymentsPage() {
             <Receipt className="h-4 w-4" />
           </DocumentLink>
         ) : (
-          "—"
+          "-"
         ),
     },
   ];
@@ -111,7 +111,7 @@ export default function TenantPaymentsPage() {
             <PaymentMethodPicker value={selectedMethod} onChange={(m) => setValue("method", m)} />
           </div>
           <p className="text-xs text-ink-muted">
-            Intégration Mobile Money réelle à venir — ce paiement est simulé pour la démonstration.
+            L'intégration Mobile Money réelle arrive bientôt. Ce paiement est simulé pour la démonstration.
           </p>
           <Button type="submit" className="w-full" loading={payMutation.isPending}>
             Confirmer le paiement

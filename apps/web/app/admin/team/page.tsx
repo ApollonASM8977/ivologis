@@ -204,7 +204,7 @@ export default function AdminTeamPage() {
       <Modal
         open={!!permissionsFor}
         onClose={() => setPermissionsFor(null)}
-        title={`Permissions — ${permissionsFor?.fullName ?? ""}`}
+        title={`Permissions de ${permissionsFor?.fullName ?? ""}`}
         width="max-w-xl"
       >
         <PermissionChecklist selected={editPermissions} onToggle={(key) => toggle(editPermissions, setEditPermissions, key)} />

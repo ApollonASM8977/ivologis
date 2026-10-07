@@ -1,19 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { Building2, Wallet, AlertTriangle, Wrench, ArrowRight, Sparkles } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { formatXOF } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MaintenanceStatusBadge } from "@/components/status-badges";
 import { CountUp } from "@/components/dashboard/count-up";
 import { ProgressRing } from "@/components/dashboard/progress-ring";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+
+const RevenueAreaChart = dynamic(() => import("@/components/charts/revenue-area-chart"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full" />,
+});
 
 export default function OwnerDashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -91,21 +97,7 @@ export default function OwnerDashboardPage() {
           <Card>
             <CardHeader title="Revenus mensuels" subtitle="6 derniers mois" />
             <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.revenueChart}>
-                  <defs>
-                    <linearGradient id="ownerRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0B5FFF" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#0B5FFF" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-                  <Tooltip formatter={(v: any) => formatXOF(Number(v))} />
-                  <Area type="monotone" dataKey="revenue" stroke="#0B5FFF" fill="url(#ownerRevenue)" strokeWidth={2.5} animationDuration={1200} />
-                </AreaChart>
-              </ResponsiveContainer>
+              <RevenueAreaChart data={data.revenueChart} gradientId="ownerRevenue" />
             </div>
           </Card>
         </StaggerItem>

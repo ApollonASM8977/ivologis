@@ -77,7 +77,7 @@ export function AvatarUploader() {
 
       <div>
         <p className="font-semibold text-ink">{user?.fullName}</p>
-        <p className="text-sm text-ink-muted">JPG, PNG ou WebP — 3 Mo maximum.</p>
+        <p className="text-sm text-ink-muted">JPG, PNG ou WebP, 3 Mo maximum.</p>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}

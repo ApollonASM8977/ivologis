@@ -49,7 +49,7 @@ export class PdfService {
 
       doc.fontSize(11).fillColor("#111827");
       doc.text(`Locataire : ${params.tenantName}`);
-      doc.text(`Bien : ${params.propertyName} — ${params.propertyAddress}`);
+      doc.text(`Bien : ${params.propertyName}, ${params.propertyAddress}`);
       doc.text(`Période concernée : ${formatDate(params.periodMonth)}`);
       doc.text(`Date de paiement : ${formatDate(params.paymentDate)}`);
       doc.text(`Moyen de paiement : ${params.method}`);

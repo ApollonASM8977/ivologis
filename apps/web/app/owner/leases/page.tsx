@@ -54,7 +54,7 @@ export default function OwnerLeasesPage() {
               <FileType className="h-4 w-4" /> Word
             </DocumentLink>
           )}
-          {!r.documentUrl && !r.wordUrl && "—"}
+          {!r.documentUrl && !r.wordUrl && "-"}
         </div>
       ),
     },

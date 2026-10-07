@@ -62,7 +62,7 @@ export default function AdminContactRequestsPage() {
         </div>
       ),
     },
-    { header: "Parc", cell: (r) => (r.portfolioSize ? <Badge color="blue">{r.portfolioSize} biens</Badge> : "—") },
+    { header: "Parc", cell: (r) => (r.portfolioSize ? <Badge color="blue">{r.portfolioSize} biens</Badge> : "-") },
     { header: "Reçue le", cell: (r) => new Date(r.createdAt).toLocaleDateString("fr-FR", { dateStyle: "medium" }) },
     {
       header: "Statut",

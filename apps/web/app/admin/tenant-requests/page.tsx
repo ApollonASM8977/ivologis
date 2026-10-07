@@ -59,7 +59,7 @@ export default function AdminTenantRequestsPage() {
 
   const columns: Column<RequestRow>[] = [
     { header: "Locataire", cell: (r) => <div><p className="font-medium text-ink">{r.tenant.fullName}</p><p className="text-xs text-ink-muted">{r.tenant.phone}</p></div> },
-    { header: "Bien", cell: (r) => <span className="text-sm">{r.lease?.property.name ?? "—"}<br /><span className="text-xs text-ink-muted">{r.lease?.contractNumber}</span></span> },
+    { header: "Bien", cell: (r) => <span className="text-sm">{r.lease?.property.name ?? "-"}<br /><span className="text-xs text-ink-muted">{r.lease?.contractNumber}</span></span> },
     { header: "Demande", cell: (r) => <div><p className="text-sm font-medium">{r.type === "RESILIATION" ? "Résiliation" : "Autre"}</p>{r.effectiveDate && <p className="text-xs text-ink-muted">Départ souhaité le {new Date(r.effectiveDate).toLocaleDateString("fr-FR")}</p>}</div> },
     { header: "Reçue le", cell: (r) => new Date(r.createdAt).toLocaleDateString("fr-FR", { dateStyle: "medium" }) },
     { header: "Statut", cell: (r) => <Badge color={STATUS_BADGE[r.status]?.color ?? "gray"}>{STATUS_BADGE[r.status]?.label ?? r.status}</Badge> },

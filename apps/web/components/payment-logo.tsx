@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { PaymentMethod } from "@ivologis/shared";
 
 const LOGOS: Partial<Record<PaymentMethod, { src: string; alt: string }>> = {
@@ -13,9 +14,8 @@ export function PaymentLogo({ method, className = "h-8 w-12" }: { method: Paymen
 
   if (logo) {
     return (
-      <span className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5 ${className}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logo.src} alt={logo.alt} className="h-full w-full object-cover" />
+      <span className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5 ${className}`}>
+        <Image src={logo.src} alt={logo.alt} fill sizes="64px" className="object-cover" />
       </span>
     );
   }

@@ -53,7 +53,7 @@ export default function OwnerDetailPage() {
         </Card>
         <Card>
           <p className="text-xs font-medium uppercase text-ink-muted">Adresse</p>
-          <p className="mt-1 text-sm font-medium text-ink">{owner.address ?? "—"}</p>
+          <p className="mt-1 text-sm font-medium text-ink">{owner.address ?? "-"}</p>
         </Card>
       </div>
 
@@ -62,19 +62,19 @@ export default function OwnerDetailPage() {
         <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div>
             <p className="text-ink-muted">Téléphone secondaire</p>
-            <p className="font-medium text-ink">{owner.secondaryPhone ?? "—"}</p>
+            <p className="font-medium text-ink">{owner.secondaryPhone ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Nationalité</p>
-            <p className="font-medium text-ink">{owner.nationality ?? "—"}</p>
+            <p className="font-medium text-ink">{owner.nationality ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Profession</p>
-            <p className="font-medium text-ink">{owner.profession ?? "—"}</p>
+            <p className="font-medium text-ink">{owner.profession ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Société</p>
-            <p className="font-medium text-ink">{owner.companyName ?? "—"}</p>
+            <p className="font-medium text-ink">{owner.companyName ?? "-"}</p>
           </div>
           {owner.rccmNumber && (
             <div>
@@ -84,15 +84,15 @@ export default function OwnerDetailPage() {
           )}
           <div>
             <p className="text-ink-muted">Pièce d&apos;identité</p>
-            <p className="font-medium text-ink">{owner.idDocumentNumber ?? "—"}</p>
+            <p className="font-medium text-ink">{owner.idDocumentNumber ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Banque</p>
-            <p className="font-medium text-ink">{owner.bankName ?? "—"}</p>
+            <p className="font-medium text-ink">{owner.bankName ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">N° de compte</p>
-            <p className="font-medium text-ink">{owner.bankAccountNumber ?? "—"}</p>
+            <p className="font-medium text-ink">{owner.bankAccountNumber ?? "-"}</p>
           </div>
         </div>
       </Card>

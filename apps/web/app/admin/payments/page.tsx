@@ -112,7 +112,7 @@ export default function AdminPaymentsPage() {
           <div className="mt-2 space-y-1 text-sm text-ink">
             {overdue.slice(0, 5).map((o: any) => (
               <div key={o.leaseId} className="flex justify-between">
-                <span>{o.tenant.fullName} — {o.property.name}</span>
+                <span>{o.tenant.fullName} · {o.property.name}</span>
                 <span className="font-medium">{formatXOF(o.rentAmount)}</span>
               </div>
             ))}

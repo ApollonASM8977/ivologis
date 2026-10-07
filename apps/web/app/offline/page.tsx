@@ -1,6 +1,6 @@
 import { BrandLogo } from "@/components/brand-logo";
 
-export const metadata = { title: "Hors connexion — IVOLOGIS" };
+export const metadata = { title: "Hors connexion" };
 
 export default function OfflinePage() {
   return (

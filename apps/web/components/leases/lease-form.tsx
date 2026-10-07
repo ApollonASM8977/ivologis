@@ -167,7 +167,7 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
           <option value="">Sélectionner...</option>
           {properties?.data?.map((p: any) => (
             <option key={p.id} value={p.id}>
-              {p.name} — {p.commune}
+              {p.name} · {p.commune}
             </option>
           ))}
         </Select>
@@ -209,7 +209,7 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
       {/* --- Champs dynamiques selon le type de contrat --- */}
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-primary">
-          Détails spécifiques — {LEASE_TYPE_LABELS[type]}
+          Détails spécifiques du bail ({LEASE_TYPE_LABELS[type]})
         </p>
 
         {HABITATION_TYPES.includes(type) && (

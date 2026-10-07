@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "IVOLOGIS — Gestion immobilière",
+    name: "Gestion immobilière IVOLOGIS",
     short_name: "IVOLOGIS",
     description: "Gestion locative pour la Côte d'Ivoire : biens, baux, loyers, travaux et relevés.",
     start_url: "/",

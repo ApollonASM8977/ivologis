@@ -118,7 +118,7 @@ export function OwnerForm({
 
       {showPassword && (
         <div>
-          <Label>Mot de passe (optionnel — crée un accès de connexion)</Label>
+          <Label>Mot de passe (optionnel, crée un accès de connexion)</Label>
           <Input type="password" placeholder="Laisser vide si aucun accès" {...register("password")} />
         </div>
       )}

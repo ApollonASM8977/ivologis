@@ -92,7 +92,7 @@ export function ownerStatementPdf(st: OwnerStatement): Promise<Buffer> {
     doc.fontSize(13).fillColor("#111827").text("Relevé financier propriétaire");
     doc.moveDown(0.3);
     doc.font("Helvetica").fontSize(9).fillColor("#6B7280");
-    doc.text(`Propriétaire : ${st.owner?.fullName ?? "—"}`);
+    doc.text(`Propriétaire : ${st.owner?.fullName ?? "-"}`);
     doc.text(`Généré le ${new Date(st.generatedAt).toLocaleString("fr-FR")}`);
     doc.moveDown(1);
 
@@ -139,8 +139,8 @@ export function ownerStatementPdf(st: OwnerStatement): Promise<Buffer> {
       [70, 170, 150, 90, width - 480],
       st.payments.map((p) => [
         date(p.paymentDate),
-        p.property?.name ?? "—",
-        p.tenant?.fullName ?? "—",
+        p.property?.name ?? "-",
+        p.tenant?.fullName ?? "-",
         methodLabel(p.method),
         money(Number(p.amount)),
       ]),
@@ -152,10 +152,10 @@ export function ownerStatementPdf(st: OwnerStatement): Promise<Buffer> {
       [70, 170, 150, 90, width - 480],
       st.maintenance.map((m) => [
         date(m.createdAt),
-        m.property?.name ?? "—",
+        m.property?.name ?? "-",
         issueLabel(m.issueType),
         statusLabel(m.status),
-        m.finalCost ? money(Number(m.finalCost)) : "—",
+        m.finalCost ? money(Number(m.finalCost)) : "-",
       ]),
     );
   });

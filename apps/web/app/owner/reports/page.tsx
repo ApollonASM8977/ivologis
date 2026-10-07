@@ -72,7 +72,7 @@ export default function OwnerReportsPage() {
           {report.mostProfitableProperties?.length ? (
             report.mostProfitableProperties.map((item: any, i: number) => (
               <div key={i} className="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
-                <span>{item.property?.name} — {item.property?.commune}</span>
+                <span>{item.property?.name} · {item.property?.commune}</span>
                 <span className="font-semibold text-success">{formatXOF(item.revenue)}</span>
               </div>
             ))

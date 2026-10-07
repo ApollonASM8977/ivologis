@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "IVOLOGIS — Gestion immobilière en Côte d'Ivoire";
+export const alt = "IVOLOGIS, gestion immobilière en Côte d'Ivoire";
 
 export default function OpenGraphImage() {
   return new ImageResponse(

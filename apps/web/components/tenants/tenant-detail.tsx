@@ -42,35 +42,35 @@ export function TenantDetail({ id }: { id: string }) {
         <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div>
             <p className="text-ink-muted">Nationalité</p>
-            <p className="font-medium text-ink">{tenant.nationality ?? "—"}</p>
+            <p className="font-medium text-ink">{tenant.nationality ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Date de naissance</p>
-            <p className="font-medium text-ink">{tenant.dateOfBirth ? new Date(tenant.dateOfBirth).toLocaleDateString("fr-FR") : "—"}</p>
+            <p className="font-medium text-ink">{tenant.dateOfBirth ? new Date(tenant.dateOfBirth).toLocaleDateString("fr-FR") : "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Situation matrimoniale</p>
-            <p className="font-medium text-ink">{tenant.maritalStatus ? MARITAL_STATUS_LABELS[tenant.maritalStatus as keyof typeof MARITAL_STATUS_LABELS] : "—"}</p>
+            <p className="font-medium text-ink">{tenant.maritalStatus ? MARITAL_STATUS_LABELS[tenant.maritalStatus as keyof typeof MARITAL_STATUS_LABELS] : "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Pièce d&apos;identité</p>
-            <p className="font-medium text-ink">{tenant.idDocumentNumber ?? "—"}</p>
+            <p className="font-medium text-ink">{tenant.idDocumentNumber ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Employeur</p>
-            <p className="font-medium text-ink">{tenant.employer ?? "—"}</p>
+            <p className="font-medium text-ink">{tenant.employer ?? "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Revenu mensuel</p>
-            <p className="font-medium text-ink">{tenant.monthlyIncome ? formatXOF(tenant.monthlyIncome) : "—"}</p>
+            <p className="font-medium text-ink">{tenant.monthlyIncome ? formatXOF(tenant.monthlyIncome) : "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Contact d&apos;urgence</p>
-            <p className="font-medium text-ink">{tenant.emergencyContactName ? `${tenant.emergencyContactName} (${tenant.emergencyContactPhone ?? "—"})` : "—"}</p>
+            <p className="font-medium text-ink">{tenant.emergencyContactName ? `${tenant.emergencyContactName} (${tenant.emergencyContactPhone ?? "-"})` : "-"}</p>
           </div>
           <div>
             <p className="text-ink-muted">Garant</p>
-            <p className="font-medium text-ink">{tenant.guarantorName ? `${tenant.guarantorName} (${tenant.guarantorPhone ?? "—"})` : "—"}</p>
+            <p className="font-medium text-ink">{tenant.guarantorName ? `${tenant.guarantorName} (${tenant.guarantorPhone ?? "-"})` : "-"}</p>
           </div>
         </div>
       </Card>

@@ -33,7 +33,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-gray-100 py-5 text-center text-xs text-ink-muted">
-        © {new Date().getFullYear()} IVOLOGIS — Tous droits réservés.
+        © {new Date().getFullYear()} IVOLOGIS. Tous droits réservés.
       </div>
     </footer>
   );

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Confidentialité — IVOLOGIS" };
+export const metadata: Metadata = { title: "Confidentialité" };
 
 export default function PrivacyPage() {
   return (

@@ -63,7 +63,7 @@ function AdminTenantsPageContent() {
     { header: "Logement actuel", cell: (r) => r.currentProperties?.[0]?.name ?? "Aucun" },
     {
       header: "Contrat",
-      cell: (r) => (r.leases?.[0] ? <LeaseStatusBadge status={r.leases[0].status} /> : "—"),
+      cell: (r) => (r.leases?.[0] ? <LeaseStatusBadge status={r.leases[0].status} /> : "-"),
     },
   ];
 

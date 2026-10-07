@@ -151,7 +151,7 @@ export default function AdminLeasesPage() {
     <div>
       <PageHeader
         title="Contrats de bail"
-        subtitle="Habitation, commercial, professionnel, terrain — avec génération PDF et Word"
+        subtitle="Habitation, commercial, professionnel ou terrain, avec génération PDF et Word"
         action={
           <Button size="sm" onClick={() => setModalOpen(true)}>
             <Plus className="h-4 w-4" /> Nouveau contrat
@@ -183,7 +183,7 @@ export default function AdminLeasesPage() {
       <Modal
         open={!!renewTarget}
         onClose={() => setRenewTarget(null)}
-        title={`Renouveler — ${renewTarget?.contractNumber ?? ""}`}
+        title={`Renouveler le contrat ${renewTarget?.contractNumber ?? ""}`}
       >
         <form
           onSubmit={handleRenewSubmit((values) => renewTarget && renewMutation.mutate({ id: renewTarget.id, values }))}

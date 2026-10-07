@@ -33,16 +33,16 @@ const ACTION_META: Record<string, { label: string; color: string; icon: typeof H
 
 function describeMetadata(row: AuditRow): string {
   const m = row.metadata;
-  if (!m) return "—";
+  if (!m) return "-";
   switch (row.action) {
     case "CREATE_ADMIN":
-      return `${m.fullName ?? ""} — ${(m.permissions as string[])?.length ?? 0} permission(s)`;
+      return `${m.fullName ?? ""} · ${(m.permissions as string[])?.length ?? 0} permission(s)`;
     case "UPDATE_USER_STATUS":
       return `${m.fullName ?? ""} : ${m.previousStatus ?? "?"} → ${m.newStatus ?? "?"}`;
     case "UPDATE_PERMISSIONS":
-      return `${m.fullName ?? ""} — ${(m.permissions as string[])?.length ?? 0} permission(s) accordée(s)`;
+      return `${m.fullName ?? ""} · ${(m.permissions as string[])?.length ?? 0} permission(s) accordée(s)`;
     case "RENEW_LEASE":
-      return `${m.contractNumber ?? ""} — nouvelle échéance ${m.newEndDate ?? ""}`;
+      return `${m.contractNumber ?? ""} · nouvelle échéance ${m.newEndDate ?? ""}`;
     case "TERMINATE_LEASE":
       return `${m.contractNumber ?? ""}`;
     case "ARCHIVE_PROPERTY":

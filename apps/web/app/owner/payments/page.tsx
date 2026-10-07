@@ -47,7 +47,7 @@ export default function OwnerPaymentsPage() {
             <Receipt className="h-4 w-4" />
           </DocumentLink>
         ) : (
-          "—"
+          "-"
         ),
     },
   ];

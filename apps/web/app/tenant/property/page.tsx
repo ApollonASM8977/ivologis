@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { MapPin, Home, Layers, CalendarDays, Sofa, Navigation, X, ChevronLeft, ChevronRight, Check, User } from "lucide-react";
@@ -68,11 +69,10 @@ export default function TenantPropertyPage() {
                   type="button"
                   whileHover={{ scale: 1.01 }}
                   onClick={() => setActive(images.indexOf(cover))}
-                  className="col-span-2 row-span-2 overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary"
+                  className="relative col-span-2 row-span-2 min-h-[14rem] overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary"
                   aria-label="Agrandir la photo de couverture"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={fileUrl(cover.url)} alt={property.name} className="h-full min-h-[14rem] w-full object-cover transition-transform duration-700 hover:scale-105" />
+                  <Image src={fileUrl(cover.url) ?? ""} alt={property.name} fill sizes="(min-width: 768px) 50vw, 66vw" priority className="object-cover transition-transform duration-700 hover:scale-105" />
                 </motion.button>
               )}
               {images
@@ -87,11 +87,10 @@ export default function TenantPropertyPage() {
                     transition={{ delay: 0.1 + i * 0.07 }}
                     whileHover={{ scale: 1.03 }}
                     onClick={() => setActive(images.indexOf(img))}
-                    className="overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
+                    className="relative min-h-[6.5rem] overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
                     aria-label={`Agrandir la photo ${i + 2}`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={fileUrl(img.url)} alt="" className="h-full min-h-[6.5rem] w-full object-cover" />
+                    <Image src={fileUrl(img.url) ?? ""} alt="" fill sizes="25vw" className="object-cover" />
                   </motion.button>
                 ))}
             </div>
@@ -117,8 +116,8 @@ export default function TenantPropertyPage() {
 
             <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
               <Fact icon={Home} label="Loyer mensuel" value={formatXOF(property.rentAmount)} />
-              <Fact icon={Layers} label="Étage" value={property.floor ?? "—"} />
-              <Fact icon={CalendarDays} label="Année de construction" value={property.yearBuilt ?? "—"} />
+              <Fact icon={Layers} label="Étage" value={property.floor ?? "-"} />
+              <Fact icon={CalendarDays} label="Année de construction" value={property.yearBuilt ?? "-"} />
               <Fact icon={Sofa} label="Meublé" value={property.furnished ? "Oui" : "Non"} />
             </div>
 

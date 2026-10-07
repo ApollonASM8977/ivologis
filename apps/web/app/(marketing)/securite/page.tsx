@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Lock, KeyRound, Eye, Database, FileCheck2, ShieldAlert, Server, History } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Sécurité — IVOLOGIS",
+  title: "Sécurité",
   description: "Comment IVOLOGIS protège les données des agences, des propriétaires et des locataires.",
 };
 
