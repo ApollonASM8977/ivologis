@@ -115,7 +115,11 @@ function HeroBlobs() {
           backgroundSize: "44px 44px",
         }}
       />
-      <div className="absolute -right-20 top-0 h-[26rem] w-[26rem] rounded-full bg-primary/10" />
+      <motion.div
+        animate={{ scale: [1, 1.06, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -right-20 top-0 h-[26rem] w-[26rem] rounded-full bg-primary/10"
+      />
     </div>
   );
 }
@@ -431,9 +435,13 @@ export default function HomePage() {
                   className={`flex h-full flex-col rounded-2xl bg-white p-7 ${t.highlight ? "ring-2 ring-primary shadow-xl shadow-primary/15" : "border border-gray-100 shadow-sm"}`}
                 >
                   {t.highlight && (
-                    <span className="mb-3 w-fit rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white">
+                    <motion.span
+                      animate={{ scale: [1, 1.04, 1] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                      className="mb-3 w-fit rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white"
+                    >
                       Le plus choisi
-                    </span>
+                    </motion.span>
                   )}
                   <h3 className="text-xl font-bold text-ink">{t.name}</h3>
                   <p className="text-sm text-ink-muted">{t.size}</p>

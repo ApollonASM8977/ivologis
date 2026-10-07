@@ -11,6 +11,26 @@ function formatDate(date: Date) {
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(date);
 }
 
+const BRAND_PRIMARY = "#0B5FFF";
+const BRAND_PRIMARY_DARK = "#0B1F3A";
+const INK = "#111827";
+const INK_MUTED = "#6B7280";
+const BORDER = "#E5E7EB";
+const SUCCESS_BG = "#ECFDF5";
+const SUCCESS_BORDER = "#86EFAC";
+const SUCCESS = "#15803D";
+
+/** Dessine la marque IVOLOGIS (deux parcelles superposées) en vecteur, sans dépendre d'une image. */
+function drawBrandMark(doc: PDFKit.PDFDocument, x: number, y: number, size: number, color = "#FFFFFF") {
+  const scale = size / 24;
+  doc.save();
+  doc.translate(x, y).scale(scale);
+  doc.roundedRect(9, 5, 10, 10, 2.2).fillOpacity(0.5).fill(color);
+  doc.roundedRect(5, 9, 10, 10, 2.2).fillOpacity(1).fill(color);
+  doc.restore();
+  doc.fillOpacity(1);
+}
+
 export function renderPdf(margin: number, build: (doc: PDFKit.PDFDocument) => void): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin, info: { Producer: "IVOLOGIS" } });
@@ -30,6 +50,9 @@ export class PdfService {
   async generateReceiptPdf(params: {
     receiptNumber: string;
     companyName: string;
+    companyAddress?: string | null;
+    companyEmail?: string | null;
+    companyPhone?: string | null;
     tenantName: string;
     propertyName: string;
     propertyAddress: string;
@@ -38,30 +61,104 @@ export class PdfService {
     paymentDate: Date;
     method: string;
   }): Promise<string> {
-    const buffer = await renderPdf(50, (doc) => {
-      doc.fontSize(20).fillColor("#0B5FFF").text(params.companyName, { align: "left" });
-      doc.moveDown(0.5);
-      doc.fontSize(14).fillColor("#111827").text("QUITTANCE DE LOYER", { align: "left" });
-      doc.moveDown();
-      doc.fontSize(10).fillColor("#6B7280").text(`N° ${params.receiptNumber}`);
-      doc.text(`Émise le ${formatDate(new Date())}`);
-      doc.moveDown();
+    const MARGIN = 48;
+    const HEADER_H = 118;
 
-      doc.fontSize(11).fillColor("#111827");
-      doc.text(`Locataire : ${params.tenantName}`);
-      doc.text(`Bien : ${params.propertyName}, ${params.propertyAddress}`);
-      doc.text(`Période concernée : ${formatDate(params.periodMonth)}`);
-      doc.text(`Date de paiement : ${formatDate(params.paymentDate)}`);
-      doc.text(`Moyen de paiement : ${params.method}`);
-      doc.moveDown();
+    const buffer = await renderPdf(MARGIN, (doc) => {
+      const pageWidth = doc.page.width;
+      const contentWidth = pageWidth - MARGIN * 2;
 
-      doc.fontSize(14).fillColor("#16A34A").text(`Montant payé : ${formatXOF(params.amount)}`);
-      doc.moveDown(2);
+      // --- Bandeau d'en-tête ---
+      doc.rect(0, 0, pageWidth, HEADER_H).fill(BRAND_PRIMARY_DARK);
+      drawBrandMark(doc, MARGIN, 32, 34);
+      doc.fontSize(17).font("Helvetica-Bold").fillColor("#FFFFFF").text(params.companyName, MARGIN + 46, 34);
+      doc
+        .fontSize(9)
+        .font("Helvetica")
+        .fillOpacity(0.75)
+        .fillColor("#FFFFFF")
+        .text(params.companyAddress || "Abidjan, Côte d'Ivoire", MARGIN + 46, 56, { width: contentWidth - 250 });
+      doc.fillOpacity(1);
 
-      doc.fontSize(9).fillColor("#6B7280").text(
-        "Ce document atteste du paiement du loyer pour la période mentionnée ci-dessus. Document généré automatiquement par IVOLOGIS.",
-        { align: "left" },
-      );
+      const rightColWidth = 220;
+      const rightColX = pageWidth - MARGIN - rightColWidth;
+      doc
+        .fontSize(10)
+        .font("Helvetica-Bold")
+        .fillColor("#FFFFFF")
+        .text("QUITTANCE DE LOYER", rightColX, 34, { width: rightColWidth, align: "right" });
+      doc
+        .fontSize(9)
+        .font("Helvetica")
+        .fillOpacity(0.75)
+        .fillColor("#FFFFFF")
+        .text(`N° ${params.receiptNumber}`, rightColX, 52, { width: rightColWidth, align: "right" })
+        .text(`Émise le ${formatDate(new Date())}`, rightColX, 65, { width: rightColWidth, align: "right" });
+      doc.fillOpacity(1);
+
+      // --- Carte d'informations ---
+      const cardY = HEADER_H + 28;
+      const cardPad = 20;
+      const rowGap = 30;
+      const rows: [string, string][] = [
+        ["Locataire", params.tenantName],
+        ["Bien concerné", `${params.propertyName}, ${params.propertyAddress}`],
+        ["Période concernée", formatDate(params.periodMonth)],
+        ["Date de paiement", formatDate(params.paymentDate)],
+        ["Moyen de paiement", params.method],
+      ];
+      const cardH = cardPad * 2 + rowGap * rows.length - 10;
+      doc.roundedRect(MARGIN, cardY, contentWidth, cardH, 10).fillAndStroke("#F8FAFC", BORDER);
+
+      rows.forEach(([label, value], i) => {
+        const y = cardY + cardPad + i * rowGap;
+        doc
+          .fontSize(8.5)
+          .font("Helvetica-Bold")
+          .fillColor(INK_MUTED)
+          .text(label.toUpperCase(), MARGIN + cardPad, y, { width: 150, characterSpacing: 0.4 });
+        doc
+          .fontSize(10.5)
+          .font("Helvetica")
+          .fillColor(INK)
+          .text(value, MARGIN + cardPad + 160, y - 1, { width: contentWidth - cardPad * 2 - 160 });
+      });
+
+      // --- Montant payé ---
+      const amountY = cardY + cardH + 22;
+      const amountH = 70;
+      doc.roundedRect(MARGIN, amountY, contentWidth, amountH, 10).fillAndStroke(SUCCESS_BG, SUCCESS_BORDER);
+      doc
+        .fontSize(9)
+        .font("Helvetica-Bold")
+        .fillColor(SUCCESS)
+        .text("MONTANT PAYÉ EN TOTALITÉ", MARGIN, amountY + 16, { width: contentWidth, align: "center", characterSpacing: 0.6 });
+      doc
+        .fontSize(22)
+        .font("Helvetica-Bold")
+        .fillColor(SUCCESS)
+        .text(formatXOF(params.amount), MARGIN, amountY + 32, { width: contentWidth, align: "center" });
+
+      // --- Pied de page ---
+      const footerY = amountY + amountH + 30;
+      doc.moveTo(MARGIN, footerY).lineTo(pageWidth - MARGIN, footerY).lineWidth(0.5).strokeColor(BORDER).stroke();
+      const contactLine = [params.companyAddress, params.companyPhone, params.companyEmail].filter(Boolean).join("  ·  ");
+      doc
+        .fontSize(8.5)
+        .font("Helvetica")
+        .fillColor(INK_MUTED)
+        .text(contactLine, MARGIN, footerY + 12, { width: contentWidth, align: "center" });
+      doc
+        .fontSize(8)
+        .fillColor(INK_MUTED)
+        .text(
+          "Ce document atteste du paiement du loyer pour la période mentionnée ci-dessus. Document généré automatiquement.",
+          MARGIN,
+          footerY + 26,
+          { width: contentWidth, align: "center" },
+        );
+
+      doc.rect(0, doc.page.height - 6, pageWidth, 6).fill(BRAND_PRIMARY);
     });
 
     return this.storage.save({

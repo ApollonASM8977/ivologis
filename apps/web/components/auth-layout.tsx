@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { motion } from "motion/react";
 
@@ -15,7 +17,11 @@ export function AuthLayout({
   return (
     <div className="flex min-h-screen">
       <aside aria-label="Présentation IVOLOGIS" className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary-dark p-12 text-white lg:flex">
-        <div className="pointer-events-none absolute -bottom-40 -right-20 h-[26rem] w-[26rem] rounded-full bg-blue-500/10" />
+        <motion.div
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -bottom-40 -right-20 h-[26rem] w-[26rem] rounded-full bg-blue-500/10"
+        />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -31,7 +37,9 @@ export function AuthLayout({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <BrandLogo size="md" inverse />
+          <Link href="/" className="transition-opacity hover:opacity-80">
+            <BrandLogo size="md" inverse />
+          </Link>
         </motion.div>
 
         <motion.div
@@ -66,9 +74,14 @@ export function AuthLayout({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <div className="mb-8 lg:hidden">
-            <BrandLogo size="md" />
+          <div className="mb-8 flex items-center justify-between lg:hidden">
+            <Link href="/">
+              <BrandLogo size="md" />
+            </Link>
           </div>
+          <Link href="/" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted transition-colors hover:text-primary">
+            <ArrowLeft className="h-4 w-4" /> Retour à l&apos;accueil
+          </Link>
           <h1 className="text-2xl font-bold text-ink">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}
           <div className="mt-8">{children}</div>

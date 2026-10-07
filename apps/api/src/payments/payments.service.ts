@@ -187,6 +187,9 @@ export class PaymentsService {
     const pdfUrl = await this.pdfService.generateReceiptPdf({
       receiptNumber,
       companyName: company.companyName,
+      companyAddress: company.address,
+      companyEmail: company.email,
+      companyPhone: company.phone,
       tenantName: payment.tenant.fullName,
       propertyName: payment.property.name,
       propertyAddress: `${payment.property.address}, ${payment.property.commune}`,

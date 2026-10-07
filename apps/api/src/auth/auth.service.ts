@@ -16,6 +16,10 @@ import { publicUser } from "../common/utils/public-user";
 
 const SELF_REGISTER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.TENANT];
 const INTERNAL_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT];
+// Désactivé temporairement pendant la phase de test (demande du 2026-10-07) : la 2FA reste
+// disponible en configuration volontaire (/auth/2fa/setup + /auth/2fa/enable) mais n'est plus
+// imposée au login des comptes internes. Remettre à `true` une fois les tests terminés.
+const ENFORCE_MANDATORY_2FA = false;
 
 export interface SessionMeta {
   userAgent?: string;
@@ -160,7 +164,7 @@ export class AuthService {
       throw new UnauthorizedException("Identifiants incorrects.");
     }
 
-    if (INTERNAL_ROLES.includes(user.role) && !user.totpEnabled) {
+    if (ENFORCE_MANDATORY_2FA && INTERNAL_ROLES.includes(user.role) && !user.totpEnabled) {
       const setupToken = await this.jwt.signAsync({ sub: user.id, purpose: "2fa-setup" }, { expiresIn: "15m" });
       return { requires2faSetup: true as const, setupToken };
     }

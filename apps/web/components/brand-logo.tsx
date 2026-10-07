@@ -5,8 +5,8 @@ import { motion } from "motion/react";
 const WORDMARK = "IVOLOGIS";
 
 /**
- * Marque composée de deux parcelles superposées : un symbole abstrait
- * pour un portefeuille de biens, sans pictogramme de maison générique.
+ * Monogramme "I" surmonté d'un accent en chevron (toit stylisé, sans dessiner
+ * une maison littérale) sur un fond asymétrique à deux coins arrondis.
  */
 export function BrandLogo({
   size = "md",
@@ -24,20 +24,31 @@ export function BrandLogo({
   const mark = inverse ? "bg-white text-primary" : "bg-primary text-white";
   const word = inverse ? "text-white" : "text-primary-dark";
 
-  const Wrapper = animate ? motion.span : "span";
-  const wrapperProps = animate
-    ? { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.35, ease: "easeOut" } }
-    : {};
-
   return (
-    <Wrapper {...(wrapperProps as object)} className={`inline-flex items-center gap-2.5 ${className}`} aria-label={WORDMARK}>
-      <span className={`relative flex ${box} shrink-0 items-center justify-center rounded-[10px] ${mark}`} aria-hidden="true">
-        <svg viewBox="0 0 24 24" className="h-[58%] w-[58%]" fill="none">
-          <rect x="9" y="5" width="10" height="10" rx="2.2" fill="currentColor" opacity="0.45" />
-          <rect x="5" y="9" width="10" height="10" rx="2.2" fill="currentColor" />
+    <span className={`inline-flex items-center gap-2.5 ${className}`} aria-label={WORDMARK}>
+      <motion.span
+        initial={animate ? { opacity: 0, scale: 0.55, rotate: -10 } : false}
+        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+        whileHover={{ scale: 1.08, rotate: -4 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 280, damping: 16 }}
+        className={`relative flex ${box} shrink-0 items-center justify-center shadow-sm ${mark}`}
+        style={{ borderRadius: "14px 6px 14px 6px" }}
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24" className="h-[55%] w-[55%]" fill="currentColor">
+          <path d="M12 4.4 L16.3 9.2 L7.7 9.2 Z" />
+          <rect x="10.6" y="8.6" width="2.8" height="11.2" rx="1.4" />
         </svg>
-      </span>
-      <span className={`font-bold tracking-tight ${text} ${word}`}>{WORDMARK}</span>
-    </Wrapper>
+      </motion.span>
+      <motion.span
+        initial={animate ? { opacity: 0, x: -6 } : false}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.12, duration: 0.3, ease: "easeOut" }}
+        className={`font-bold tracking-tight ${text} ${word}`}
+      >
+        {WORDMARK}
+      </motion.span>
+    </span>
   );
 }
