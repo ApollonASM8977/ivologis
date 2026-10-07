@@ -5,9 +5,11 @@ import { motion } from "motion/react";
 const WORDMARK = "IVOLOGIS";
 
 /**
- * Monogramme "I" surmonté d'un accent en chevron (toit stylisé, sans dessiner
- * une maison littérale) sur un fond asymétrique à deux coins arrondis.
+ * Case traditionnelle ouest-africaine stylisée : toit conique en terre cuite,
+ * mur rond, porte en creux. Volontairement différente du pictogramme maison
+ * occidental générique (toit à deux pans, murs carrés).
  */
+const ROOF_COLOR = "#C2672B";
 export function BrandLogo({
   size = "md",
   animate = true,
@@ -36,9 +38,10 @@ export function BrandLogo({
         style={{ borderRadius: "14px 6px 14px 6px" }}
         aria-hidden="true"
       >
-        <svg viewBox="0 0 24 24" className="h-[55%] w-[55%]" fill="currentColor">
-          <path d="M12 4.4 L16.3 9.2 L7.7 9.2 Z" />
-          <rect x="10.6" y="8.6" width="2.8" height="11.2" rx="1.4" />
+        <svg viewBox="0 0 24 24" className="h-[60%] w-[60%]">
+          <rect x="7.2" y="11" width="9.6" height="7.4" rx="3.4" fill="currentColor" />
+          <rect x="10.8" y="14.5" width="2.4" height="3.9" rx="1.2" fill="currentColor" fillOpacity="0.35" />
+          <path d="M5.2 11.2 Q12 3.6 18.8 11.2 Z" fill={ROOF_COLOR} />
         </svg>
       </motion.span>
       <motion.span
