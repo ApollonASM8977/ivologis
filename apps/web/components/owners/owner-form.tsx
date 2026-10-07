@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { DocumentType, DOCUMENT_TYPE_LABELS } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 
 export interface OwnerFormValues {
   fullName: string;
@@ -43,7 +44,8 @@ export function OwnerForm({
   submitLabel?: string;
   showPassword?: boolean;
 }) {
-  const { register, handleSubmit } = useForm<OwnerFormValues>({ defaultValues });
+  const { register, handleSubmit, watch } = useForm<OwnerFormValues>({ defaultValues });
+  const password = watch("password");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -120,6 +122,7 @@ export function OwnerForm({
         <div>
           <Label>Mot de passe (optionnel, crée un accès de connexion)</Label>
           <Input type="password" placeholder="Laisser vide si aucun accès" {...register("password")} />
+          <PasswordStrengthMeter password={password ?? ""} />
         </div>
       )}
       <Button type="submit" className="w-full" loading={loading}>

@@ -1,15 +1,7 @@
 "use client";
 
-import { Building2, KeyRound, LineChart, Wallet } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { motion } from "motion/react";
-
-const floatIcons = [
-  { Icon: Building2, top: "18%", left: "72%", delay: 0, size: 34 },
-  { Icon: KeyRound, top: "62%", left: "80%", delay: 0.6, size: 26 },
-  { Icon: Wallet, top: "72%", left: "14%", delay: 1.1, size: 28 },
-  { Icon: LineChart, top: "28%", left: "10%", delay: 1.6, size: 26 },
-];
 
 export function AuthLayout({
   title,
@@ -23,17 +15,7 @@ export function AuthLayout({
   return (
     <div className="flex min-h-screen">
       <aside aria-label="Présentation IVOLOGIS" className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary-dark p-12 text-white lg:flex">
-        {/* Animated gradient blobs */}
-        <motion.div
-          className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-primary/40 blur-3xl"
-          animate={{ x: [0, 40, 0], y: [0, 30, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="pointer-events-none absolute -bottom-32 -right-10 h-[28rem] w-[28rem] rounded-full bg-blue-500/20 blur-3xl"
-          animate={{ x: [0, -30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
+        <div className="pointer-events-none absolute -bottom-40 -right-20 h-[26rem] w-[26rem] rounded-full bg-blue-500/10" />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -42,24 +24,6 @@ export function AuthLayout({
             backgroundSize: "40px 40px",
           }}
         />
-
-        {/* Floating accent icons */}
-        {floatIcons.map(({ Icon, top, left, delay, size }, i) => (
-          <motion.div
-            key={i}
-            className="pointer-events-none absolute flex items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm"
-            style={{ top, left, width: size + 24, height: size + 24 }}
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1, y: [0, -12, 0] }}
-            transition={{
-              opacity: { duration: 0.6, delay: 0.4 + delay },
-              scale: { duration: 0.6, delay: 0.4 + delay },
-              y: { duration: 5 + i, repeat: Infinity, ease: "easeInOut", delay },
-            }}
-          >
-            <Icon style={{ width: size, height: size }} className="text-white/70" strokeWidth={1.5} />
-          </motion.div>
-        ))}
 
         <motion.div
           className="relative z-10 flex items-center gap-2"

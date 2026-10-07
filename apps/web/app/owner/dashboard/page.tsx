@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { Building2, Wallet, AlertTriangle, Wrench, ArrowRight, Sparkles } from "lucide-react";
+import { Building2, Wallet, AlertTriangle, Wrench, ArrowRight, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { formatXOF } from "@ivologis/shared";
@@ -126,7 +126,7 @@ export default function OwnerDashboardPage() {
                 </ul>
               ) : (
                 <div className="flex items-center gap-3 rounded-xl bg-success/5 px-4 py-6 text-sm text-ink-muted">
-                  <Sparkles className="h-5 w-5 text-success" /> Aucun loyer en retard ce mois-ci.
+                  <CheckCircle2 className="h-5 w-5 text-success" /> Aucun loyer en retard ce mois-ci.
                 </div>
               )}
             </Card>

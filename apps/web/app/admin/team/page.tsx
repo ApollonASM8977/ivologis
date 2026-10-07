@@ -14,6 +14,7 @@ import { Input, Label } from "@/components/ui/input";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AccountStatusBadge } from "@/components/status-badges";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 
 interface AdminRow {
   id: string;
@@ -72,7 +73,8 @@ export default function AdminTeamPage() {
     queryFn: async () => (await api.get("/users/admins")).data,
   });
 
-  const { register, handleSubmit, reset } = useForm<CreateAdminForm>();
+  const { register, handleSubmit, reset, watch } = useForm<CreateAdminForm>();
+  const newAdminPassword = watch("password");
 
   const createMutation = useMutation({
     mutationFn: (values: CreateAdminForm) =>
@@ -187,6 +189,7 @@ export default function AdminTeamPage() {
           <div>
             <Label>Mot de passe</Label>
             <Input type="password" {...register("password", { required: true, minLength: 8 })} />
+            <PasswordStrengthMeter password={newAdminPassword} />
           </div>
           <div>
             <Label>Permissions accordées</Label>

@@ -12,6 +12,7 @@ import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 
 interface RegisterForm {
   fullName: string;
@@ -25,9 +26,10 @@ export default function RegisterPage() {
   const router = useRouter();
   const setSession = useAuthStore((s) => s.setSession);
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit } = useForm<RegisterForm>({
+  const { register, handleSubmit, watch } = useForm<RegisterForm>({
     defaultValues: { role: UserRole.OWNER },
   });
+  const password = watch("password");
 
   async function onSubmit(values: RegisterForm) {
     setLoading(true);
@@ -69,6 +71,7 @@ export default function RegisterPage() {
           <StaggerItem>
             <Label>Mot de passe</Label>
             <Input type="password" placeholder="8 caractères minimum" {...register("password", { required: true, minLength: 8 })} />
+            <PasswordStrengthMeter password={password} />
           </StaggerItem>
 
           <StaggerItem>

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { DocumentType, DOCUMENT_TYPE_LABELS, MaritalStatus, MARITAL_STATUS_LABELS } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 
 export interface TenantFormValues {
   fullName: string;
@@ -46,7 +47,8 @@ export function TenantForm({
   onSubmit: (values: TenantFormValues) => void;
   submitLabel?: string;
 }) {
-  const { register, handleSubmit } = useForm<TenantFormValues>({ defaultValues });
+  const { register, handleSubmit, watch } = useForm<TenantFormValues>({ defaultValues });
+  const password = watch("password");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -125,6 +127,7 @@ export function TenantForm({
         <div>
           <Label>Mot de passe (optionnel)</Label>
           <Input type="password" {...register("password")} />
+          <PasswordStrengthMeter password={password ?? ""} />
         </div>
 
         <SectionTitle>Contact d&apos;urgence</SectionTitle>

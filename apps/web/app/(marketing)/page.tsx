@@ -17,12 +17,10 @@ import {
   KeyRound,
   Eye,
   History,
-  Sparkles,
 } from "lucide-react";
 import { ContactForm } from "@/components/marketing/contact-form";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { LogoMarquee } from "@/components/marketing/logo-marquee";
-import { useSlowConnection } from "@/lib/use-slow-connection";
 
 const FEATURES = [
   { icon: Building2, title: "Biens immobiliers", text: "Fiche complète : adresse précise, photos, étage, équipements, meublé, repère pour trouver le bien." },
@@ -106,19 +104,18 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
   );
 }
 
-function HeroBlobs({ reduced = false }: { reduced?: boolean }) {
+function HeroBlobs() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <motion.div
-        animate={reduced ? undefined : { x: [0, 40, -20, 0], y: [0, 30, 10, 0], scale: [1, 1.08, 0.97, 1] }}
-        transition={reduced ? undefined : { duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/15 blur-3xl"
+      <div
+        className="absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, #0B5FFF 1px, transparent 1px), linear-gradient(to bottom, #0B5FFF 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+        }}
       />
-      <motion.div
-        animate={reduced ? undefined : { x: [0, -50, 20, 0], y: [0, -20, 30, 0] }}
-        transition={reduced ? undefined : { duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -right-24 top-40 h-80 w-80 rounded-full bg-sky-300/25 blur-3xl"
-      />
+      <div className="absolute -right-20 top-0 h-[26rem] w-[26rem] rounded-full bg-primary/10" />
     </div>
   );
 }
@@ -237,20 +234,19 @@ export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [audience, setAudience] = useState(0);
   const active = AUDIENCES[audience];
-  const slowConnection = useSlowConnection();
 
   return (
     <>
       <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-white to-white">
-        <HeroBlobs reduced={slowConnection} />
+        <HeroBlobs />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-2 lg:py-24">
           <div>
             <motion.span
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm"
+              className="inline-flex items-center rounded-full border border-primary/20 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm"
             >
-              <Sparkles className="h-3.5 w-3.5" /> Conçu pour la location en Côte d&apos;Ivoire
+              Conçu pour la location en Côte d&apos;Ivoire
             </motion.span>
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
@@ -258,14 +254,7 @@ export default function HomePage() {
               transition={{ delay: 0.1, duration: 0.6 }}
               className="mt-5 text-4xl font-extrabold leading-[1.1] tracking-tight text-primary-dark sm:text-5xl lg:text-6xl"
             >
-              La gestion locative,{" "}
-              <motion.span
-                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="bg-gradient-to-r from-primary via-sky-500 to-primary bg-[length:200%_auto] bg-clip-text text-transparent"
-              >
-                simple et sécurisée.
-              </motion.span>
+              La gestion locative, <span className="text-primary">simple et sécurisée.</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
@@ -442,13 +431,9 @@ export default function HomePage() {
                   className={`flex h-full flex-col rounded-2xl bg-white p-7 ${t.highlight ? "ring-2 ring-primary shadow-xl shadow-primary/15" : "border border-gray-100 shadow-sm"}`}
                 >
                   {t.highlight && (
-                    <motion.span
-                      animate={{ scale: [1, 1.05, 1] }}
-                      transition={{ duration: 2.5, repeat: Infinity }}
-                      className="mb-3 w-fit rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white"
-                    >
+                    <span className="mb-3 w-fit rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white">
                       Le plus choisi
-                    </motion.span>
+                    </span>
                   )}
                   <h3 className="text-xl font-bold text-ink">{t.name}</h3>
                   <p className="text-sm text-ink-muted">{t.size}</p>

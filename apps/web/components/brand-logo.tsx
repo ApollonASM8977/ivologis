@@ -2,8 +2,12 @@
 
 import { motion } from "motion/react";
 
-const LETTERS = "IVOLOGIS".split("");
+const WORDMARK = "IVOLOGIS";
 
+/**
+ * Marque composée de deux parcelles superposées : un symbole abstrait
+ * pour un portefeuille de biens, sans pictogramme de maison générique.
+ */
 export function BrandLogo({
   size = "md",
   animate = true,
@@ -20,50 +24,20 @@ export function BrandLogo({
   const mark = inverse ? "bg-white text-primary" : "bg-primary text-white";
   const word = inverse ? "text-white" : "text-primary-dark";
 
+  const Wrapper = animate ? motion.span : "span";
+  const wrapperProps = animate
+    ? { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.35, ease: "easeOut" } }
+    : {};
+
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`} aria-label="IVOLOGIS">
-      <motion.span
-        initial={animate ? { rotate: -90, scale: 0.6, opacity: 0 } : false}
-        animate={{ rotate: 0, scale: 1, opacity: 1 }}
-        whileHover={{ rotate: [0, -8, 8, 0], transition: { duration: 0.6 } }}
-        transition={{ type: "spring", stiffness: 260, damping: 18 }}
-        className={`relative flex ${box} shrink-0 items-center justify-center overflow-hidden rounded-xl ${mark} shadow-md shadow-primary/30`}
-        aria-hidden="true"
-      >
-        <svg viewBox="0 0 24 24" className="h-[60%] w-[60%]" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-          <motion.path
-            d="M12 3 L20 9.5 V20 H4 V9.5 Z"
-            initial={animate ? { pathLength: 0, opacity: 0 } : false}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.9, ease: "easeInOut" }}
-          />
-          <motion.path
-            d="M9.5 20 V14.5 H14.5 V20"
-            initial={animate ? { pathLength: 0 } : false}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.5, delay: 0.7, ease: "easeOut" }}
-          />
+    <Wrapper {...(wrapperProps as object)} className={`inline-flex items-center gap-2.5 ${className}`} aria-label={WORDMARK}>
+      <span className={`relative flex ${box} shrink-0 items-center justify-center rounded-[10px] ${mark}`} aria-hidden="true">
+        <svg viewBox="0 0 24 24" className="h-[58%] w-[58%]" fill="none">
+          <rect x="9" y="5" width="10" height="10" rx="2.2" fill="currentColor" opacity="0.45" />
+          <rect x="5" y="9" width="10" height="10" rx="2.2" fill="currentColor" />
         </svg>
-        <motion.span
-          aria-hidden="true"
-          initial={animate ? { x: "-120%" } : false}
-          animate={{ x: "120%" }}
-          transition={{ duration: 1.1, delay: 0.9, ease: "easeInOut" }}
-          className="absolute inset-y-0 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-        />
-      </motion.span>
-      <span className={`flex font-bold tracking-tight ${text} ${word}`}>
-        {LETTERS.map((letter, i) => (
-          <motion.span
-            key={`${letter}-${i}`}
-            initial={animate ? { opacity: 0, y: 8 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 + i * 0.05, duration: 0.35, ease: "easeOut" }}
-          >
-            {letter}
-          </motion.span>
-        ))}
       </span>
-    </span>
+      <span className={`font-bold tracking-tight ${text} ${word}`}>{WORDMARK}</span>
+    </Wrapper>
   );
 }

@@ -9,13 +9,15 @@ import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 
 function ResetPasswordForm() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get("token") ?? "";
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit } = useForm<{ newPassword: string }>();
+  const { register, handleSubmit, watch } = useForm<{ newPassword: string }>();
+  const newPassword = watch("newPassword");
 
   async function onSubmit(values: { newPassword: string }) {
     setLoading(true);
@@ -36,6 +38,7 @@ function ResetPasswordForm() {
         <StaggerItem>
           <Label>Nouveau mot de passe</Label>
           <Input type="password" placeholder="8 caractères minimum" {...register("newPassword", { required: true, minLength: 8 })} />
+          <PasswordStrengthMeter password={newPassword} />
         </StaggerItem>
         <StaggerItem>
           <Button type="submit" className="w-full" loading={loading} disabled={!token}>
