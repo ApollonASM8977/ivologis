@@ -107,3 +107,22 @@ export enum DocumentType {
   CONTRAT = "CONTRAT",
   AUTRE = "AUTRE",
 }
+
+export enum ShortStayStatus {
+  CONFIRMEE = "CONFIRMEE",
+  TERMINEE = "TERMINEE",
+  ANNULEE = "ANNULEE",
+}
+
+export enum SaleStatus {
+  DISPONIBLE = "DISPONIBLE",
+  OFFRE_RECUE = "OFFRE_RECUE",
+  SOUS_COMPROMIS = "SOUS_COMPROMIS",
+  VENDU = "VENDU",
+}
+
+export enum SaleOfferStatus {
+  EN_ATTENTE = "EN_ATTENTE",
+  ACCEPTEE = "ACCEPTEE",
+  REFUSEE = "REFUSEE",
+}

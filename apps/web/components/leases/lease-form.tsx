@@ -2,8 +2,9 @@
 
 import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle } from "lucide-react";
 import { api } from "@/lib/api";
-import { LeaseType, LEASE_TYPE_LABELS, LEASE_TYPE_DESCRIPTIONS } from "@ivologis/shared";
+import { LeaseType, LEASE_TYPE_LABELS, LEASE_TYPE_DESCRIPTIONS, formatXOF } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 
@@ -59,6 +60,12 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
   });
 
   const type = watch("type");
+  const rentAmount = watch("rentAmount");
+  const deposit = watch("deposit");
+  const advance = watch("advance");
+  const depositCeiling = Number(rentAmount) > 0 ? Number(rentAmount) * 2 : 0;
+  const depositExceeds = depositCeiling > 0 && Number(deposit) > depositCeiling;
+  const advanceExceeds = depositCeiling > 0 && Number(advance) > depositCeiling;
 
   const { data: properties } = useQuery({
     queryKey: ["properties", "vacant-for-select"],
@@ -205,6 +212,21 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
           <Input type="number" {...register("advance", { required: true, valueAsNumber: true })} />
         </div>
       </div>
+
+      {(depositExceeds || advanceExceeds) && (
+        <div className="flex gap-2.5 rounded-lg border border-warning/30 bg-warning/5 p-3 text-xs text-ink">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <p>
+            {depositExceeds && advanceExceeds
+              ? "La caution et l'avance dépassent toutes les deux 2 mois de loyer"
+              : depositExceeds
+                ? "La caution dépasse 2 mois de loyer"
+                : "L'avance dépasse 2 mois de loyer"}{" "}
+            ({formatXOF(depositCeiling)} max recommandé par poste). Au-delà de ce plafond, une taxe de 300% sur
+            l&apos;excédent peut s&apos;appliquer (Art. 1143 CGI) — à vérifier avec votre comptable.
+          </p>
+        </div>
+      )}
 
       {/* --- Champs dynamiques selon le type de contrat --- */}
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">

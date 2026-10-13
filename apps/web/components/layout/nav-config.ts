@@ -17,6 +17,8 @@ import {
   History,
   Inbox,
   Mail,
+  CalendarRange,
+  Tag,
 } from "lucide-react";
 
 export interface NavItem {
@@ -31,6 +33,8 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Propriétaires", href: "/admin/owners", icon: Users },
   { label: "Locataires", href: "/admin/tenants", icon: UserRound },
   { label: "Contrats", href: "/admin/leases", icon: FileText },
+  { label: "Courte durée", href: "/admin/short-stay", icon: CalendarRange },
+  { label: "Ventes", href: "/admin/sales", icon: Tag },
   { label: "Paiements", href: "/admin/payments", icon: Wallet },
   { label: "Maintenance", href: "/admin/maintenance", icon: Wrench },
   { label: "Techniciens", href: "/admin/technicians", icon: HardHat },
@@ -60,6 +64,7 @@ export const TENANT_NAV: NavItem[] = [
   { label: "Mon contrat", href: "/tenant/lease", icon: FileText },
   { label: "Paiements", href: "/tenant/payments", icon: Receipt },
   { label: "Maintenance", href: "/tenant/maintenance", icon: ClipboardList },
+  { label: "Mes réservations", href: "/tenant/short-stay", icon: CalendarRange },
   { label: "Résiliation & demandes", href: "/tenant/requests", icon: Mail },
   { label: "Profil", href: "/tenant/profile", icon: UserCircle },
 ];

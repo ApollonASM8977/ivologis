@@ -11,6 +11,9 @@ import {
   PaymentStatus,
   PropertyStatus,
   PropertyType,
+  SaleOfferStatus,
+  SaleStatus,
+  ShortStayStatus,
   SignatureStatus,
   UserRole,
 } from "./enums";
@@ -143,4 +146,36 @@ export const MARITAL_STATUS_LABELS: Record<MaritalStatus, string> = {
   [MaritalStatus.MARIE]: "Marié(e)",
   [MaritalStatus.DIVORCE]: "Divorcé(e)",
   [MaritalStatus.VEUF]: "Veuf(ve)",
+};
+
+export const SHORT_STAY_STATUS_LABELS: Record<ShortStayStatus, string> = {
+  [ShortStayStatus.CONFIRMEE]: "Confirmée",
+  [ShortStayStatus.TERMINEE]: "Terminée",
+  [ShortStayStatus.ANNULEE]: "Annulée",
+};
+
+export const SHORT_STAY_STATUS_COLORS: Record<ShortStayStatus, string> = {
+  [ShortStayStatus.CONFIRMEE]: "blue",
+  [ShortStayStatus.TERMINEE]: "green",
+  [ShortStayStatus.ANNULEE]: "red",
+};
+
+export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
+  [SaleStatus.DISPONIBLE]: "Disponible",
+  [SaleStatus.OFFRE_RECUE]: "Offre reçue",
+  [SaleStatus.SOUS_COMPROMIS]: "Sous compromis",
+  [SaleStatus.VENDU]: "Vendu",
+};
+
+export const SALE_STATUS_COLORS: Record<SaleStatus, string> = {
+  [SaleStatus.DISPONIBLE]: "green",
+  [SaleStatus.OFFRE_RECUE]: "amber",
+  [SaleStatus.SOUS_COMPROMIS]: "blue",
+  [SaleStatus.VENDU]: "gray",
+};
+
+export const SALE_OFFER_STATUS_LABELS: Record<SaleOfferStatus, string> = {
+  [SaleOfferStatus.EN_ATTENTE]: "En attente",
+  [SaleOfferStatus.ACCEPTEE]: "Acceptée",
+  [SaleOfferStatus.REFUSEE]: "Refusée",
 };

@@ -52,6 +52,8 @@ export class PropertiesService {
         rentAmount: dto.rentAmount,
         deposit: dto.deposit ?? 0,
         advance: dto.advance ?? 0,
+        shortStayEnabled: dto.shortStayEnabled ?? false,
+        shortStayNightlyRate: dto.shortStayNightlyRate,
         ownerId,
       },
     });

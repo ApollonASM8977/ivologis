@@ -167,3 +167,34 @@ test("demande locataire : type et message contrôlés", async () => {
   assert.ok((await errorsOf(CreateTenantRequestDto, { type: "RESILIATION", message: "court" })).includes("message"));
   assert.ok((await errorsOf(CreateTenantRequestDto, { type: "INCONNU", message: "Un message suffisant ici." })).includes("type"));
 });
+
+const { CreateShortStayBookingDto } = require("../dist/src/short-stay/dto/create-booking.dto.js");
+const { SetSaleDto } = require("../dist/src/sales/dto/set-sale.dto.js");
+const { CreateSaleOfferDto } = require("../dist/src/sales/dto/create-offer.dto.js");
+const { FinalizeSaleDto } = require("../dist/src/sales/dto/finalize-sale.dto.js");
+
+test("réservation courte durée : tarif et dates contrôlés", async () => {
+  const valid = { guestName: "Yao Patrick", checkIn: "2026-11-01", checkOut: "2026-11-05", nightlyRate: 25000 };
+  assert.deepEqual(await errorsOf(CreateShortStayBookingDto, valid), []);
+  assert.ok((await errorsOf(CreateShortStayBookingDto, { ...valid, nightlyRate: -1 })).includes("nightlyRate"));
+  assert.ok((await errorsOf(CreateShortStayBookingDto, { ...valid, checkIn: "pas une date" })).includes("checkIn"));
+  assert.ok((await errorsOf(CreateShortStayBookingDto, { guestName: "Yao" })).includes("checkIn"));
+});
+
+test("mise en vente : prix et commission numériques et bornés", async () => {
+  assert.deepEqual(await errorsOf(SetSaleDto, { forSale: true, salePrice: 45000000, saleCommissionRate: 5 }), []);
+  assert.ok((await errorsOf(SetSaleDto, { forSale: true, saleCommissionRate: 150 })).includes("saleCommissionRate"));
+  assert.ok((await errorsOf(SetSaleDto, { salePrice: 1000 })).includes("forSale"));
+});
+
+test("offre d'achat : acheteur et montant requis", async () => {
+  assert.deepEqual(await errorsOf(CreateSaleOfferDto, { buyerName: "Konan Affoué", offerAmount: 40000000 }), []);
+  assert.ok((await errorsOf(CreateSaleOfferDto, { offerAmount: 40000000 })).includes("buyerName"));
+  assert.ok((await errorsOf(CreateSaleOfferDto, { buyerName: "Konan", offerAmount: -5 })).includes("offerAmount"));
+});
+
+test("finalisation de vente : acheteur et prix final requis", async () => {
+  assert.deepEqual(await errorsOf(FinalizeSaleDto, { buyerName: "Konan Affoué", finalPrice: 42000000 }), []);
+  assert.ok((await errorsOf(FinalizeSaleDto, { buyerName: "Konan", finalPrice: 42000000, saleDate: "pas une date" })).includes("saleDate"));
+  assert.ok((await errorsOf(FinalizeSaleDto, { finalPrice: 42000000 })).includes("buyerName"));
+});

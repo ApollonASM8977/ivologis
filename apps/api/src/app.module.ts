@@ -21,6 +21,8 @@ import { SettingsModule } from "./settings/settings.module";
 import { ContactModule } from "./contact/contact.module";
 import { SearchModule } from "./search/search.module";
 import { TenantRequestsModule } from "./tenant-requests/tenant-requests.module";
+import { ShortStayModule } from "./short-stay/short-stay.module";
+import { SalesModule } from "./sales/sales.module";
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { TenantRequestsModule } from "./tenant-requests/tenant-requests.module";
     ContactModule,
     SearchModule,
     TenantRequestsModule,
+    ShortStayModule,
+    SalesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

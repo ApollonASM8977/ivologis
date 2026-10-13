@@ -26,6 +26,8 @@ export interface PropertyFormValues {
   deposit?: number;
   advance?: number;
   ownerId?: string;
+  shortStayEnabled?: boolean;
+  shortStayNightlyRate?: number;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -49,7 +51,8 @@ export function PropertyForm({
   onSubmit: (values: PropertyFormValues) => void;
   submitLabel?: string;
 }) {
-  const { register, handleSubmit } = useForm<PropertyFormValues>({ defaultValues });
+  const { register, handleSubmit, watch } = useForm<PropertyFormValues>({ defaultValues });
+  const shortStayEnabled = watch("shortStayEnabled");
 
   const { data: owners } = useQuery({
     queryKey: ["owners", "all-for-select"],
@@ -169,6 +172,20 @@ export function PropertyForm({
           <Label>Avance (FCFA)</Label>
           <Input type="number" {...register("advance", { valueAsNumber: true })} />
         </div>
+
+        <SectionTitle>Location courte durée</SectionTitle>
+        <div className="col-span-2 flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm font-medium text-ink">
+            <input type="checkbox" className="h-4 w-4 rounded border-gray-300" {...register("shortStayEnabled")} />
+            Proposer ce bien en courte durée (séjours à la nuitée)
+          </label>
+        </div>
+        {shortStayEnabled && (
+          <div>
+            <Label>Tarif par nuitée (FCFA)</Label>
+            <Input type="number" {...register("shortStayNightlyRate", { valueAsNumber: true })} />
+          </div>
+        )}
       </div>
 
       <Button type="submit" className="w-full" loading={loading}>

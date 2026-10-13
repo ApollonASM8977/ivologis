@@ -15,8 +15,10 @@ import { Modal } from "@/components/ui/modal";
 import { LoadingState } from "@/components/ui/empty-state";
 import { PropertyStatusBadge, PaymentStatusBadge, MaintenanceStatusBadge } from "@/components/status-badges";
 import { PropertyForm, PropertyFormValues } from "@/components/properties/property-form";
+import { ShortStayCard } from "@/components/properties/short-stay-card";
+import { SaleCard } from "@/components/properties/sale-card";
 
-export function PropertyDetail({ id, listHref }: { id: string; listHref: string }) {
+export function PropertyDetail({ id, listHref, canManage = true }: { id: string; listHref: string; canManage?: boolean }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
@@ -198,6 +200,12 @@ export function PropertyDetail({ id, listHref }: { id: string; listHref: string 
           </div>
         )}
       </Card>
+
+      {property.shortStayEnabled && (
+        <ShortStayCard propertyId={id} defaultNightlyRate={property.shortStayNightlyRate ? Number(property.shortStayNightlyRate) : undefined} canManage={canManage} />
+      )}
+
+      {(property.forSale || canManage) && <SaleCard propertyId={id} property={property} canManage={canManage} />}
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
