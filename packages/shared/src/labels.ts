@@ -11,11 +11,13 @@ import {
   PaymentStatus,
   PropertyStatus,
   PropertyType,
+  SaleDocumentType,
   SaleOfferStatus,
   SaleStatus,
   ShortStayStatus,
   SignatureStatus,
   UserRole,
+  VisitRequestStatus,
 } from "./enums";
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
@@ -149,15 +151,40 @@ export const MARITAL_STATUS_LABELS: Record<MaritalStatus, string> = {
 };
 
 export const SHORT_STAY_STATUS_LABELS: Record<ShortStayStatus, string> = {
+  [ShortStayStatus.EN_ATTENTE]: "Demande en attente",
   [ShortStayStatus.CONFIRMEE]: "Confirmée",
   [ShortStayStatus.TERMINEE]: "Terminée",
   [ShortStayStatus.ANNULEE]: "Annulée",
 };
 
 export const SHORT_STAY_STATUS_COLORS: Record<ShortStayStatus, string> = {
+  [ShortStayStatus.EN_ATTENTE]: "amber",
   [ShortStayStatus.CONFIRMEE]: "blue",
   [ShortStayStatus.TERMINEE]: "green",
   [ShortStayStatus.ANNULEE]: "red",
+};
+
+export const VISIT_REQUEST_STATUS_LABELS: Record<VisitRequestStatus, string> = {
+  [VisitRequestStatus.EN_ATTENTE]: "En attente",
+  [VisitRequestStatus.CONFIRME]: "Confirmé",
+  [VisitRequestStatus.REFUSE]: "Refusé",
+  [VisitRequestStatus.TERMINE]: "Terminé",
+};
+
+export const VISIT_REQUEST_STATUS_COLORS: Record<VisitRequestStatus, string> = {
+  [VisitRequestStatus.EN_ATTENTE]: "amber",
+  [VisitRequestStatus.CONFIRME]: "green",
+  [VisitRequestStatus.REFUSE]: "red",
+  [VisitRequestStatus.TERMINE]: "gray",
+};
+
+export const SALE_DOCUMENT_TYPE_LABELS: Record<SaleDocumentType, string> = {
+  [SaleDocumentType.MUTATION]: "Droit de mutation",
+  [SaleDocumentType.CONTRAT]: "Contrat / compromis",
+  [SaleDocumentType.RECU]: "Reçu de paiement",
+  [SaleDocumentType.PREUVE_PAIEMENT]: "Preuve de paiement",
+  [SaleDocumentType.ACTE]: "Acte de vente",
+  [SaleDocumentType.AUTRE]: "Autre document",
 };
 
 export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {

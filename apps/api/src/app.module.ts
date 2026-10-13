@@ -23,6 +23,7 @@ import { SearchModule } from "./search/search.module";
 import { TenantRequestsModule } from "./tenant-requests/tenant-requests.module";
 import { ShortStayModule } from "./short-stay/short-stay.module";
 import { SalesModule } from "./sales/sales.module";
+import { CatalogModule } from "./catalog/catalog.module";
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { SalesModule } from "./sales/sales.module";
     TenantRequestsModule,
     ShortStayModule,
     SalesModule,
+    CatalogModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

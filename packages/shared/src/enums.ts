@@ -109,9 +109,26 @@ export enum DocumentType {
 }
 
 export enum ShortStayStatus {
+  EN_ATTENTE = "EN_ATTENTE",
   CONFIRMEE = "CONFIRMEE",
   TERMINEE = "TERMINEE",
   ANNULEE = "ANNULEE",
+}
+
+export enum VisitRequestStatus {
+  EN_ATTENTE = "EN_ATTENTE",
+  CONFIRME = "CONFIRME",
+  REFUSE = "REFUSE",
+  TERMINE = "TERMINE",
+}
+
+export enum SaleDocumentType {
+  MUTATION = "MUTATION",
+  CONTRAT = "CONTRAT",
+  RECU = "RECU",
+  PREUVE_PAIEMENT = "PREUVE_PAIEMENT",
+  ACTE = "ACTE",
+  AUTRE = "AUTRE",
 }
 
 export enum SaleStatus {

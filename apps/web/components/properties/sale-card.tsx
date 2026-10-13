@@ -4,13 +4,21 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Check, X as XIcon, Tag, FileUp } from "lucide-react";
+import { Plus, Check, X as XIcon, Tag, FileUp, Eye, MessageSquare, Trash2, CalendarCheck } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
-import { formatXOF, SALE_STATUS_LABELS, SALE_STATUS_COLORS, SALE_OFFER_STATUS_LABELS } from "@ivologis/shared";
+import {
+  formatXOF,
+  SALE_STATUS_LABELS,
+  SALE_STATUS_COLORS,
+  SALE_OFFER_STATUS_LABELS,
+  SALE_DOCUMENT_TYPE_LABELS,
+  VISIT_REQUEST_STATUS_LABELS,
+  VISIT_REQUEST_STATUS_COLORS,
+} from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DocumentLink } from "@/components/document-link";
 
@@ -29,6 +37,10 @@ interface FinalizeForm {
   finalPrice: number;
   saleDate?: string;
 }
+interface DocumentForm {
+  type: string;
+  label?: string;
+}
 
 export function SaleCard({
   propertyId,
@@ -40,14 +52,19 @@ export function SaleCard({
   canManage: boolean;
 }) {
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentFileRef = useRef<HTMLInputElement>(null);
   const [listModalOpen, setListModalOpen] = useState(false);
   const [offerModalOpen, setOfferModalOpen] = useState(false);
   const [finalizeModalOpen, setFinalizeModalOpen] = useState(false);
+  const [documentModalOpen, setDocumentModalOpen] = useState(false);
+  const [scheduleVisitId, setScheduleVisitId] = useState<string | null>(null);
+  const [scheduledDate, setScheduledDate] = useState("");
 
   const invalidateProperty = () => {
     queryClient.invalidateQueries({ queryKey: ["properties", propertyId] });
     queryClient.invalidateQueries({ queryKey: ["sale-offers", propertyId] });
+    queryClient.invalidateQueries({ queryKey: ["sale-documents", propertyId] });
+    queryClient.invalidateQueries({ queryKey: ["visit-requests", propertyId] });
   };
 
   const { data: offers } = useQuery({
@@ -56,9 +73,22 @@ export function SaleCard({
     enabled: !!property?.forSale,
   });
 
+  const { data: documents } = useQuery({
+    queryKey: ["sale-documents", propertyId],
+    queryFn: async () => (await api.get(`/properties/${propertyId}/sale-documents`)).data,
+    enabled: !!property?.forSale,
+  });
+
+  const { data: visitRequests } = useQuery({
+    queryKey: ["visit-requests", propertyId],
+    queryFn: async () => (await api.get(`/properties/${propertyId}/visit-requests`)).data,
+    enabled: !!property?.forSale,
+  });
+
   const listForm = useForm<ListForSaleForm>({ defaultValues: { salePrice: property?.salePrice ?? undefined, saleCommissionRate: property?.saleCommissionRate ?? undefined } });
   const offerForm = useForm<OfferForm>();
   const finalizeForm = useForm<FinalizeForm>();
+  const documentForm = useForm<DocumentForm>({ defaultValues: { type: "MUTATION" } });
 
   const listMutation = useMutation({
     mutationFn: (values: ListForSaleForm) => api.patch(`/properties/${propertyId}/sale`, { forSale: true, ...values }),
@@ -100,14 +130,39 @@ export function SaleCard({
   });
 
   const documentMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ file, values }: { file: File; values: DocumentForm }) => {
       const form = new FormData();
       form.append("file", file);
-      return (await api.post(`/properties/${propertyId}/sale-document`, form)).data;
+      form.append("type", values.type);
+      if (values.label) form.append("label", values.label);
+      return (await api.post(`/properties/${propertyId}/sale-documents`, form)).data;
     },
     onSuccess: () => {
       toast.success("Document ajouté.");
       invalidateProperty();
+      setDocumentModalOpen(false);
+      documentForm.reset({ type: "MUTATION" });
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: (documentId: string) => api.delete(`/sale-documents/${documentId}`),
+    onSuccess: () => {
+      toast.success("Document supprimé.");
+      invalidateProperty();
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
+  const decideVisitMutation = useMutation({
+    mutationFn: ({ id, accept, scheduledDate: date }: { id: string; accept: boolean; scheduledDate?: string }) =>
+      api.patch(`/visit-requests/${id}/${accept ? "confirm" : "refuse"}`, accept ? { scheduledDate: date || undefined } : undefined),
+    onSuccess: (_, { accept }) => {
+      toast.success(accept ? "Visite confirmée." : "Demande refusée.");
+      invalidateProperty();
+      setScheduleVisitId(null);
+      setScheduledDate("");
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -160,6 +215,11 @@ export function SaleCard({
         action={<Badge color={SALE_STATUS_COLORS[property.saleStatus as keyof typeof SALE_STATUS_COLORS]}>{SALE_STATUS_LABELS[property.saleStatus as keyof typeof SALE_STATUS_LABELS]}</Badge>}
       />
 
+      <div className="mb-4 flex items-center gap-4 text-xs text-ink-muted">
+        <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {property.viewCount ?? 0} vue(s)</span>
+        <span className="flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" /> {property.inquiryCount ?? 0} demande(s)</span>
+      </div>
+
       {isSold ? (
         <div className="space-y-1 text-sm">
           <p className="text-ink">
@@ -191,16 +251,9 @@ export function SaleCard({
               <Button size="sm" variant="secondary" onClick={() => setOfferModalOpen(true)}>
                 <Plus className="h-4 w-4" /> Ajouter une offre
               </Button>
-              <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={documentMutation.isPending}>
+              <Button size="sm" variant="secondary" onClick={() => setDocumentModalOpen(true)}>
                 <FileUp className="h-4 w-4" /> Ajouter un document
               </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && documentMutation.mutate(e.target.files[0])}
-              />
               <Button size="sm" onClick={() => setFinalizeModalOpen(true)}>
                 Finaliser la vente
               </Button>
@@ -210,7 +263,8 @@ export function SaleCard({
             </div>
           )}
 
-          <div className="space-y-2">
+          <p className="mb-1 text-xs font-semibold uppercase text-ink-muted">Offres reçues</p>
+          <div className="mb-4 space-y-2">
             {!offers?.length ? (
               <p className="text-sm text-ink-muted">Aucune offre reçue pour l&apos;instant.</p>
             ) : (
@@ -251,6 +305,90 @@ export function SaleCard({
           </div>
         </>
       )}
+
+      <p className="mb-1 mt-4 text-xs font-semibold uppercase text-ink-muted">Demandes de visite</p>
+      <div className="mb-4 space-y-2">
+        {!visitRequests?.length ? (
+          <p className="text-sm text-ink-muted">Aucune demande de visite pour l&apos;instant.</p>
+        ) : (
+          visitRequests.map((v: any) => (
+            <div key={v.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-ink">{v.user?.fullName}</p>
+                <p className="truncate text-xs text-ink-muted">
+                  {v.user?.phone ?? v.user?.email}
+                  {v.preferredDate && ` · souhaité le ${new Date(v.preferredDate).toLocaleDateString("fr-FR")}`}
+                  {v.scheduledDate && ` · RDV fixé le ${new Date(v.scheduledDate).toLocaleDateString("fr-FR")}`}
+                </p>
+                {v.message && <p className="truncate text-xs text-ink-muted">« {v.message} »</p>}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge color={VISIT_REQUEST_STATUS_COLORS[v.status as keyof typeof VISIT_REQUEST_STATUS_COLORS]}>
+                  {VISIT_REQUEST_STATUS_LABELS[v.status as keyof typeof VISIT_REQUEST_STATUS_LABELS]}
+                </Badge>
+                {v.status === "EN_ATTENTE" && (
+                  <>
+                    <button
+                      type="button"
+                      title="Confirmer / fixer le RDV"
+                      className="rounded p-1 text-success hover:bg-success/10"
+                      onClick={() => {
+                        setScheduleVisitId(v.id);
+                        setScheduledDate(v.preferredDate ? new Date(v.preferredDate).toISOString().slice(0, 10) : "");
+                      }}
+                    >
+                      <CalendarCheck className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      title="Refuser"
+                      className="rounded p-1 text-danger hover:bg-danger/10"
+                      onClick={() => decideVisitMutation.mutate({ id: v.id, accept: false })}
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase text-ink-muted">Documents de vente</p>
+        {canManage && (
+          <button type="button" onClick={() => setDocumentModalOpen(true)} className="text-xs font-medium text-primary hover:underline">
+            + Ajouter
+          </button>
+        )}
+      </div>
+      <div className="mt-1 space-y-2">
+        {!documents?.length ? (
+          <p className="text-sm text-ink-muted">Aucun document ajouté pour l&apos;instant.</p>
+        ) : (
+          documents.map((d: any) => (
+            <div key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm">
+              <div className="min-w-0">
+                <DocumentLink path={d.url} className="truncate font-medium text-primary hover:underline">
+                  {d.label || SALE_DOCUMENT_TYPE_LABELS[d.type as keyof typeof SALE_DOCUMENT_TYPE_LABELS]}
+                </DocumentLink>
+                <p className="truncate text-xs text-ink-muted">{SALE_DOCUMENT_TYPE_LABELS[d.type as keyof typeof SALE_DOCUMENT_TYPE_LABELS]}</p>
+              </div>
+              {canManage && (
+                <button
+                  type="button"
+                  title="Supprimer"
+                  className="rounded p-1 text-danger hover:bg-danger/10"
+                  onClick={() => deleteDocumentMutation.mutate(d.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
 
       <Modal open={offerModalOpen} onClose={() => setOfferModalOpen(false)} title="Ajouter une offre">
         <form onSubmit={offerForm.handleSubmit((v) => offerMutation.mutate(v))} className="space-y-3">
@@ -295,6 +433,58 @@ export function SaleCard({
             Finaliser la vente
           </Button>
         </form>
+      </Modal>
+
+      <Modal open={documentModalOpen} onClose={() => setDocumentModalOpen(false)} title="Ajouter un document de vente">
+        <form
+          onSubmit={documentForm.handleSubmit((values) => {
+            const file = documentFileRef.current?.files?.[0];
+            if (!file) {
+              toast.error("Veuillez sélectionner un fichier.");
+              return;
+            }
+            documentMutation.mutate({ file, values });
+          })}
+          className="space-y-3"
+        >
+          <div>
+            <Label>Type de document</Label>
+            <Select {...documentForm.register("type", { required: true })}>
+              {Object.entries(SALE_DOCUMENT_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Libellé (optionnel)</Label>
+            <Input {...documentForm.register("label")} placeholder="Ex : Acte notarié n°..." />
+          </div>
+          <div>
+            <Label>Fichier</Label>
+            <input ref={documentFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="block w-full text-sm" />
+          </div>
+          <Button type="submit" className="w-full" loading={documentMutation.isPending}>
+            Ajouter le document
+          </Button>
+        </form>
+      </Modal>
+
+      <Modal open={!!scheduleVisitId} onClose={() => setScheduleVisitId(null)} title="Confirmer la visite">
+        <div className="space-y-3">
+          <div>
+            <Label>Date du rendez-vous (optionnel)</Label>
+            <Input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} />
+          </div>
+          <Button
+            className="w-full"
+            loading={decideVisitMutation.isPending}
+            onClick={() => scheduleVisitId && decideVisitMutation.mutate({ id: scheduleVisitId, accept: true, scheduledDate })}
+          >
+            Confirmer la visite
+          </Button>
+        </div>
       </Modal>
     </Card>
   );

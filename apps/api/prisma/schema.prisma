@@ -63,6 +63,7 @@ enum MaritalStatus {
 }
 
 enum ShortStayStatus {
+  EN_ATTENTE
   CONFIRMEE
   TERMINEE
   ANNULEE
@@ -79,6 +80,22 @@ enum SaleOfferStatus {
   EN_ATTENTE
   ACCEPTEE
   REFUSEE
+}
+
+enum VisitRequestStatus {
+  EN_ATTENTE
+  CONFIRME
+  REFUSE
+  TERMINE
+}
+
+enum SaleDocumentType {
+  MUTATION
+  CONTRAT
+  RECU
+  PREUVE_PAIEMENT
+  ACTE
+  AUTRE
 }
 
 enum SignatureStatus {
@@ -173,6 +190,7 @@ model User {
   auditLogs     AuditLog[]
   maintenanceComments MaintenanceComment[]
   sessions            Session[]
+  visitRequests       PropertyVisitRequest[]
 
   @@map("users")
 }
@@ -322,6 +340,10 @@ model Property {
   saleBuyerPhone     String?
   saleDocumentUrl    String?
 
+  // --- Catalogue / analytics ---
+  viewCount    Int @default(0)
+  inquiryCount Int @default(0)
+
   owner               Owner                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   currentTenant       Tenant?              @relation("PropertyCurrentTenant", fields: [currentTenantId], references: [id], onDelete: SetNull)
   images              PropertyImage[]
@@ -331,6 +353,8 @@ model Property {
   documents           Document[]
   shortStayBookings   ShortStayBooking[]
   saleOffers          PropertySaleOffer[]
+  saleDocuments       PropertySaleDocument[]
+  visitRequests       PropertyVisitRequest[]
 
   @@map("properties")
   @@index([ownerId])
@@ -357,6 +381,9 @@ model ShortStayBooking {
   totalAmount   Decimal         @db.Decimal(14, 2)
   depositAmount Decimal         @db.Decimal(14, 2) @default(0)
   status        ShortStayStatus @default(CONFIRMEE)
+  requestedByUserId String?
+  isPaid        Boolean         @default(false)
+  paidAt        DateTime?
   notes         String?
   receiptUrl    String?
   createdAt     DateTime        @default(now())
@@ -372,6 +399,39 @@ model ShortStayBooking {
   @@index([tenantId])
   @@index([checkIn])
   @@index([checkOut])
+}
+
+model PropertyVisitRequest {
+  id            String              @id @default(uuid())
+  propertyId    String
+  userId        String
+  message       String?
+  preferredDate DateTime?
+  scheduledDate DateTime?
+  status        VisitRequestStatus  @default(EN_ATTENTE)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("property_visit_requests")
+  @@index([propertyId])
+  @@index([userId])
+}
+
+model PropertySaleDocument {
+  id         String           @id @default(uuid())
+  propertyId String
+  type       SaleDocumentType
+  label      String?
+  url        String
+  createdAt  DateTime         @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_sale_documents")
+  @@index([propertyId])
 }
 
 // ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, ChevronLeft, ChevronRight, Check, X as XIcon } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Check, X as XIcon, Wallet } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { formatXOF, SHORT_STAY_STATUS_LABELS, SHORT_STAY_STATUS_COLORS } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -86,8 +86,26 @@ export function ShortStayCard({
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
+  const decideMutation = useMutation({
+    mutationFn: ({ id, accept }: { id: string; accept: boolean }) => api.patch(`/short-stay-bookings/${id}/${accept ? "confirm" : "refuse"}`),
+    onSuccess: (_, { accept }) => {
+      toast.success(accept ? "Demande confirmée." : "Demande refusée.");
+      queryClient.invalidateQueries({ queryKey: ["short-stay-bookings", propertyId] });
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
+  const markPaidMutation = useMutation({
+    mutationFn: ({ id, isPaid }: { id: string; isPaid: boolean }) => api.patch(`/short-stay-bookings/${id}/mark-paid`, { isPaid }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["short-stay-bookings", propertyId] });
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
   const list: any[] = bookings ?? [];
   const confirmed = list.filter((b) => b.status === "CONFIRMEE");
+  const pending = list.filter((b) => b.status === "EN_ATTENTE");
 
   const monthLabel = monthCursor.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
   const firstDay = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
@@ -98,8 +116,8 @@ export function ShortStayCard({
     ...Array.from({ length: daysInMonth }, (_, i) => new Date(monthCursor.getFullYear(), monthCursor.getMonth(), i + 1)),
   ];
 
-  function isBooked(day: Date) {
-    return confirmed.some((b) => {
+  function overlapsDay(bookingsList: any[], day: Date) {
+    return bookingsList.some((b) => {
       const ci = new Date(b.checkIn);
       ci.setHours(0, 0, 0, 0);
       const co = new Date(b.checkOut);
@@ -146,17 +164,30 @@ export function ShortStayCard({
             {d}
           </div>
         ))}
-        {cells.map((day, i) => (
-          <div
-            key={i}
-            className={`flex h-8 items-center justify-center rounded-md text-xs ${
-              !day ? "" : isBooked(day) ? "bg-primary font-medium text-white" : "bg-gray-50 text-ink"
-            }`}
-          >
-            {day ? day.getDate() : ""}
-          </div>
-        ))}
+        {cells.map((day, i) => {
+          const state = !day ? null : overlapsDay(confirmed, day) ? "confirmed" : overlapsDay(pending, day) ? "pending" : "free";
+          return (
+            <div
+              key={i}
+              className={`flex h-8 items-center justify-center rounded-md text-xs ${
+                state === "confirmed"
+                  ? "bg-primary font-medium text-white"
+                  : state === "pending"
+                    ? "border border-warning bg-warning/10 text-ink"
+                    : state === "free"
+                      ? "bg-gray-50 text-ink"
+                      : ""
+              }`}
+            >
+              {day ? day.getDate() : ""}
+            </div>
+          );
+        })}
       </div>
+      <p className="mb-5 mt-2 flex items-center gap-3 text-[11px] text-ink-muted">
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-primary" /> Confirmée</span>
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm border border-warning bg-warning/10" /> Demande en attente</span>
+      </p>
 
       <div className="mt-5 space-y-2">
         {isLoading ? (
@@ -181,8 +212,36 @@ export function ShortStayCard({
                     Quittance
                   </DocumentLink>
                 )}
+                {b.status === "EN_ATTENTE" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => decideMutation.mutate({ id: b.id, accept: true })}
+                      title="Confirmer la demande"
+                      className="rounded p-1 text-success hover:bg-success/10"
+                    >
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => decideMutation.mutate({ id: b.id, accept: false })}
+                      title="Refuser la demande"
+                      className="rounded p-1 text-danger hover:bg-danger/10"
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
                 {canManage && b.status === "CONFIRMEE" && (
                   <>
+                    <button
+                      type="button"
+                      onClick={() => markPaidMutation.mutate({ id: b.id, isPaid: !b.isPaid })}
+                      title={b.isPaid ? "Marquer comme non payé" : "Marquer comme payé"}
+                      className={`rounded p-1 hover:bg-gray-100 ${b.isPaid ? "text-success" : "text-ink-muted"}`}
+                    >
+                      <Wallet className="h-4 w-4" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => setCompleteId(b.id)}
@@ -200,6 +259,9 @@ export function ShortStayCard({
                       <XIcon className="h-4 w-4" />
                     </button>
                   </>
+                )}
+                {!canManage && b.status === "CONFIRMEE" && b.isPaid && (
+                  <Badge color="green">Payé</Badge>
                 )}
               </div>
             </div>

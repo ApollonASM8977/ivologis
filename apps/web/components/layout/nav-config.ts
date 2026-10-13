@@ -19,6 +19,7 @@ import {
   Mail,
   CalendarRange,
   Tag,
+  LayoutGrid,
 } from "lucide-react";
 
 export interface NavItem {
@@ -33,6 +34,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Propriétaires", href: "/admin/owners", icon: Users },
   { label: "Locataires", href: "/admin/tenants", icon: UserRound },
   { label: "Contrats", href: "/admin/leases", icon: FileText },
+  { label: "Catalogue", href: "/admin/catalog", icon: LayoutGrid },
   { label: "Courte durée", href: "/admin/short-stay", icon: CalendarRange },
   { label: "Ventes", href: "/admin/sales", icon: Tag },
   { label: "Paiements", href: "/admin/payments", icon: Wallet },
@@ -53,6 +55,7 @@ export const OWNER_NAV: NavItem[] = [
   { label: "Mes locataires", href: "/owner/tenants", icon: UserRound },
   { label: "Paiements", href: "/owner/payments", icon: Wallet },
   { label: "Contrats", href: "/owner/leases", icon: FileText },
+  { label: "Catalogue", href: "/owner/catalog", icon: LayoutGrid },
   { label: "Relevé financier", href: "/owner/reports", icon: BarChart3 },
   { label: "Maintenance", href: "/owner/maintenance", icon: Wrench },
   { label: "Profil", href: "/owner/profile", icon: UserCircle },
@@ -64,7 +67,7 @@ export const TENANT_NAV: NavItem[] = [
   { label: "Mon contrat", href: "/tenant/lease", icon: FileText },
   { label: "Paiements", href: "/tenant/payments", icon: Receipt },
   { label: "Maintenance", href: "/tenant/maintenance", icon: ClipboardList },
-  { label: "Mes réservations", href: "/tenant/short-stay", icon: CalendarRange },
+  { label: "Catalogue", href: "/tenant/catalog", icon: LayoutGrid },
   { label: "Résiliation & demandes", href: "/tenant/requests", icon: Mail },
   { label: "Profil", href: "/tenant/profile", icon: UserCircle },
 ];

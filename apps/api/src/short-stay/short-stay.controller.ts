@@ -10,6 +10,8 @@ import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { ShortStayService } from "./short-stay.service";
 import { CreateShortStayBookingDto } from "./dto/create-booking.dto";
+import { RequestShortStayBookingDto } from "./dto/request-booking.dto";
+import { MarkPaidDto } from "./dto/mark-paid.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller()
@@ -36,9 +38,34 @@ export class ShortStayController {
   }
 
   @Get("short-stay-bookings/mine")
-  @Roles(UserRole.TENANT)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER, UserRole.TENANT)
   listMine(@CurrentUser() user: AuthenticatedUser) {
-    return this.shortStayService.listMine(user.tenantId!);
+    return this.shortStayService.listMine(user.id);
+  }
+
+  @Post("properties/:propertyId/short-stay-bookings/request")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER, UserRole.TENANT)
+  requestBooking(@Param("propertyId") propertyId: string, @Body() dto: RequestShortStayBookingDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.shortStayService.requestBooking(propertyId, dto, user);
+  }
+
+  @Patch("short-stay-bookings/:id/confirm")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  confirm(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.shortStayService.confirm(id, user, user.id);
+  }
+
+  @Patch("short-stay-bookings/:id/refuse")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  refuse(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.shortStayService.refuse(id, user, user.id);
+  }
+
+  @Patch("short-stay-bookings/:id/mark-paid")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
+  markPaid(@Param("id") id: string, @Body() dto: MarkPaidDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.shortStayService.markPaid(id, dto.isPaid, user.id);
   }
 
   @Patch("short-stay-bookings/:id/cancel")

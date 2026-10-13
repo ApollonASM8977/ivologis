@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { SaleOfferStatus, SaleStatus, UserRole } from "@prisma/client";
+import { SaleDocumentType, SaleOfferStatus, SaleStatus, UserRole, VisitRequestStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
@@ -7,6 +7,9 @@ import { ownerScope, assertOwnsResource } from "../common/utils/scope.util";
 import { SetSaleDto } from "./dto/set-sale.dto";
 import { CreateSaleOfferDto } from "./dto/create-offer.dto";
 import { FinalizeSaleDto } from "./dto/finalize-sale.dto";
+import { CreateVisitRequestDto } from "./dto/create-visit-request.dto";
+import { ScheduleVisitDto } from "./dto/schedule-visit.dto";
+import { UploadSaleDocumentDto } from "./dto/upload-sale-document.dto";
 
 @Injectable()
 export class SalesService {
@@ -163,5 +166,100 @@ export class SalesService {
     });
 
     return updated;
+  }
+
+  // --- Demandes de visite (RDV) ---
+
+  async createVisitRequest(propertyId: string, dto: CreateVisitRequestDto, userId: string) {
+    const property = await this.getProperty(propertyId);
+    if (!property.forSale) {
+      throw new BadRequestException("Ce bien n'est pas en vente.");
+    }
+
+    const request = await this.prisma.propertyVisitRequest.create({
+      data: {
+        propertyId,
+        userId,
+        message: dto.message,
+        preferredDate: dto.preferredDate ? new Date(dto.preferredDate) : undefined,
+      },
+    });
+
+    await this.prisma.property.update({ where: { id: propertyId }, data: { inquiryCount: { increment: 1 } } });
+
+    await this.audit.log({
+      userId,
+      action: "CREATE_VISIT_REQUEST",
+      entityType: "PropertyVisitRequest",
+      entityId: request.id,
+      metadata: { propertyId },
+    });
+
+    return request;
+  }
+
+  async listVisitRequests(propertyId: string, user: AuthenticatedUser) {
+    const property = await this.getProperty(propertyId);
+    if (user.role === UserRole.OWNER) assertOwnsResource(user, property.ownerId);
+    return this.prisma.propertyVisitRequest.findMany({
+      where: { propertyId },
+      include: { user: { select: { id: true, fullName: true, email: true, phone: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async listMyVisitRequests(userId: string) {
+    return this.prisma.propertyVisitRequest.findMany({
+      where: { userId },
+      include: { property: { select: { id: true, name: true, commune: true, address: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  private async getVisitRequest(id: string) {
+    const request = await this.prisma.propertyVisitRequest.findUnique({ where: { id }, include: { property: true } });
+    if (!request) throw new NotFoundException("Demande de visite introuvable.");
+    return request;
+  }
+
+  async decideVisitRequest(id: string, status: VisitRequestStatus, dto: ScheduleVisitDto, user: AuthenticatedUser, actorId?: string) {
+    const request = await this.getVisitRequest(id);
+    if (user.role === UserRole.OWNER) assertOwnsResource(user, request.property.ownerId);
+
+    const updated = await this.prisma.propertyVisitRequest.update({
+      where: { id },
+      data: {
+        status,
+        scheduledDate: status === VisitRequestStatus.CONFIRME && dto.scheduledDate ? new Date(dto.scheduledDate) : request.scheduledDate,
+      },
+    });
+
+    await this.audit.log({ userId: actorId, action: "DECIDE_VISIT_REQUEST", entityType: "PropertyVisitRequest", entityId: id, metadata: { status } });
+    return updated;
+  }
+
+  // --- Documents de vente (mutation, contrat, reçu, preuve, acte...) ---
+
+  async listSaleDocuments(propertyId: string, user: AuthenticatedUser) {
+    const property = await this.getProperty(propertyId);
+    if (user.role === UserRole.OWNER) assertOwnsResource(user, property.ownerId);
+    return this.prisma.propertySaleDocument.findMany({ where: { propertyId }, orderBy: { createdAt: "desc" } });
+  }
+
+  async addSaleDocument(propertyId: string, dto: UploadSaleDocumentDto, url: string, actorId?: string) {
+    await this.getProperty(propertyId);
+    const document = await this.prisma.propertySaleDocument.create({
+      data: { propertyId, type: dto.type, label: dto.label, url },
+    });
+    await this.audit.log({ userId: actorId, action: "ADD_SALE_DOCUMENT", entityType: "PropertySaleDocument", entityId: document.id, metadata: { propertyId, type: dto.type } });
+    return document;
+  }
+
+  async removeSaleDocument(documentId: string, actorId?: string) {
+    const document = await this.prisma.propertySaleDocument.findUnique({ where: { id: documentId } });
+    if (!document) throw new NotFoundException("Document introuvable.");
+    await this.prisma.propertySaleDocument.delete({ where: { id: documentId } });
+    await this.audit.log({ userId: actorId, action: "REMOVE_SALE_DOCUMENT", entityType: "PropertySaleDocument", entityId: documentId });
+    return { success: true };
   }
 }
