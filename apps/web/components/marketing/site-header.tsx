@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 
 const LINKS = [
+  { href: "/catalogue", label: "Catalogue" },
   { href: "/#fonctionnalites", label: "Fonctionnalités" },
   { href: "/#pour-qui", label: "Pour qui" },
   { href: "/#tarifs", label: "Tarifs" },

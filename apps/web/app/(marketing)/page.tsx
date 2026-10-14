@@ -17,6 +17,9 @@ import {
   KeyRound,
   Eye,
   History,
+  Tag,
+  CalendarRange,
+  ArrowRight,
 } from "lucide-react";
 import { ContactForm } from "@/components/marketing/contact-form";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
@@ -29,6 +32,11 @@ const FEATURES = [
   { icon: Wrench, title: "Maintenance", text: "Demandes signalées par les locataires, assignation à un technicien, coûts estimés et réels, fil de commentaires." },
   { icon: BarChart3, title: "Relevés propriétaires", text: "Synthèse des revenus, commission et dépenses, exportable en PDF ou CSV compatible Excel." },
   { icon: FileText, title: "Documents", text: "Contrats et quittances exportables en PDF et Word, avec les informations de votre agence." },
+];
+
+const CATALOG_OFFERS = [
+  { icon: Tag, title: "Biens à vendre", text: "Terrains, villas, appartements et locaux : zone, prix, surface, photos. Demandez un rendez-vous de visite en un clic." },
+  { icon: CalendarRange, title: "Résidences meublées", text: "Réservez un séjour à la nuitée, façon Airbnb simplifié : choisissez vos dates, envoyez votre demande, le paiement se règle sur place ou avant l'arrivée." },
 ];
 
 const STEPS = [
@@ -284,6 +292,32 @@ export default function HomePage() {
             </motion.div>
           </div>
           <DashboardMockup />
+        </div>
+      </section>
+
+      <section id="catalogue" className="scroll-mt-20 border-y border-gray-100 bg-surface py-16">
+        <div className="mx-auto max-w-6xl px-5">
+          <Reveal className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-wider text-primary">Catalogue public</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-primary-dark">Vous cherchez un bien ou un séjour ?</h2>
+            <p className="mt-3 text-ink-muted">Parcourez nos annonces sans créer de compte : terrains et biens à vendre, résidences meublées à la nuitée.</p>
+          </Reveal>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2">
+            {CATALOG_OFFERS.map((o, i) => (
+              <Reveal key={o.title} delay={i * 0.08}>
+                <Link href="/catalogue" className="group block h-full rounded-2xl border border-gray-100 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                    <o.icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 text-lg font-semibold text-ink">{o.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-muted">{o.text}</p>
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                    Voir les annonces <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 

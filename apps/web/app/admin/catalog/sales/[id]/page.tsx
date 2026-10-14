@@ -5,5 +5,5 @@ import { SaleListingDetail } from "@/components/catalog/sale-listing-detail";
 
 export default function AdminCatalogSaleDetailPage() {
   const { id } = useParams<{ id: string }>();
-  return <SaleListingDetail id={id} />;
+  return <SaleListingDetail id={id} basePath="/admin/catalog/sales" />;
 }

@@ -1,14 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck, CheckCircle2 } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { useAuthStore } from "@/lib/auth-store";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -18,11 +19,15 @@ import { LoadingState } from "@/components/ui/empty-state";
 interface VisitForm {
   preferredDate?: string;
   message?: string;
+  guestName?: string;
+  guestPhone?: string;
+  guestEmail?: string;
 }
 
-export function SaleListingDetail({ id }: { id: string }) {
-  const router = useRouter();
+export function SaleListingDetail({ id, basePath }: { id: string; basePath: string }) {
+  const user = useAuthStore((s) => s.user);
   const [modalOpen, setModalOpen] = useState(false);
+  const [reference, setReference] = useState<string | null>(null);
   const { register, handleSubmit, reset } = useForm<VisitForm>();
 
   const { data: property, isLoading } = useQuery({
@@ -32,9 +37,8 @@ export function SaleListingDetail({ id }: { id: string }) {
 
   const mutation = useMutation({
     mutationFn: (values: VisitForm) => api.post(`/properties/${id}/visit-requests`, values),
-    onSuccess: () => {
-      toast.success("Demande de rendez-vous envoyée. L'agence vous recontactera.");
-      setModalOpen(false);
+    onSuccess: (res) => {
+      setReference(res.data.reference);
       reset();
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -44,9 +48,9 @@ export function SaleListingDetail({ id }: { id: string }) {
 
   return (
     <div>
-      <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
+      <Link href={basePath} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" /> Retour au catalogue
-      </button>
+      </Link>
 
       {!!property.images?.length && (
         <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -115,21 +119,57 @@ export function SaleListingDetail({ id }: { id: string }) {
         <CalendarCheck className="h-4 w-4" /> Prendre rendez-vous pour visiter
       </Button>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Demande de visite">
-        <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
-          <p className="text-sm text-ink-muted">L&apos;agence vous recontactera pour confirmer une date de visite.</p>
-          <div>
-            <Label>Date souhaitée (optionnel)</Label>
-            <Input type="date" {...register("preferredDate")} />
+      <Modal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setReference(null);
+        }}
+        title="Demande de visite"
+      >
+        {reference ? (
+          <div className="space-y-3 text-center">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
+            <p className="text-sm text-ink">Votre demande a bien été envoyée. L&apos;agence vous recontactera pour confirmer une date de visite.</p>
+            <p className="rounded-lg bg-surface px-3 py-2 text-sm">
+              Référence à conserver : <span className="font-mono font-semibold text-ink">{reference}</span>
+            </p>
+            <Button className="w-full" onClick={() => { setModalOpen(false); setReference(null); }}>
+              Fermer
+            </Button>
           </div>
-          <div>
-            <Label>Message (optionnel)</Label>
-            <Textarea rows={3} placeholder="Précisez vos disponibilités ou vos questions..." {...register("message")} />
-          </div>
-          <Button type="submit" className="w-full" loading={mutation.isPending}>
-            Envoyer la demande
-          </Button>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
+            <p className="text-sm text-ink-muted">L&apos;agence vous recontactera pour confirmer une date de visite.</p>
+            {!user && (
+              <>
+                <div>
+                  <Label>Nom complet</Label>
+                  <Input {...register("guestName", { required: true })} />
+                </div>
+                <div>
+                  <Label>Téléphone</Label>
+                  <Input {...register("guestPhone", { required: true })} />
+                </div>
+                <div>
+                  <Label>Email (optionnel)</Label>
+                  <Input type="email" {...register("guestEmail")} />
+                </div>
+              </>
+            )}
+            <div>
+              <Label>Date souhaitée (optionnel)</Label>
+              <Input type="date" {...register("preferredDate")} />
+            </div>
+            <div>
+              <Label>Message (optionnel)</Label>
+              <Textarea rows={3} placeholder="Précisez vos disponibilités ou vos questions..." {...register("message")} />
+            </div>
+            <Button type="submit" className="w-full" loading={mutation.isPending}>
+              Envoyer la demande
+            </Button>
+          </form>
+        )}
       </Modal>
     </div>
   );

@@ -370,11 +370,13 @@ model Property {
 
 model ShortStayBooking {
   id            String          @id @default(uuid())
+  reference     String          @unique
   propertyId    String
   ownerId       String
   tenantId      String?
   guestName     String
   guestPhone    String?
+  guestEmail    String?
   checkIn       DateTime
   checkOut      DateTime
   nightlyRate   Decimal         @db.Decimal(14, 2)
@@ -403,8 +405,12 @@ model ShortStayBooking {
 
 model PropertyVisitRequest {
   id            String              @id @default(uuid())
+  reference     String              @unique
   propertyId    String
-  userId        String
+  userId        String?
+  guestName     String?
+  guestPhone    String?
+  guestEmail    String?
   message       String?
   preferredDate DateTime?
   scheduledDate DateTime?
@@ -413,7 +419,7 @@ model PropertyVisitRequest {
   updatedAt     DateTime            @updatedAt
 
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("property_visit_requests")
   @@index([propertyId])

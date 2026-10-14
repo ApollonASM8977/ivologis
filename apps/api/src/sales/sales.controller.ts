@@ -3,6 +3,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { SaleOfferStatus, UserRole, VisitRequestStatus } from "@prisma/client";
 import { PERMISSION_KEYS } from "@ivologis/shared";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import { OptionalJwtAuthGuard } from "../common/guards/optional-jwt-auth.guard";
 import { RolesGuard } from "../common/guards/roles.guard";
 import { PermissionsGuard } from "../common/guards/permissions.guard";
 import { Roles } from "../common/decorators/roles.decorator";
@@ -19,7 +20,6 @@ import { CreateVisitRequestDto } from "./dto/create-visit-request.dto";
 import { ScheduleVisitDto } from "./dto/schedule-visit.dto";
 import { UploadSaleDocumentDto } from "./dto/upload-sale-document.dto";
 
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller()
 export class SalesController {
   constructor(
@@ -28,24 +28,28 @@ export class SalesController {
   ) {}
 
   @Get("sales")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   listForSale(@CurrentUser() user: AuthenticatedUser) {
     return this.salesService.listForSale(user);
   }
 
   @Patch("properties/:propertyId/sale")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   setSale(@Param("propertyId") propertyId: string, @Body() dto: SetSaleDto, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.setSale(propertyId, dto, user, user.id);
   }
 
   @Get("properties/:propertyId/sale-offers")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   listOffers(@Param("propertyId") propertyId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.listOffers(propertyId, user);
   }
 
   @Post("properties/:propertyId/sale-offers")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
   addOffer(@Param("propertyId") propertyId: string, @Body() dto: CreateSaleOfferDto, @CurrentUser() user: AuthenticatedUser) {
@@ -53,6 +57,7 @@ export class SalesController {
   }
 
   @Patch("sale-offers/:offerId/accept")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
   acceptOffer(@Param("offerId") offerId: string, @CurrentUser() user: AuthenticatedUser) {
@@ -60,6 +65,7 @@ export class SalesController {
   }
 
   @Patch("sale-offers/:offerId/refuse")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
   refuseOffer(@Param("offerId") offerId: string, @CurrentUser() user: AuthenticatedUser) {
@@ -67,6 +73,7 @@ export class SalesController {
   }
 
   @Post("properties/:propertyId/sale-document")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
   @UseInterceptors(FileInterceptor("file", documentUploadOptions(10)))
@@ -77,6 +84,7 @@ export class SalesController {
   }
 
   @Post("properties/:propertyId/finalize-sale")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
   finalize(@Param("propertyId") propertyId: string, @Body() dto: FinalizeSaleDto, @CurrentUser() user: AuthenticatedUser) {
@@ -85,31 +93,36 @@ export class SalesController {
 
   // --- Demandes de visite ---
 
+  /** Public : accessible avec ou sans compte (visiteur du catalogue). */
   @Post("properties/:propertyId/visit-requests")
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER, UserRole.TENANT)
-  requestVisit(@Param("propertyId") propertyId: string, @Body() dto: CreateVisitRequestDto, @CurrentUser() user: AuthenticatedUser) {
-    return this.salesService.createVisitRequest(propertyId, dto, user.id);
+  @UseGuards(OptionalJwtAuthGuard)
+  requestVisit(@Param("propertyId") propertyId: string, @Body() dto: CreateVisitRequestDto, @CurrentUser() user?: AuthenticatedUser) {
+    return this.salesService.createVisitRequest(propertyId, dto, user);
   }
 
   @Get("properties/:propertyId/visit-requests")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   listVisitRequests(@Param("propertyId") propertyId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.listVisitRequests(propertyId, user);
   }
 
   @Get("visit-requests/mine")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER, UserRole.TENANT)
   listMyVisitRequests(@CurrentUser() user: AuthenticatedUser) {
     return this.salesService.listMyVisitRequests(user.id);
   }
 
   @Patch("visit-requests/:id/confirm")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   confirmVisit(@Param("id") id: string, @Body() dto: ScheduleVisitDto, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.decideVisitRequest(id, VisitRequestStatus.CONFIRME, dto, user, user.id);
   }
 
   @Patch("visit-requests/:id/refuse")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   refuseVisit(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.decideVisitRequest(id, VisitRequestStatus.REFUSE, {}, user, user.id);
@@ -118,12 +131,14 @@ export class SalesController {
   // --- Documents de vente (mutation, contrat, reçu, preuve, acte...) ---
 
   @Get("properties/:propertyId/sale-documents")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   listSaleDocuments(@Param("propertyId") propertyId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.listSaleDocuments(propertyId, user);
   }
 
   @Post("properties/:propertyId/sale-documents")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
   @UseInterceptors(FileInterceptor("file", documentUploadOptions(10)))
@@ -139,6 +154,7 @@ export class SalesController {
   }
 
   @Delete("sale-documents/:documentId")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
   removeSaleDocument(@Param("documentId") documentId: string, @CurrentUser() user: AuthenticatedUser) {

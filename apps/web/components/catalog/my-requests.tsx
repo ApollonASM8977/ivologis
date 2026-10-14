@@ -1,26 +1,50 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, Inbox } from "lucide-react";
+import { CalendarCheck, Inbox, LogIn } from "lucide-react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatXOF, VISIT_REQUEST_STATUS_LABELS, VISIT_REQUEST_STATUS_COLORS, SHORT_STAY_STATUS_LABELS, SHORT_STAY_STATUS_COLORS } from "@ivologis/shared";
+import { useAuthStore } from "@/lib/auth-store";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 
 export function MyRequests() {
+  const user = useAuthStore((s) => s.user);
+
   const { data: visits, isLoading: visitsLoading } = useQuery<any[]>({
     queryKey: ["visit-requests", "mine"],
     queryFn: async () => (await api.get("/visit-requests/mine")).data,
+    enabled: !!user,
   });
 
   const { data: bookings, isLoading: bookingsLoading } = useQuery<any[]>({
     queryKey: ["short-stay-bookings", "mine"],
     queryFn: async () => (await api.get("/short-stay-bookings/mine")).data,
+    enabled: !!user,
   });
 
   const isLoading = visitsLoading || bookingsLoading;
+
+  if (!user) {
+    return (
+      <div>
+        <PageHeader title="Mes demandes" subtitle="Vos demandes de visite (vente) et de réservation (courte durée)" />
+        <Card className="text-center">
+          <LogIn className="mx-auto h-8 w-8 text-ink-muted" />
+          <p className="mt-3 text-sm text-ink-muted">
+            Sans compte, votre demande reste suivie par référence : conservez celle qui vous a été donnée après l&apos;envoi, l&apos;agence vous recontactera directement.
+            Connectez-vous pour retrouver vos demandes ici automatiquement.
+          </p>
+          <Link href="/login" className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">
+            Se connecter
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>

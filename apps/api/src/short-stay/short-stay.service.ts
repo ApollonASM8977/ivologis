@@ -1,5 +1,4 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { randomUUID } from "crypto";
 import { ShortStayStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PdfService } from "../common/pdf/pdf.service";
@@ -7,17 +6,13 @@ import { SettingsService } from "../settings/settings.service";
 import { AuditService } from "../audit/audit.service";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { ownerScope, assertOwnsResource } from "../common/utils/scope.util";
+import { generateReference } from "../common/utils/reference.util";
 import { CreateShortStayBookingDto } from "./dto/create-booking.dto";
 import { RequestShortStayBookingDto } from "./dto/request-booking.dto";
 
 function nightsBetween(checkIn: Date, checkOut: Date) {
   const ms = checkOut.getTime() - checkIn.getTime();
   return Math.round(ms / (24 * 60 * 60 * 1000));
-}
-
-function generateBookingReceiptNumber() {
-  const year = new Date().getFullYear();
-  return `SEJ-${year}-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
 @Injectable()
@@ -64,6 +59,7 @@ export class ShortStayService {
 
     const booking = await this.prisma.shortStayBooking.create({
       data: {
+        reference: generateReference("RES"),
         propertyId,
         ownerId: property.ownerId,
         tenantId: dto.tenantId,
@@ -122,14 +118,20 @@ export class ShortStayService {
     });
   }
 
-  /** Demande en libre-service depuis le catalogue : statut EN_ATTENTE, à confirmer par l'agence ou le propriétaire. */
-  async requestBooking(propertyId: string, dto: RequestShortStayBookingDto, user: AuthenticatedUser) {
+  /** Demande en libre-service depuis le catalogue (connecté ou invité) : statut EN_ATTENTE, à confirmer par l'agence ou le propriétaire. */
+  async requestBooking(propertyId: string, dto: RequestShortStayBookingDto, user?: AuthenticatedUser) {
     const property = await this.getProperty(propertyId);
     if (!property.shortStayEnabled) {
       throw new BadRequestException("Ce bien n'est pas activé pour la location courte durée.");
     }
     if (!property.shortStayNightlyRate) {
       throw new BadRequestException("Le tarif par nuitée n'a pas encore été défini pour ce bien.");
+    }
+    if (!user && !dto.guestName) {
+      throw new BadRequestException("Votre nom est requis pour envoyer une demande.");
+    }
+    if (!user && !dto.guestPhone) {
+      throw new BadRequestException("Un numéro de téléphone est requis pour envoyer une demande.");
     }
 
     const checkIn = new Date(dto.checkIn);
@@ -156,12 +158,14 @@ export class ShortStayService {
 
     const booking = await this.prisma.shortStayBooking.create({
       data: {
+        reference: generateReference("RES"),
         propertyId,
         ownerId: property.ownerId,
-        tenantId: user.tenantId,
-        requestedByUserId: user.id,
-        guestName: user.fullName,
+        tenantId: user?.tenantId,
+        requestedByUserId: user?.id,
+        guestName: user?.fullName ?? dto.guestName!,
         guestPhone: dto.guestPhone,
+        guestEmail: dto.guestEmail,
         checkIn,
         checkOut,
         nightlyRate,
@@ -172,11 +176,11 @@ export class ShortStayService {
     });
 
     await this.audit.log({
-      userId: user.id,
+      userId: user?.id,
       action: "REQUEST_SHORT_STAY_BOOKING",
       entityType: "ShortStayBooking",
       entityId: booking.id,
-      metadata: { propertyId, checkIn: dto.checkIn, checkOut: dto.checkOut },
+      metadata: { propertyId, checkIn: dto.checkIn, checkOut: dto.checkOut, guest: !user },
     });
 
     return booking;
@@ -257,7 +261,7 @@ export class ShortStayService {
     }
 
     const company = await this.settings.get();
-    const receiptNumber = generateBookingReceiptNumber();
+    const receiptNumber = generateReference("SEJ");
     const receiptUrl = await this.pdfService.generateReceiptPdf({
       receiptNumber,
       companyName: company.companyName,

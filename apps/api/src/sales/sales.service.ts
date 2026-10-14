@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { ownerScope, assertOwnsResource } from "../common/utils/scope.util";
+import { generateReference } from "../common/utils/reference.util";
 import { SetSaleDto } from "./dto/set-sale.dto";
 import { CreateSaleOfferDto } from "./dto/create-offer.dto";
 import { FinalizeSaleDto } from "./dto/finalize-sale.dto";
@@ -170,16 +171,27 @@ export class SalesService {
 
   // --- Demandes de visite (RDV) ---
 
-  async createVisitRequest(propertyId: string, dto: CreateVisitRequestDto, userId: string) {
+  /** Accessible connecté ou en invité (visiteur du catalogue sans compte). */
+  async createVisitRequest(propertyId: string, dto: CreateVisitRequestDto, user?: AuthenticatedUser) {
     const property = await this.getProperty(propertyId);
     if (!property.forSale) {
       throw new BadRequestException("Ce bien n'est pas en vente.");
     }
+    if (!user && !dto.guestName) {
+      throw new BadRequestException("Votre nom est requis pour envoyer une demande.");
+    }
+    if (!user && !dto.guestPhone) {
+      throw new BadRequestException("Un numéro de téléphone est requis pour envoyer une demande.");
+    }
 
     const request = await this.prisma.propertyVisitRequest.create({
       data: {
+        reference: generateReference("RDV"),
         propertyId,
-        userId,
+        userId: user?.id,
+        guestName: user ? undefined : dto.guestName,
+        guestPhone: user ? undefined : dto.guestPhone,
+        guestEmail: user ? undefined : dto.guestEmail,
         message: dto.message,
         preferredDate: dto.preferredDate ? new Date(dto.preferredDate) : undefined,
       },
@@ -188,11 +200,11 @@ export class SalesService {
     await this.prisma.property.update({ where: { id: propertyId }, data: { inquiryCount: { increment: 1 } } });
 
     await this.audit.log({
-      userId,
+      userId: user?.id,
       action: "CREATE_VISIT_REQUEST",
       entityType: "PropertyVisitRequest",
       entityId: request.id,
-      metadata: { propertyId },
+      metadata: { propertyId, guest: !user },
     });
 
     return request;

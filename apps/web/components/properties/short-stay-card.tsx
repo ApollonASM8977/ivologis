@@ -198,9 +198,16 @@ export function ShortStayCard({
           list.map((b) => (
             <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm">
               <div className="min-w-0">
-                <p className="truncate font-medium text-ink">{b.guestName}</p>
+                <p className="truncate font-medium text-ink">
+                  {b.guestName}
+                  {!b.requestedByUserId && b.status === "EN_ATTENTE" && (
+                    <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-muted">invité</span>
+                  )}
+                </p>
                 <p className="truncate text-xs text-ink-muted">
                   {new Date(b.checkIn).toLocaleDateString("fr-FR")} → {new Date(b.checkOut).toLocaleDateString("fr-FR")}, {formatXOF(Number(b.totalAmount))}
+                  {b.guestPhone && ` · ${b.guestPhone}`}
+                  {" · réf. "}{b.reference}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">

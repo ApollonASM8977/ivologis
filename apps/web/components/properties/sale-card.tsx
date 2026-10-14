@@ -314,11 +314,15 @@ export function SaleCard({
           visitRequests.map((v: any) => (
             <div key={v.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm">
               <div className="min-w-0">
-                <p className="truncate font-medium text-ink">{v.user?.fullName}</p>
+                <p className="truncate font-medium text-ink">
+                  {v.user?.fullName ?? v.guestName}
+                  {!v.user && <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-muted">invité</span>}
+                </p>
                 <p className="truncate text-xs text-ink-muted">
-                  {v.user?.phone ?? v.user?.email}
+                  {v.user?.phone ?? v.user?.email ?? v.guestPhone ?? v.guestEmail}
                   {v.preferredDate && ` · souhaité le ${new Date(v.preferredDate).toLocaleDateString("fr-FR")}`}
                   {v.scheduledDate && ` · RDV fixé le ${new Date(v.scheduledDate).toLocaleDateString("fr-FR")}`}
+                  {" · réf. "}{v.reference}
                 </p>
                 {v.message && <p className="truncate text-xs text-ink-muted">« {v.message} »</p>}
               </div>

@@ -5,5 +5,5 @@ import { ShortStayListingDetail } from "@/components/catalog/short-stay-listing-
 
 export default function AdminCatalogShortStayDetailPage() {
   const { id } = useParams<{ id: string }>();
-  return <ShortStayListingDetail id={id} />;
+  return <ShortStayListingDetail id={id} basePath="/admin/catalog/short-stay" />;
 }
