@@ -28,6 +28,9 @@ export interface PropertyFormValues {
   ownerId?: string;
   shortStayEnabled?: boolean;
   shortStayNightlyRate?: number;
+  latitude?: number;
+  longitude?: number;
+  virtualTourUrl?: string;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -120,6 +123,14 @@ export function PropertyForm({
           <Label>Adresse complète</Label>
           <Input placeholder="Rue, lot, îlot, quartier précis..." {...register("address", { required: true })} />
         </div>
+        <div>
+          <Label>Latitude (optionnel)</Label>
+          <Input type="number" step="0.000001" placeholder="Ex : 5.363000" {...register("latitude", { valueAsNumber: true })} />
+        </div>
+        <div>
+          <Label>Longitude (optionnel)</Label>
+          <Input type="number" step="0.000001" placeholder="Ex : -3.956000" {...register("longitude", { valueAsNumber: true })} />
+        </div>
 
         <SectionTitle>Caractéristiques</SectionTitle>
         <div>
@@ -186,6 +197,12 @@ export function PropertyForm({
             <Input type="number" {...register("shortStayNightlyRate", { valueAsNumber: true })} />
           </div>
         )}
+
+        <SectionTitle>Visite virtuelle</SectionTitle>
+        <div className="col-span-2">
+          <Label>Lien visite virtuelle 360° (optionnel)</Label>
+          <Input placeholder="Lien Matterport, Kuula, ou autre visite 360°..." {...register("virtualTourUrl")} />
+        </div>
       </div>
 
       <Button type="submit" className="w-full" loading={loading}>

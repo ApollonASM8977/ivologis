@@ -6,15 +6,16 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck, CheckCircle2, ShieldCheck, Scale } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
-import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { formatXOF, PROPERTY_TYPE_LABELS, LAND_TITLE_TYPE_LABELS } from "@ivologis/shared";
 import { useAuthStore } from "@/lib/auth-store";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
+import { LocationMap, VirtualTourCard } from "@/components/catalog/property-extras";
 
 interface VisitForm {
   preferredDate?: string;
@@ -69,7 +70,15 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
             <MapPin className="h-4 w-4" /> {property.address}, {property.commune}
           </p>
         </div>
-        <p className="text-2xl font-bold text-primary">{formatXOF(Number(property.salePrice ?? 0))}</p>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-primary">{formatXOF(Number(property.salePrice ?? 0))}</p>
+          {property.landTitleVerified && (
+            <p className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-success">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Titre vérifié · {LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS]}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -114,6 +123,21 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
           </div>
         </Card>
       )}
+
+      <LocationMap latitude={property.latitude} longitude={property.longitude} />
+      <VirtualTourCard url={property.virtualTourUrl} />
+
+      <Card className="mt-4">
+        <CardHeader title="Informations légales" />
+        <div className="flex items-start gap-2 text-sm text-ink-muted">
+          <Scale className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <p>
+            Les droits de mutation à l&apos;achat d&apos;un terrain ou d&apos;un bien en Côte d&apos;Ivoire s&apos;élèvent à 4% du prix de vente (taux réduits dans certains cas particuliers), à la
+            charge de l&apos;acheteur selon l&apos;usage. Chaque bien publié ici a été vérifié par notre agence (titre foncier, ACD ou document équivalent) avant mise en ligne ; les documents
+            complets (acte, mutation, preuve de paiement) sont transmis après rendez-vous, dans le cadre de l&apos;accompagnement de l&apos;agence.
+          </p>
+        </div>
+      </Card>
 
       <Button className="mt-6" onClick={() => setModalOpen(true)}>
         <CalendarCheck className="h-4 w-4" /> Prendre rendez-vous pour visiter

@@ -12,6 +12,7 @@ export class CatalogService {
         forSale: true,
         archivedAt: null,
         saleStatus: { not: SaleStatus.VENDU },
+        landTitleVerified: true,
       },
       include: {
         images: true,
@@ -23,7 +24,7 @@ export class CatalogService {
 
   async getSaleDetail(id: string) {
     const property = await this.prisma.property.findFirst({
-      where: { id, forSale: true },
+      where: { id, forSale: true, landTitleVerified: true },
       include: { images: true, owner: { select: { id: true, fullName: true } } },
     });
     if (!property) throw new NotFoundException("Annonce introuvable.");

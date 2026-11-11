@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
+import { LocationMap, VirtualTourCard } from "@/components/catalog/property-extras";
 
 interface RequestForm {
   checkIn: string;
@@ -108,6 +109,9 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
           <p className="text-sm leading-relaxed text-ink-muted">{property.description}</p>
         </Card>
       )}
+
+      <LocationMap latitude={property.latitude} longitude={property.longitude} />
+      <VirtualTourCard url={property.virtualTourUrl} />
 
       <Card className="mt-4">
         <CardHeader title="Disponibilités" />

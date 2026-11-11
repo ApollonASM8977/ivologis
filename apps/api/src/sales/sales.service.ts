@@ -52,6 +52,8 @@ export class SalesService {
         salePrice: dto.forSale ? dto.salePrice : null,
         saleCommissionRate: dto.forSale ? dto.saleCommissionRate : null,
         saleStatus: SaleStatus.DISPONIBLE,
+        landTitleType: dto.forSale ? dto.landTitleType : null,
+        landTitleVerified: user.role === UserRole.OWNER ? false : dto.landTitleVerified ?? property.landTitleVerified,
       },
     });
 

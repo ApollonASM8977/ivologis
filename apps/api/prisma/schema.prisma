@@ -76,6 +76,14 @@ enum SaleStatus {
   VENDU
 }
 
+enum LandTitleType {
+  ACD
+  TITRE_FONCIER
+  LETTRE_ATTRIBUTION
+  ARRETE_CONCESSION
+  AUTRE
+}
+
 enum SaleOfferStatus {
   EN_ATTENTE
   ACCEPTEE
@@ -339,10 +347,13 @@ model Property {
   saleBuyerName      String?
   saleBuyerPhone     String?
   saleDocumentUrl    String?
+  landTitleType      LandTitleType?
+  landTitleVerified  Boolean        @default(false)
 
   // --- Catalogue / analytics ---
-  viewCount    Int @default(0)
-  inquiryCount Int @default(0)
+  viewCount      Int     @default(0)
+  inquiryCount   Int     @default(0)
+  virtualTourUrl String?
 
   owner               Owner                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   currentTenant       Tenant?              @relation("PropertyCurrentTenant", fields: [currentTenantId], references: [id], onDelete: SetNull)

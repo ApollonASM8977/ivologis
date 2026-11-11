@@ -1,6 +1,7 @@
 import {
   AccountStatus,
   DocumentType,
+  LandTitleType,
   LeaseStatus,
   LeaseType,
   MaintenanceIssueType,
@@ -192,6 +193,14 @@ export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   [SaleStatus.OFFRE_RECUE]: "Offre reçue",
   [SaleStatus.SOUS_COMPROMIS]: "Sous compromis",
   [SaleStatus.VENDU]: "Vendu",
+};
+
+export const LAND_TITLE_TYPE_LABELS: Record<LandTitleType, string> = {
+  [LandTitleType.ACD]: "ACD (Arrêté de Concession Définitive)",
+  [LandTitleType.TITRE_FONCIER]: "Titre foncier",
+  [LandTitleType.LETTRE_ATTRIBUTION]: "Lettre d'attribution",
+  [LandTitleType.ARRETE_CONCESSION]: "Arrêté de concession provisoire",
+  [LandTitleType.AUTRE]: "Autre document",
 };
 
 export const SALE_STATUS_COLORS: Record<SaleStatus, string> = {

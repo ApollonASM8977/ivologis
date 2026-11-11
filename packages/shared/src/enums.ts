@@ -138,6 +138,14 @@ export enum SaleStatus {
   VENDU = "VENDU",
 }
 
+export enum LandTitleType {
+  ACD = "ACD",
+  TITRE_FONCIER = "TITRE_FONCIER",
+  LETTRE_ATTRIBUTION = "LETTRE_ATTRIBUTION",
+  ARRETE_CONCESSION = "ARRETE_CONCESSION",
+  AUTRE = "AUTRE",
+}
+
 export enum SaleOfferStatus {
   EN_ATTENTE = "EN_ATTENTE",
   ACCEPTEE = "ACCEPTEE",

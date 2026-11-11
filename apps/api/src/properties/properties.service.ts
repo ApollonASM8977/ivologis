@@ -54,6 +54,7 @@ export class PropertiesService {
         advance: dto.advance ?? 0,
         shortStayEnabled: dto.shortStayEnabled ?? false,
         shortStayNightlyRate: dto.shortStayNightlyRate,
+        virtualTourUrl: dto.virtualTourUrl,
         ownerId,
       },
     });

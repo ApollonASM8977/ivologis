@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Check, X as XIcon, Tag, FileUp, Eye, MessageSquare, Trash2, CalendarCheck } from "lucide-react";
+import { Plus, Check, X as XIcon, Tag, FileUp, Eye, MessageSquare, Trash2, CalendarCheck, Pencil, ShieldCheck } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import {
   formatXOF,
@@ -14,6 +14,7 @@ import {
   SALE_DOCUMENT_TYPE_LABELS,
   VISIT_REQUEST_STATUS_LABELS,
   VISIT_REQUEST_STATUS_COLORS,
+  LAND_TITLE_TYPE_LABELS,
 } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { DocumentLink } from "@/components/document-link";
 interface ListForSaleForm {
   salePrice: number;
   saleCommissionRate?: number;
+  landTitleType?: string;
 }
 interface OfferForm {
   buyerName: string;
@@ -85,7 +87,9 @@ export function SaleCard({
     enabled: !!property?.forSale,
   });
 
-  const listForm = useForm<ListForSaleForm>({ defaultValues: { salePrice: property?.salePrice ?? undefined, saleCommissionRate: property?.saleCommissionRate ?? undefined } });
+  const listForm = useForm<ListForSaleForm>({
+    defaultValues: { salePrice: property?.salePrice ?? undefined, saleCommissionRate: property?.saleCommissionRate ?? undefined, landTitleType: property?.landTitleType ?? "AUTRE" },
+  });
   const offerForm = useForm<OfferForm>();
   const finalizeForm = useForm<FinalizeForm>();
   const documentForm = useForm<DocumentForm>({ defaultValues: { type: "MUTATION" } });
@@ -104,6 +108,22 @@ export function SaleCard({
     mutationFn: () => api.patch(`/properties/${propertyId}/sale`, { forSale: false }),
     onSuccess: () => {
       toast.success("Bien retiré de la vente.");
+      invalidateProperty();
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: (verified: boolean) =>
+      api.patch(`/properties/${propertyId}/sale`, {
+        forSale: true,
+        salePrice: property?.salePrice,
+        saleCommissionRate: property?.saleCommissionRate,
+        landTitleType: property?.landTitleType ?? "AUTRE",
+        landTitleVerified: verified,
+      }),
+    onSuccess: () => {
+      toast.success("Statut de vérification mis à jour.");
       invalidateProperty();
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -197,6 +217,17 @@ export function SaleCard({
               <Label>Commission de vente (%)</Label>
               <Input type="number" step="0.1" {...listForm.register("saleCommissionRate", { valueAsNumber: true })} />
             </div>
+            <div>
+              <Label>Type de titre foncier</Label>
+              <Select {...listForm.register("landTitleType")}>
+                {Object.entries(LAND_TITLE_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+              <p className="mt-1 text-xs text-ink-muted">Le bien n&apos;apparaîtra dans le catalogue public qu&apos;une fois le titre vérifié par l&apos;agence.</p>
+            </div>
             <Button type="submit" className="w-full" loading={listMutation.isPending}>
               Mettre en vente
             </Button>
@@ -246,8 +277,38 @@ export function SaleCard({
             </div>
           </div>
 
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Badge color={property.landTitleVerified ? "green" : "amber"}>
+              {LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS] ?? "Titre non précisé"}
+              {property.landTitleVerified ? " · vérifié" : " · non vérifié"}
+            </Badge>
+            {!property.landTitleVerified && !canManage && (
+              <span className="text-xs text-ink-muted">Invisible du catalogue public tant que l&apos;agence n&apos;a pas vérifié le titre.</span>
+            )}
+            {canManage && (
+              <button
+                type="button"
+                onClick={() => verifyMutation.mutate(!property.landTitleVerified)}
+                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium ${property.landTitleVerified ? "border-success text-success hover:bg-success/10" : "border-primary text-primary hover:bg-primary/10"}`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                {property.landTitleVerified ? "Retirer la vérification" : "Marquer le titre comme vérifié"}
+              </button>
+            )}
+          </div>
+
           {canManage && (
             <div className="mb-4 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  listForm.reset({ salePrice: property.salePrice, saleCommissionRate: property.saleCommissionRate, landTitleType: property.landTitleType ?? "AUTRE" });
+                  setListModalOpen(true);
+                }}
+              >
+                <Pencil className="h-4 w-4" /> Modifier l&apos;annonce
+              </Button>
               <Button size="sm" variant="secondary" onClick={() => setOfferModalOpen(true)}>
                 <Plus className="h-4 w-4" /> Ajouter une offre
               </Button>
@@ -393,6 +454,32 @@ export function SaleCard({
           ))
         )}
       </div>
+
+      <Modal open={listModalOpen} onClose={() => setListModalOpen(false)} title="Modifier l'annonce">
+        <form onSubmit={listForm.handleSubmit((v) => listMutation.mutate(v))} className="space-y-3">
+          <div>
+            <Label>Prix de vente demandé (FCFA)</Label>
+            <Input type="number" {...listForm.register("salePrice", { required: true, valueAsNumber: true })} />
+          </div>
+          <div>
+            <Label>Commission de vente (%)</Label>
+            <Input type="number" step="0.1" {...listForm.register("saleCommissionRate", { valueAsNumber: true })} />
+          </div>
+          <div>
+            <Label>Type de titre foncier</Label>
+            <Select {...listForm.register("landTitleType")}>
+              {Object.entries(LAND_TITLE_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Button type="submit" className="w-full" loading={listMutation.isPending}>
+            Enregistrer
+          </Button>
+        </form>
+      </Modal>
 
       <Modal open={offerModalOpen} onClose={() => setOfferModalOpen(false)} title="Ajouter une offre">
         <form onSubmit={offerForm.handleSubmit((v) => offerMutation.mutate(v))} className="space-y-3">

@@ -121,4 +121,9 @@ export class CreatePropertyDto {
   @IsNumber()
   @Min(0)
   shortStayNightlyRate?: number;
+
+  /** Lien d'intégration (Matterport, Kuula...) vers une visite virtuelle 360°, facultatif. */
+  @IsOptional()
+  @IsString()
+  virtualTourUrl?: string;
 }
