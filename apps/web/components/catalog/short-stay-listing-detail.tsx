@@ -54,7 +54,7 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
-  if (isLoading || !property) return <LoadingState />;
+  if (isLoading || !property) return <LoadingState hint="Premier chargement : jusqu'à une minute si le site était inactif." />;
 
   const bookings: any[] = property.shortStayBookings ?? [];
   const monthLabel = monthCursor.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });

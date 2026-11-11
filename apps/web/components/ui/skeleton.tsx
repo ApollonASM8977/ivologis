@@ -2,10 +2,11 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <div aria-hidden="true" className={`animate-pulse rounded-lg bg-gray-200/70 ${className}`} />;
 }
 
-export function LoadingState({ label = "Chargement en cours" }: { label?: string }) {
+export function LoadingState({ label = "Chargement en cours", hint }: { label?: string; hint?: string }) {
   return (
     <div role="status" aria-live="polite" className="space-y-4 py-2">
       <span className="sr-only">{label}</span>
+      {hint && <p className="text-sm text-ink-muted">{hint}</p>}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[0, 1, 2].map((i) => (
           <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5">

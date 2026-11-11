@@ -45,7 +45,7 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
-  if (isLoading || !property) return <LoadingState />;
+  if (isLoading || !property) return <LoadingState hint="Premier chargement : jusqu'à une minute si le site était inactif." />;
 
   return (
     <div>

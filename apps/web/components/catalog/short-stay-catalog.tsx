@@ -20,7 +20,7 @@ export function ShortStayCatalog({ basePath }: { basePath: string }) {
       <PageHeader title="Résidences meublées en courte durée" subtitle="Séjours à la nuitée, disponibilité en temps réel" />
 
       {isLoading ? (
-        <LoadingState />
+        <LoadingState hint="Premier chargement : jusqu'à une minute si le site était inactif." />
       ) : !data?.length ? (
         <EmptyState icon={CalendarRange} title="Aucune résidence disponible pour le moment" description="Revenez bientôt, de nouvelles annonces seront publiées ici." />
       ) : (

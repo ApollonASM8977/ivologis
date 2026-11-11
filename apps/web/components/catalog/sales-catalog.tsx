@@ -20,7 +20,7 @@ export function SalesCatalog({ basePath }: { basePath: string }) {
       <PageHeader title="Biens en vente" subtitle="Terrains, villas, appartements et locaux proposés à la vente" />
 
       {isLoading ? (
-        <LoadingState />
+        <LoadingState hint="Premier chargement : jusqu'à une minute si le site était inactif." />
       ) : !data?.length ? (
         <EmptyState icon={Tag} title="Aucun bien en vente pour le moment" description="Revenez bientôt, de nouvelles annonces seront publiées ici." />
       ) : (
