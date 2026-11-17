@@ -1,0 +1,98 @@
+import type { Metadata } from "next";
+import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { siteUrl } from "@/lib/site";
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+export type ListingKind = "sales" | "rentals" | "short-stay";
+const ROUTE: Record<ListingKind, string> = { sales: "sales", rentals: "locations", "short-stay": "short-stay" };
+const DEAL: Record<ListingKind, string> = { sales: "à vendre", rentals: "à louer", "short-stay": "en location meublée" };
+
+/** Lecture serveur d'une annonce publique (sans compter de visite). null si l'API dort ou si l'annonce n'existe plus. */
+export async function fetchListing(kind: ListingKind, id: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${API}/api/catalog/${kind}/${encodeURIComponent(id)}`, {
+      headers: { "x-ivologis-no-count": "1" },
+      next: { revalidate: 600 },
+      // Plan gratuit Render : si l'API se réveille, on n'attend pas, la page reste fonctionnelle côté client.
+      signal: AbortSignal.timeout(8000),
+    });
+    return res.ok ? res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Annonces publiées (hors démo) pour le sitemap. */
+export async function fetchPublishedListings(kind: ListingKind): Promise<{ id: string; updatedAt: string }[]> {
+  try {
+    const res = await fetch(`${API}/api/catalog/${kind}?limit=100`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return [];
+    const body = await res.json();
+    return (body.data ?? []).filter((p: any) => !p.isDemo).map((p: any) => ({ id: p.id, updatedAt: p.updatedAt }));
+  } catch {
+    return [];
+  }
+}
+
+function price(kind: ListingKind, p: any) {
+  if (kind === "sales") return Number(p.salePrice ?? 0);
+  if (kind === "rentals") return Number(p.rentAmount ?? 0);
+  return Number(p.shortStayNightlyRate ?? 0);
+}
+
+function priceText(kind: ListingKind, p: any) {
+  const suffix = kind === "rentals" ? " / mois" : kind === "short-stay" ? " / nuit" : "";
+  return `${formatXOF(price(kind, p))}${suffix}`;
+}
+
+function absoluteImage(url?: string) {
+  if (!url) return undefined;
+  return url.startsWith("http") ? url : `${API}${url}`;
+}
+
+function place(p: any) {
+  return [p.neighborhood, p.commune, p.city && p.city !== p.commune ? p.city : null].filter(Boolean).join(", ");
+}
+
+export function listingPath(kind: ListingKind, id: string) {
+  return `/catalogue/${ROUTE[kind]}/${id}`;
+}
+
+export function listingMetadata(kind: ListingKind, p: any): Metadata {
+  const type = PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS] ?? "Bien";
+  const title = `${p.name} — ${priceText(kind, p)}`;
+  const summary = `${type} ${DEAL[kind]} à ${place(p)}${p.rooms ? `, ${p.rooms} pièces` : ""}${p.surfaceM2 ? `, ${Number(p.surfaceM2)} m²` : ""} : ${priceText(kind, p)}.`;
+  const description = (p.description ? `${summary} ${p.description}` : summary).slice(0, 160);
+  const cover = p.images?.find((i: any) => i.isCover) ?? p.images?.[0];
+  const url = `${siteUrl}${listingPath(kind, p.id)}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    // Une annonce de démonstration ne doit jamais apparaître dans Google.
+    robots: p.isDemo ? { index: false, follow: false } : undefined,
+    openGraph: { title, description, url, type: "website", images: cover ? [{ url: absoluteImage(cover.url)! }] : undefined },
+  };
+}
+
+/** Données structurées schema.org (RealEstateListing), échappées contre l'injection de balises. */
+export function ListingJsonLd({ kind, p }: { kind: ListingKind; p: any }) {
+  if (p.isDemo) return null;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: p.name,
+    description: p.description ?? undefined,
+    url: `${siteUrl}${listingPath(kind, p.id)}`,
+    dateModified: p.updatedAt,
+    image: (p.images ?? []).map((i: any) => absoluteImage(i.url)),
+    offers: { "@type": "Offer", price: price(kind, p), priceCurrency: "XOF", availability: "https://schema.org/InStock" },
+    contentLocation: {
+      "@type": "Place",
+      address: { "@type": "PostalAddress", addressLocality: p.commune, addressRegion: p.city, addressCountry: "CI" },
+      ...(p.latitude && p.longitude ? { geo: { "@type": "GeoCoordinates", latitude: Number(p.latitude), longitude: Number(p.longitude) } } : {}),
+    },
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
+}
