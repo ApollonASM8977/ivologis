@@ -15,7 +15,7 @@ export default async function PublicCatalogRentalDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
       {p && <ListingJsonLd kind="rentals" p={p} />}
-      <RentalListingDetail id={id} basePath="/catalogue/locations" />
+      <RentalListingDetail id={id} basePath="/catalogue/locations" initial={p} />
     </div>
   );
 }

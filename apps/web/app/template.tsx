@@ -1,15 +1,8 @@
-"use client";
-
-import { motion } from "motion/react";
-
+/**
+ * Transition entre les pages : rejouée à chaque navigation (un template est recréé à chaque changement de page).
+ * En CSS et en mouvement seul : l'ancienne version (opacité 0 + flou, en JavaScript) rendait TOUTES les pages
+ * invisibles jusqu'au chargement du JavaScript, soit plusieurs secondes en 3G (LCP à 4-5 s).
+ */
 export default function Template({ children }: { children: React.ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className="ivo-page">{children}</div>;
 }

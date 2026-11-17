@@ -1,8 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
 import {
   Building2,
   Users,
@@ -10,8 +6,6 @@ import {
   Wrench,
   BarChart3,
   FileText,
-  ShieldCheck,
-  ChevronDown,
   Check,
   Lock,
   KeyRound,
@@ -20,9 +14,14 @@ import {
   Tag,
   CalendarRange,
   ArrowRight,
-} from "lucide-react";import { ContactForm } from "@/components/marketing/contact-form";
+} from "lucide-react";
+import { LazyContactForm } from "@/components/marketing/lazy-contact-form";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { LogoMarquee } from "@/components/marketing/logo-marquee";
+import { AudienceTabs, DashboardMockup, FaqList } from "@/components/marketing/home-islands";
+import { HoverLift, Reveal, StepBadge, StepsLine } from "@/components/marketing/css-motion";
+
+// Composant serveur : le texte arrive dans le HTML (affichage immédiat, même en 3G) ; seuls les îlots interactifs s'hydratent.
 
 const FEATURES = [
   { icon: Building2, title: "Biens immobiliers", text: "Fiche complète : adresse précise, photos, étage, équipements, meublé, repère pour trouver le bien." },
@@ -98,20 +97,6 @@ const FAQ = [
   },
 ];
 
-function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 function HeroBlobs() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -123,181 +108,31 @@ function HeroBlobs() {
           backgroundSize: "44px 44px",
         }}
       />
-      <motion.div
-        animate={{ scale: [1, 1.06, 1] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -right-20 top-0 h-[26rem] w-[26rem] rounded-full bg-primary/10"
-      />
-    </div>
-  );
-}
-
-function DashboardMockup() {
-  const bars = [42, 58, 49, 71, 66, 84];
-  const rx = useMotionValue(0);
-  const ry = useMotionValue(0);
-  const springX = useSpring(rx, { stiffness: 150, damping: 18 });
-  const springY = useSpring(ry, { stiffness: 150, damping: 18 });
-  const rotateX = useTransform(springY, [-0.5, 0.5], [6, -6]);
-  const rotateY = useTransform(springX, [-0.5, 0.5], [-8, 8]);
-
-  // Pointeur = souris ET doigt : sur téléphone la carte suit aussi le glissé (il n'y a pas de survol au doigt).
-  function onMove(e: React.PointerEvent<HTMLDivElement>) {
-    const r = e.currentTarget.getBoundingClientRect();
-    rx.set((e.clientX - r.left) / r.width - 0.5);
-    ry.set((e.clientY - r.top) / r.height - 0.5);
-  }
-
-  return (
-    <div className="[perspective:1200px]" onPointerMove={onMove} onPointerLeave={() => { rx.set(0); ry.set(0); }}>
-      {/* Flottement continu : la carte vit même sans souris (téléphone, tablette). */}
-      <motion.div animate={{ y: [0, -10, 0], rotateZ: [0, -0.6, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        style={{ rotateX, rotateY }}
-        whileTap={{ scale: 0.98 }}
-        className="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl shadow-primary/15"
-        aria-hidden="true"
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm font-semibold text-ink">Vue d&apos;ensemble</p>
-          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-800">À jour</span>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Biens", value: "24" },
-            { label: "Loyers encaissés", value: "9,4 M" },
-            { label: "Retards", value: "3" },
-          ].map((k, i) => (
-            <motion.div
-              key={k.label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.1 }}
-              className="rounded-xl bg-surface p-3"
-            >
-              <p className="text-[11px] text-ink-muted">{k.label}</p>
-              <p className="mt-1 text-lg font-bold text-ink">{k.value}</p>
-            </motion.div>
-          ))}
-        </div>
-        <div className="mt-5 flex h-28 items-end gap-2">
-          {bars.map((h, i) => (
-            <motion.div
-              key={i}
-              initial={{ height: 0 }}
-              animate={{ height: `${h}%` }}
-              transition={{ duration: 0.7, delay: 0.5 + i * 0.07, ease: "easeOut" }}
-              className="flex-1"
-            >
-              {/* Monte une fois, puis « respire » comme un tableau de bord en direct. */}
-              <motion.div
-                animate={{ scaleY: [1, 0.8, 1] }}
-                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 1.4 + i * 0.25 }}
-                className="h-full origin-bottom rounded-t-md bg-gradient-to-t from-primary to-primary/60"
-              />
-            </motion.div>
-          ))}
-        </div>
-        <div className="mt-5 space-y-2">
-          {["Quittance émise · Villa Riviera 3", "Demande de maintenance · Plomberie", "Bail renouvelé · Studio Angré"].map((t, i) => (
-            <motion.div
-              key={t}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1 + i * 0.12 }}
-              className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-xs text-ink-muted"
-            >
-              <motion.span
-                className="h-1.5 w-1.5 rounded-full bg-primary"
-                animate={{ scale: [1, 1.8, 1], opacity: [1, 0.5, 1] }}
-                transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.6 }}
-              />
-              {t}
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-      </motion.div>
-    </div>
-  );
-}
-
-function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
-  return (
-    <div className="border-b border-gray-100">
-      <h3>
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={open}
-          className="flex w-full items-center justify-between gap-4 py-4 text-left text-base font-semibold text-ink hover:text-primary"
-        >
-          {q}
-          <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25 }}>
-            <ChevronDown className="h-5 w-5 text-ink-muted" />
-          </motion.span>
-        </button>
-      </h3>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <p className="pb-5 text-sm leading-relaxed text-ink-muted">{a}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="ivo-pulse absolute -right-20 top-0 h-[26rem] w-[26rem] rounded-full bg-primary/10" />
     </div>
   );
 }
 
 export default function HomePage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [audience, setAudience] = useState(0);
-  const active = AUDIENCES[audience];
-
   return (
     <>
       <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-white to-white">
         <HeroBlobs />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-2 lg:py-24">
           <div>
-            <motion.span
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center rounded-full border border-primary/20 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm"
-            >
+            <span className="ivo-rise inline-flex items-center rounded-full border border-primary/20 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm">
               Conçu pour la location en Côte d&apos;Ivoire
-            </motion.span>
-            <motion.h1
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
-              className="mt-5 text-4xl font-extrabold leading-[1.1] tracking-tight text-primary-dark sm:text-5xl lg:text-6xl"
+            </span>
+            <h1
+              className="ivo-rise mt-5 text-4xl font-extrabold leading-[1.1] tracking-tight text-primary-dark sm:text-5xl lg:text-6xl"
+              style={{ animationDelay: "100ms" }}
             >
               La gestion locative, <span className="text-primary">simple et sécurisée.</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="mt-5 max-w-xl text-lg leading-relaxed text-ink-muted"
-            >
+            </h1>
+            <p className="ivo-rise mt-5 max-w-xl text-lg leading-relaxed text-ink-muted" style={{ animationDelay: "200ms" }}>
               Biens, locataires, baux, loyers, travaux et relevés propriétaires réunis dans une seule plateforme, pour les agences, les propriétaires et leurs locataires.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="mt-8 flex flex-wrap gap-3"
-            >
+            </p>
+            <div className="ivo-rise mt-8 flex flex-wrap gap-3" style={{ animationDelay: "300ms" }}>
               <Link href="#contact" className="group relative overflow-hidden rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-transform hover:-translate-y-0.5">
                 <span className="relative z-10">Demander une démo</span>
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
@@ -305,7 +140,7 @@ export default function HomePage() {
               <Link href="/securite" className="rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:text-primary">
                 Voir la sécurité
               </Link>
-            </motion.div>
+            </div>
           </div>
           <DashboardMockup />
         </div>
@@ -375,26 +210,11 @@ export default function HomePage() {
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-primary-dark">Trois étapes pour démarrer.</h2>
           </Reveal>
           <div className="relative mt-14 grid gap-6 md:grid-cols-3">
-            <motion.div
-              aria-hidden="true"
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="absolute left-[16%] right-[16%] top-7 hidden h-0.5 origin-left bg-gradient-to-r from-primary/20 via-primary to-primary/20 md:block"
-            />
+            <StepsLine />
             {STEPS.map((s, i) => (
               <Reveal key={s.n} delay={i * 0.15}>
                 <div className="relative rounded-2xl bg-white p-7 shadow-sm">
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ type: "spring", stiffness: 300, damping: 16, delay: 0.2 + i * 0.2 }}
-                    className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-black text-white shadow-lg shadow-primary/30"
-                  >
-                    {s.n}
-                  </motion.span>
+                  <StepBadge n={s.n} index={i} />
                   <h3 className="text-lg font-semibold text-ink">{s.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.text}</p>
                 </div>
@@ -411,61 +231,7 @@ export default function HomePage() {
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-primary-dark">Chacun voit ce qui le concerne, et seulement cela.</h2>
           </Reveal>
 
-          <div role="tablist" aria-label="Profils" className="mt-10 flex flex-wrap gap-2 border-b border-gray-200">
-            {AUDIENCES.map((a, i) => (
-              <button
-                key={a.key}
-                role="tab"
-                aria-selected={audience === i}
-                aria-controls={`panel-${a.key}`}
-                onClick={() => setAudience(i)}
-                className={`relative px-4 pb-3 pt-2 text-sm font-semibold transition-colors ${audience === i ? "text-primary" : "text-ink-muted hover:text-ink"}`}
-              >
-                {a.label}
-                {audience === i && (
-                  <motion.span
-                    layoutId="audience-indicator"
-                    className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary"
-                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active.key}
-              id={`panel-${active.key}`}
-              role="tabpanel"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="mt-8 grid items-center gap-8 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm md:grid-cols-2"
-            >
-              <div>
-                <h3 className="text-2xl font-bold text-ink">{active.title}</h3>
-                <p className="mt-2 text-ink-muted">{active.intro}</p>
-              </div>
-              <ul className="space-y-3">
-                {active.items.map((item, i) => (
-                  <motion.li
-                    key={item}
-                    initial={{ opacity: 0, x: 12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + i * 0.08 }}
-                    className="flex items-start gap-2.5 text-sm text-ink"
-                  >
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/15">
-                      <Check className="h-3.5 w-3.5 text-success" />
-                    </span>
-                    {item}
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-          </AnimatePresence>
+          <AudienceTabs audiences={AUDIENCES} />
         </div>
       </section>
 
@@ -479,12 +245,7 @@ export default function HomePage() {
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {TIERS.map((t, i) => (
               <Reveal key={t.name} delay={i * 0.08}>
-                <motion.div
-                  whileHover={{ y: -6 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`flex h-full flex-col rounded-2xl bg-white p-7 ${t.highlight ? "ring-2 ring-primary shadow-xl shadow-primary/15" : "border border-gray-100 shadow-sm"}`}
-                >
+                <HoverLift className={`flex h-full flex-col rounded-2xl bg-white p-7 ${t.highlight ? "ring-2 ring-primary shadow-xl shadow-primary/15" : "border border-gray-100 shadow-sm"}`}>
                   <h3 className="text-xl font-bold text-ink">{t.name}</h3>
                   <p className="text-sm text-ink-muted">{t.size}</p>
                   <p className="mt-4 text-2xl font-extrabold text-primary-dark">Sur devis</p>
@@ -499,7 +260,7 @@ export default function HomePage() {
                   <Link href="#contact" className={`mt-7 rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition-colors ${t.highlight ? "bg-primary text-white hover:bg-primary/90" : "border border-gray-200 text-ink hover:border-primary/40 hover:text-primary"}`}>
                     Demander un devis
                   </Link>
-                </motion.div>
+                </HoverLift>
               </Reveal>
             ))}
           </div>
@@ -522,17 +283,11 @@ export default function HomePage() {
               { icon: KeyRound, label: "Double authentification" },
               { icon: Eye, label: "Accès par rôle" },
               { icon: History, label: "Journal d'activité" },
-            ].map((s, i) => (
-              <motion.div
-                key={s.label}
-                whileHover={{ y: -4, boxShadow: "0 12px 30px -10px rgba(11,95,255,0.25)" }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.03 }}
-                className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-5"
-              >
+            ].map((s) => (
+              <HoverLift key={s.label} lift={-4} className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-5">
                 <s.icon className="h-5 w-5 text-primary" />
                 <p className="text-sm font-semibold text-ink">{s.label}</p>
-              </motion.div>
+              </HoverLift>
             ))}
           </Reveal>
         </div>
@@ -544,17 +299,7 @@ export default function HomePage() {
             <p className="text-sm font-semibold uppercase tracking-wider text-primary">Questions fréquentes</p>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-primary-dark">Vos questions, nos réponses.</h2>
           </Reveal>
-          <div className="mt-10 rounded-2xl bg-white px-6 shadow-sm">
-            {FAQ.map((item, i) => (
-              <FaqItem
-                key={item.q}
-                q={item.q}
-                a={item.a}
-                open={openFaq === i}
-                onToggle={() => setOpenFaq(openFaq === i ? null : i)}
-              />
-            ))}
-          </div>
+          <FaqList items={FAQ} />
         </div>
       </section>
 
@@ -567,7 +312,7 @@ export default function HomePage() {
             <p className="mt-6 text-sm text-ink-muted">Déjà client ? <Link href="/login" className="font-semibold text-primary hover:underline">Connectez-vous à votre espace</Link>.</p>
           </Reveal>
           <Reveal delay={0.1} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xl shadow-primary/5 sm:p-8 lg:col-span-3">
-            <ContactForm />
+            <LazyContactForm />
           </Reveal>
         </div>
       </section>

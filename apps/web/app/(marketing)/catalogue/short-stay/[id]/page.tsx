@@ -15,7 +15,7 @@ export default async function PublicCatalogShortStayDetailPage({ params }: Props
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
       {p && <ListingJsonLd kind="short-stay" p={p} />}
-      <ShortStayListingDetail id={id} basePath="/catalogue/short-stay" />
+      <ShortStayListingDetail id={id} basePath="/catalogue/short-stay" initial={p} />
     </div>
   );
 }

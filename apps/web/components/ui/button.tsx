@@ -1,9 +1,8 @@
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import clsx from "clsx";
 import { Loader2 } from "lucide-react";
-import { motion, AnimatePresence, type HTMLMotionProps } from "motion/react";
 
-interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
@@ -23,17 +22,16 @@ const sizes: Record<string, string> = {
   lg: "text-base px-5 py-3",
 };
 
+/** Bouton : grossit légèrement au survol, s'enfonce à l'appui (CSS `ivo-press`, sans bibliothèque d'animation). */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", loading, disabled, children, ...props }, ref) => {
     return (
-      <motion.button
+      <button
         ref={ref}
         disabled={disabled || loading}
-        whileHover={disabled || loading ? undefined : { scale: 1.015 }}
-        whileTap={disabled || loading ? undefined : { scale: 0.97 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        aria-busy={loading || undefined}
         className={clsx(
-          "relative inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
+          "ivo-press relative inline-flex items-center justify-center gap-2 rounded-lg font-medium",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed",
           variants[variant],
           sizes[size],
@@ -41,22 +39,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        <AnimatePresence mode="popLayout" initial={false}>
-          {loading && (
-            <motion.span
-              key="spinner"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: "auto", opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="overflow-hidden"
-            >
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {loading && (
+          <span className="ivo-fade-in inline-flex">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          </span>
+        )}
         {children}
-      </motion.button>
+      </button>
     );
   },
 );

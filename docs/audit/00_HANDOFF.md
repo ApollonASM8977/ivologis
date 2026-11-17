@@ -14,7 +14,15 @@
 
 **Déployé** : `d339b1a` (espaces locataire/propriétaire) en prod le 2026-11-17 16:50 UTC, design d'origine vérifié en prod. Ensuite : audit admin en profondeur (chaîne bien → bail → paiement → quittance → relevé, équipe, paramètres, import CSV, messages en français partout) — voir `12_AUDIT_ESPACES.md`.
 
-**Prochaine action exacte** : parcourir à la main les écrans admin restants (création de bail dans l'interface, Paiements, Ventes, Courte durée, Statistiques) ; puis décisions A-02/A-03/AD-06, S-17, P1-07, P1-08, P1-14, performance (LCP).
+**Demande du 2026-11-17 soir (D-11, D-12)** — lots dans cet ordre :
+- ✅ D-11 « tout passe par l'agence » (`3971512`) ; animations au doigt ; Next 15.5.29 ; suite `apps/api/test/qa-securite.mjs` (41/41 sur `audit-qa`).
+- **P (performance, en cours)** : référence locale build prod, mobile 4G lente : accueil 66, locations 63, fiche 63, login 88 (LCP 4,5 s, TBT ~700 ms, JS ~250 kB). Causes : texte du héros invisible avant hydratation (motion `initial opacity 0`), accueil 100 % client, annonces chargées côté client. Plan : accueil en composant serveur + îlots clients, `LazyMotion`, animations CSS au-dessus de la ligne de flottaison, données d'annonces rendues côté serveur, puis remesurer (script `lh.sh` du scratchpad : `npx lighthouse@12 URL --only-categories=... --chrome-flags=--headless=new`). Attention : en prod, le plan gratuit Render met le service en veille (premier chargement très lent) → passer en Starter (~7 $/mois) ou ping régulier.
+- **L** : chargement animé « maison qui se construit » (SVG + CSS, sans JS) dans `LoadingState` et les `loading.tsx`.
+- **U** : revue UI/UX complète → `13_REVUE_UX.md`.
+- **I** : i18n FR/EN intégral (web + messages API + PDF), sélecteur de langue ; gros chantier, à découper par espace.
+- Sécurité restante : NestJS 10 → 12 (S-15, 13 alertes npm restantes dont multer/body-parser), zod 4, Dependabot désactivé sur GitHub (à activer par l'utilisateur), S-14 octets magiques des images, S-17.
+
+**Prochaine action exacte** : lot P (voir ci-dessus). Ensuite : parcourir à la main les écrans admin restants (création de bail dans l'interface, Paiements, Ventes, Courte durée, Statistiques) ; puis décisions A-02/A-03/AD-06, S-17, P1-07, P1-08, P1-14, performance (LCP).
 
 **Comptes de test sur `audit-qa`** : le mot de passe du propriétaire `kouadio.jean@ivologis.ci` a été réinitialisé sur la branche QA uniquement (valeur dans le scratchpad de session, `owner-qa-password.txt`) ; la prod n'est pas touchée.
 

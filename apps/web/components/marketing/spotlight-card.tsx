@@ -1,12 +1,11 @@
 "use client";
 
 import { useRef, type ReactNode } from "react";
-import { motion } from "motion/react";
 
+/** Carte avec halo qui suit la souris ou le doigt ; soulèvement et appui en CSS (`ivo-lift`). */
 export function SpotlightCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Pointeur = souris et doigt : au toucher, le halo suit le doigt comme il suit la souris.
   function onMove(e: React.PointerEvent<HTMLDivElement>) {
     const el = ref.current;
     if (!el) return;
@@ -16,15 +15,12 @@ export function SpotlightCard({ children, className = "" }: { children: ReactNod
   }
 
   return (
-    <motion.div
+    <div
       ref={ref}
       onPointerMove={onMove}
       onPointerDown={onMove}
-      whileHover={{ y: -4 }}
-      whileTap={{ y: -2, scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      className={`group relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-xl hover:shadow-primary/10 active:shadow-xl active:shadow-primary/10 ${className}`}
-      style={{ ["--mx" as string]: "50%", ["--my" as string]: "0%" }}
+      className={`ivo-lift group relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-xl hover:shadow-primary/10 active:shadow-xl active:shadow-primary/10 ${className}`}
+      style={{ ["--mx" as string]: "50%", ["--my" as string]: "0%", ["--ivo-lift" as string]: "-4px" }}
     >
       <div
         aria-hidden="true"
@@ -34,6 +30,6 @@ export function SpotlightCard({ children, className = "" }: { children: ReactNod
         }}
       />
       <div className="relative h-full p-6">{children}</div>
-    </motion.div>
+    </div>
   );
 }

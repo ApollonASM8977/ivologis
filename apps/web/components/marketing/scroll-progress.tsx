@@ -1,16 +1,9 @@
-"use client";
-
-import { motion, useScroll, useSpring } from "motion/react";
-
+/** Barre de progression de lecture : animée par le défilement lui-même (CSS `animation-timeline: scroll()`), sans JavaScript. */
 export function ScrollProgress() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 });
-
   return (
-    <motion.div
+    <div
       aria-hidden="true"
-      style={{ scaleX }}
-      className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-gradient-to-r from-primary via-sky-400 to-primary"
+      className="ivo-scroll-progress fixed inset-x-0 top-0 z-50 h-0.5 bg-gradient-to-r from-primary via-sky-400 to-primary"
     />
   );
 }

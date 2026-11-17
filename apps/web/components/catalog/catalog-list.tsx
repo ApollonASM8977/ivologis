@@ -30,6 +30,9 @@ interface CatalogListProps {
   priceLabel: string;
   price: (p: any) => string;
   showFurnished?: boolean;
+  /** Page déjà chargée par le serveur pour la requête `initialQs` (catalogue public). */
+  initialData?: { data: any[]; total: number; page: number; limit: number } | null;
+  initialQs?: string;
 }
 
 const LOADING_HINT = "Premier chargement : jusqu'à une minute si le site était inactif.";
@@ -78,7 +81,7 @@ function ListingSkeletons() {
   );
 }
 
-function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTitle, priceLabel, price, showFurnished }: CatalogListProps) {
+function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTitle, priceLabel, price, showFurnished, initialData, initialQs }: CatalogListProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -89,6 +92,8 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
     queryKey: ["catalog", kind, qs],
     queryFn: async () => (await api.get(`/catalog/${kind}${qs ? `?${qs}` : ""}`)).data,
     placeholderData: keepPreviousData,
+    initialData: initialData && qs === initialQs ? initialData : undefined,
+    staleTime: 60_000,
   });
 
   function apply(next: Record<string, string>) {

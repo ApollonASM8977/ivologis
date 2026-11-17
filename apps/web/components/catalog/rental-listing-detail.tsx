@@ -33,7 +33,7 @@ function months(amount: number, rent: number) {
   return ` (${m.toLocaleString("fr-FR")} mois)`;
 }
 
-export function RentalListingDetail({ id, basePath }: { id: string; basePath: string }) {
+export function RentalListingDetail({ id, basePath, initial }: { id: string; basePath: string; initial?: any }) {
   const user = useAuthStore((s) => s.user);
   const [modalOpen, setModalOpen] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
@@ -42,6 +42,7 @@ export function RentalListingDetail({ id, basePath }: { id: string; basePath: st
   const { data: property, isLoading } = useQuery({
     queryKey: ["catalog", "rentals", id],
     queryFn: async () => (await api.get(`/catalog/rentals/${id}`)).data,
+    initialData: initial ?? undefined,
   });
 
   const mutation = useMutation({

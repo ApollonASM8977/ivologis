@@ -27,7 +27,7 @@ interface VisitForm {
   website?: string;
 }
 
-export function SaleListingDetail({ id, basePath }: { id: string; basePath: string }) {
+export function SaleListingDetail({ id, basePath, initial }: { id: string; basePath: string; initial?: any }) {
   const user = useAuthStore((s) => s.user);
   const [modalOpen, setModalOpen] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
@@ -36,6 +36,7 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
   const { data: property, isLoading } = useQuery({
     queryKey: ["catalog", "sales", id],
     queryFn: async () => (await api.get(`/catalog/sales/${id}`)).data,
+    initialData: initial ?? undefined,
   });
 
   const mutation = useMutation({

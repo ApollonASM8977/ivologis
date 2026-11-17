@@ -1,7 +1,3 @@
-"use client";
-
-import { motion } from "motion/react";
-
 const WORDMARK = "IVOLOGIS";
 
 /**
@@ -28,32 +24,21 @@ export function BrandLogo({
 
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`} aria-label={WORDMARK}>
-      <motion.span
-        initial={animate ? { opacity: 0, scale: 0.55, rotate: -10 } : false}
-        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-        whileHover={{ scale: 1.08, rotate: -4 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 280, damping: 16 }}
-        className={`relative flex ${box} shrink-0 items-center justify-center shadow-sm ${mark}`}
+      <span
+        // Animations en CSS (globals.css) : entrée en ressort, pivot au survol, sans JavaScript.
+        className={`ivo-logo-mark ${animate ? "ivo-logo-in" : ""} relative flex ${box} shrink-0 items-center justify-center shadow-sm ${mark}`}
         style={{ borderRadius: "14px 6px 14px 6px" }}
         aria-hidden="true"
-        // whileTap rend l'élément focusable (tabindex=0) ; un logo décoratif masqué ne doit pas l'être.
-        tabIndex={-1}
       >
         <svg viewBox="0 0 24 24" className="h-[60%] w-[60%]">
           <rect x="7.2" y="11" width="9.6" height="7.4" rx="3.4" fill="currentColor" />
           <rect x="10.8" y="14.5" width="2.4" height="3.9" rx="1.2" fill="currentColor" fillOpacity="0.35" />
           <path d="M5.2 11.2 Q12 3.6 18.8 11.2 Z" fill={ROOF_COLOR} />
         </svg>
-      </motion.span>
-      <motion.span
-        initial={animate ? { opacity: 0, x: -6 } : false}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.12, duration: 0.3, ease: "easeOut" }}
-        className={`font-bold tracking-tight ${text} ${word}`}
-      >
+      </span>
+      <span className={`${animate ? "ivo-slide-in" : ""} font-bold tracking-tight ${text} ${word}`} style={{ animationDelay: "120ms" }}>
         {WORDMARK}
-      </motion.span>
+      </span>
     </span>
   );
 }

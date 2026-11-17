@@ -1,10 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
-import { motion } from "motion/react";
 
+/** Gabarit des pages de connexion : animations en CSS (`ivo-*`), le formulaire est visible dès le premier affichage. */
 export function AuthLayout({
   title,
   subtitle,
@@ -17,11 +15,7 @@ export function AuthLayout({
   return (
     <div className="flex min-h-screen">
       <aside aria-label="Présentation IVOLOGIS" className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary-dark p-12 text-white lg:flex">
-        <motion.div
-          animate={{ scale: [1, 1.08, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="pointer-events-none absolute -bottom-40 -right-20 h-[26rem] w-[26rem] rounded-full bg-blue-500/10"
-        />
+        <div className="ivo-pulse pointer-events-none absolute -bottom-40 -right-20 h-[26rem] w-[26rem] rounded-full bg-blue-500/10" />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -31,23 +25,13 @@ export function AuthLayout({
           }}
         />
 
-        <motion.div
-          className="relative z-10 flex items-center gap-2"
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="ivo-slide-in relative z-10 flex items-center gap-2">
           <Link href="/" className="transition-opacity hover:opacity-80">
             <BrandLogo size="md" inverse />
           </Link>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="relative z-10"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-        >
+        <div className="ivo-rise relative z-10" style={{ animationDelay: "150ms" }}>
           <h2 className="text-3xl font-bold leading-tight">
             La gestion immobilière,<br />simplifiée pour la Côte d&apos;Ivoire.
           </h2>
@@ -55,25 +39,15 @@ export function AuthLayout({
             Tout IVOLOGIS : biens, locataires, contrats, paiements Mobile Money et maintenance
             dans une seule plateforme.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.p
-          className="relative z-10 text-sm text-white/50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
+        <p className="ivo-fade-in relative z-10 text-sm text-white/50" style={{ animationDelay: "300ms" }}>
           © {new Date().getFullYear()} IVOLOGIS, Abidjan, Côte d&apos;Ivoire
-        </motion.p>
+        </p>
       </aside>
 
       <main id="contenu" className="flex w-full flex-col items-center justify-center bg-surface px-6 py-12 lg:w-1/2">
-        <motion.div
-          className="w-full max-w-sm"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
+        <div className="ivo-rise w-full max-w-sm">
           <div className="mb-8 flex items-center justify-between lg:hidden">
             <Link href="/">
               <BrandLogo size="md" />
@@ -85,7 +59,7 @@ export function AuthLayout({
           <h1 className="text-2xl font-bold text-ink">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}
           <div className="mt-8">{children}</div>
-        </motion.div>
+        </div>
       </main>
     </div>
   );

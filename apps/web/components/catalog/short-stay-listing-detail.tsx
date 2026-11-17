@@ -30,7 +30,7 @@ interface RequestForm {
 
 const WEEKDAYS = ["L", "M", "M", "J", "V", "S", "D"];
 
-export function ShortStayListingDetail({ id, basePath }: { id: string; basePath: string }) {
+export function ShortStayListingDetail({ id, basePath, initial }: { id: string; basePath: string; initial?: any }) {
   const user = useAuthStore((s) => s.user);
   const [modalOpen, setModalOpen] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
@@ -45,6 +45,7 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
   const { data: property, isLoading } = useQuery({
     queryKey: ["catalog", "short-stay", id],
     queryFn: async () => (await api.get(`/catalog/short-stay/${id}`)).data,
+    initialData: initial ?? undefined,
   });
 
   const mutation = useMutation({

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 
@@ -55,29 +54,31 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.nav
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden border-t border-gray-100 bg-white md:hidden"
-            aria-label="Navigation mobile"
-          >
-            <div className="flex flex-col gap-1 p-4">
-              {LINKS.map((l) => (
-                <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-gray-50">
-                  {l.label}
-                </Link>
-              ))}
-              <Link href="/login" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary/5">
-                Se connecter
-              </Link>
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      {/* Ouverture/fermeture animées en CSS (grille 0fr → 1fr) ; menu inerte quand il est fermé. */}
+      <nav
+        className={`grid border-t border-gray-100 bg-white transition-[grid-template-rows,opacity] duration-300 ease-out md:hidden ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] border-transparent opacity-0"}`}
+        aria-label="Navigation mobile"
+        inert={!open}
+      >
+        <div className="flex flex-col gap-1 overflow-hidden px-4">
+          <span className="h-3" />
+          {LINKS.map((l, i) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className={`rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-gray-50 ${open ? "ivo-slide-in" : ""}`}
+              style={{ animationDelay: `${i * 40}ms` }}
+            >
+              {l.label}
+            </Link>
+          ))}
+          <Link href="/login" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary/5">
+            Se connecter
+          </Link>
+          <span className="h-3" />
+        </div>
+      </nav>
     </header>
   );
 }

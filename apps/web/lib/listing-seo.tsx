@@ -23,6 +23,27 @@ export async function fetchListing(kind: ListingKind, id: string): Promise<any |
   }
 }
 
+export type CatalogPage = { data: any[]; total: number; page: number; limit: number };
+
+/** Première page du catalogue rendue côté serveur : les annonces sont dans le HTML (pas d'attente du JavaScript en 3G). */
+export async function fetchCatalogPage(kind: ListingKind, qs: string): Promise<CatalogPage | null> {
+  try {
+    const res = await fetch(`${API}/api/catalog/${kind}${qs ? `?${qs}` : ""}`, { next: { revalidate: 120 }, signal: AbortSignal.timeout(8000) });
+    return res.ok ? res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Paramètres d'URL de la page → chaîne de requête, dans l'ordre reçu (même clé de cache que côté client). */
+export function toQueryString(params: Record<string, string | string[] | undefined>) {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined) qs.set(k, Array.isArray(v) ? v[0] : v);
+  }
+  return qs.toString();
+}
+
 /** Annonces publiées (hors démo) pour le sitemap. */
 export async function fetchPublishedListings(kind: ListingKind): Promise<{ id: string; updatedAt: string }[]> {
   try {

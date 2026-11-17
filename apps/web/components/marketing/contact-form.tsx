@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { motion, AnimatePresence } from "motion/react";
 import { CheckCircle2 } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -39,14 +38,11 @@ export function ContactForm() {
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <>
       {sent ? (
-        <motion.div
+        <div
           key="ok"
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          className="flex flex-col items-center gap-3 rounded-2xl border border-success/20 bg-success/5 p-10 text-center"
+          className="ivo-fade-in flex flex-col items-center gap-3 rounded-2xl border border-success/20 bg-success/5 p-10 text-center"
           role="status"
         >
           <CheckCircle2 className="h-12 w-12 text-success" />
@@ -55,15 +51,13 @@ export function ContactForm() {
           <button type="button" onClick={() => setSent(false)} className="mt-2 text-sm font-medium text-primary hover:underline">
             Envoyer une autre demande
           </button>
-        </motion.div>
+        </div>
       ) : (
-        <motion.form
+        <form
           key="form"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative grid gap-4 sm:grid-cols-2"
+          className="ivo-fade-in relative grid gap-4 sm:grid-cols-2"
         >
           <HoneypotField registration={register("website")} />
           <div>
@@ -103,8 +97,8 @@ export function ContactForm() {
               Envoyer ma demande
             </Button>
           </div>
-        </motion.form>
+        </form>
       )}
-    </AnimatePresence>
+    </>
   );
 }
