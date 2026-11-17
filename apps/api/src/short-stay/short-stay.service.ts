@@ -121,7 +121,7 @@ export class ShortStayService {
   /** Demande en libre-service depuis le catalogue (connecté ou invité) : statut EN_ATTENTE, à confirmer par l'agence ou le propriétaire. */
   async requestBooking(propertyId: string, dto: RequestShortStayBookingDto, user?: AuthenticatedUser) {
     const property = await this.getProperty(propertyId);
-    if (!property.shortStayEnabled || property.archivedAt) {
+    if (!property.shortStayEnabled || !property.shortStayApproved || property.archivedAt) {
       throw new BadRequestException("Ce bien n'est pas disponible en location courte durée.");
     }
     if (property.isDemo) {

@@ -202,7 +202,12 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
       </Card>
 
       {property.shortStayEnabled && (
-        <ShortStayCard propertyId={id} defaultNightlyRate={property.shortStayNightlyRate ? Number(property.shortStayNightlyRate) : undefined} canManage={canManage} />
+        <ShortStayCard
+          propertyId={id}
+          defaultNightlyRate={property.shortStayNightlyRate ? Number(property.shortStayNightlyRate) : undefined}
+          canManage={canManage}
+          approved={property.shortStayApproved}
+        />
       )}
 
       {(property.forSale || canManage) && <SaleCard propertyId={id} property={property} canManage={canManage} />}

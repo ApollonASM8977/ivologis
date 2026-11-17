@@ -9,6 +9,8 @@ import { CreatePropertyDto } from "./dto/create-property.dto";
 import { UpdatePropertyDto } from "./dto/update-property.dto";
 import { PropertyFilterDto } from "./dto/property-filter.dto";
 
+const isStaff = (user: AuthenticatedUser) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN_AGENT;
+
 @Injectable()
 export class PropertiesService {
   constructor(
@@ -55,8 +57,9 @@ export class PropertiesService {
         advance: dto.advance ?? 0,
         shortStayEnabled: dto.shortStayEnabled ?? false,
         shortStayNightlyRate: dto.shortStayNightlyRate,
+        shortStayApproved: isStaff(user) && (dto.shortStayApproved ?? !!dto.shortStayEnabled),
         virtualTourUrl: dto.virtualTourUrl,
-        isDemo: dto.isDemo ?? false,
+        isDemo: isStaff(user) && (dto.isDemo ?? false),
         ownerId,
       },
     });
@@ -121,10 +124,14 @@ export class PropertiesService {
     return property;
   }
 
-  async update(id: string, dto: UpdatePropertyDto) {
+  async update(id: string, dto: UpdatePropertyDto, user: AuthenticatedUser) {
     await this.findOne(id);
-    const { ownerId, ...rest } = dto;
-    return this.prisma.property.update({ where: { id }, data: rest });
+    const { ownerId, shortStayApproved, isDemo, ...rest } = dto;
+    // Toute modification par le propriétaire repasse l'annonce « courte durée » en attente de validation par l'agence.
+    const moderation = isStaff(user)
+      ? { isDemo, shortStayApproved: shortStayApproved ?? (rest.shortStayEnabled === true ? true : undefined) }
+      : { shortStayApproved: false };
+    return this.prisma.property.update({ where: { id }, data: { ...rest, ...moderation } });
   }
 
   async archive(id: string, actorId?: string) {

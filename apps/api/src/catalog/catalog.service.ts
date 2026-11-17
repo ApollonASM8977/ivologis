@@ -45,7 +45,7 @@ const PUBLISHED_SALE = {
   landTitleVerified: true,
 } satisfies Prisma.PropertyWhereInput;
 
-const PUBLISHED_SHORT_STAY = { shortStayEnabled: true, archivedAt: null } satisfies Prisma.PropertyWhereInput;
+const PUBLISHED_SHORT_STAY = { shortStayEnabled: true, shortStayApproved: true, archivedAt: null } satisfies Prisma.PropertyWhereInput;
 
 @Injectable()
 export class CatalogService {

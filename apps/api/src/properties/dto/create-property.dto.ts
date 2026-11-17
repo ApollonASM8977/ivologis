@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   IsUUID,
   MaxLength,
   Min,
@@ -130,9 +131,16 @@ export class CreatePropertyDto {
   shortStayNightlyRate?: number;
 
   /** Lien d'intégration (Matterport, Kuula...) vers une visite virtuelle 360°, facultatif. */
+  // Intégrée en iframe sur la page publique : https uniquement.
   @IsOptional()
-  @IsString()
+  @IsUrl({ protocols: ["https"], require_protocol: true }, { message: "Le lien de visite virtuelle doit commencer par https://." })
   virtualTourUrl?: string;
+
+  /** Ignoré pour un propriétaire : seule l'agence valide la publication. */
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  shortStayApproved?: boolean;
 
   @IsOptional()
   @Type(() => Boolean)

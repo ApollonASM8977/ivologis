@@ -24,6 +24,8 @@ Sévérité : CRITIQUE > ÉLEVÉ > MOYEN > FAIBLE.
 | S-14 | FAIBLE | Uploads : type MIME déclaré par le client (pas de vérification des octets magiques), fichiers stockés en `bytea` dans Postgres (base Neon limitée à 1 Go). Les images sont servies sans authentification par UUID (non devinable). | `common/image-upload`, `storage/storage.service.ts` | Vérifier la signature binaire ; stockage objet externe (R2/S3) en P1. | OUVERT |
 | S-15 | FAIBLE | NestJS 10 / multer : avis de sécurité (DoS) corrigés seulement en NestJS 12 (noté dans le README). | `README.md` §10 | `npm audit` + plan de montée de version. | OUVERT |
 
+| S-16 | MOYEN | Un propriétaire ayant reçu la permission `properties.manage` pouvait publier une résidence « courte durée » dans le catalogue public sans aucune validation, et y intégrer n'importe quelle URL en iframe (`virtualTourUrl`, y compris `javascript:` ou une fausse page de connexion). | `properties.service.ts` (`update` appliquait le DTO tel quel), `catalog.service.ts` | Validation par l'agence + `https` obligatoire. | CORRIGÉ (P0-18). Note : un propriétaire inscrit seul n'a pas cette permission (création → 403). |
+
 ## Preuves par test (2026-11-17, API locale sur la branche Neon `audit-qa` = copie de la prod)
 - **S-01 confirmé** : `POST /api/auth/login` avec les identifiants du README → jeton obtenu pour `admin@ivologis.ci` (SUPER_ADMIN), un locataire et un propriétaire. Les mots de passe de prod sont donc ceux publiés.
 - **S-02 confirmé** : l'agence crée un dossier locataire (sans compte) avec le téléphone X ; un inconnu s'inscrit avec le téléphone X → `GET /tenants/me` lui renvoie le nom, le n° de pièce d'identité et le garant de la victime.

@@ -82,7 +82,7 @@ export class PropertiesController {
       const property = await this.propertiesService.findOne(id);
       assertOwnsResource(user, property.ownerId);
     }
-    return this.propertiesService.update(id, dto);
+    return this.propertiesService.update(id, dto, user);
   }
 
   @Delete(":id")

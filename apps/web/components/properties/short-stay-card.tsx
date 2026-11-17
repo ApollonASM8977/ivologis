@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, ChevronLeft, ChevronRight, Check, X as XIcon, Wallet } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth-store";
 import { formatXOF, SHORT_STAY_STATUS_LABELS, SHORT_STAY_STATUS_COLORS } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,12 +31,24 @@ export function ShortStayCard({
   propertyId,
   defaultNightlyRate,
   canManage = true,
+  approved = false,
 }: {
   propertyId: string;
   defaultNightlyRate?: number;
   canManage?: boolean;
+  approved?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const role = useAuthStore((s) => s.user?.role);
+  const isStaff = role === "SUPER_ADMIN" || role === "ADMIN_AGENT";
+  const approveMutation = useMutation({
+    mutationFn: (value: boolean) => api.patch(`/properties/${propertyId}`, { shortStayApproved: value }),
+    onSuccess: (_res, value) => {
+      toast.success(value ? "Annonce publiée dans le catalogue." : "Annonce retirée du catalogue.");
+      queryClient.invalidateQueries({ queryKey: ["properties", propertyId] });
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [completeId, setCompleteId] = useState<string | null>(null);
@@ -138,6 +151,21 @@ export function ShortStayCard({
           ) : undefined
         }
       />
+
+      <div
+        className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm ${approved ? "bg-success/10 text-green-900" : "bg-amber-50 text-amber-950"}`}
+      >
+        <span>
+          {approved
+            ? "Publiée dans le catalogue public."
+            : "En attente de validation par l'agence : cette résidence n'apparaît pas encore dans le catalogue public."}
+        </span>
+        {isStaff && (
+          <Button size="sm" variant={approved ? "secondary" : "primary"} loading={approveMutation.isPending} onClick={() => approveMutation.mutate(!approved)}>
+            {approved ? "Retirer du catalogue" : "Valider la publication"}
+          </Button>
+        )}
+      </div>
 
       <div className="mb-3 flex items-center justify-between">
         <button
