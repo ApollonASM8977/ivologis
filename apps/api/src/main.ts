@@ -12,6 +12,8 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // Derrière le proxy Render : sans cela, req.ip est l'IP du proxy pour tout le monde (limitation de débit commune, IP fausses dans les sessions).
+  if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
 
   app.use(
     helmet({
