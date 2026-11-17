@@ -137,6 +137,10 @@ export class PropertiesService {
 
   async archive(id: string, actorId?: string) {
     const property = await this.findOne(id);
+    const activeLease = await this.prisma.lease.count({ where: { propertyId: id, status: "ACTIVE" } });
+    if (activeLease) {
+      throw new BadRequestException("Ce bien a un bail en cours : résiliez le bail avant d'archiver le bien.");
+    }
     const updated = await this.prisma.property.update({
       where: { id },
       data: { archivedAt: new Date(), status: PropertyStatus.SUSPENDU },

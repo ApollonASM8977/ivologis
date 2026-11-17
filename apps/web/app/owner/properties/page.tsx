@@ -1,18 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { motion } from "motion/react";
 import { toast } from "sonner";
 import { Plus, Building2, MapPin } from "lucide-react";
-import { api, apiErrorMessage } from "@/lib/api";
+import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+
+/** Le bon prix selon l'usage du bien : un terrain en vente n'a pas de loyer. */
+function priceLabel(p: any) {
+  if (Number(p.rentAmount) > 0) return `${formatXOF(p.rentAmount)} / mois`;
+  if (p.forSale && Number(p.salePrice) > 0) return `En vente : ${formatXOF(p.salePrice)}`;
+  if (p.shortStayEnabled && Number(p.shortStayNightlyRate) > 0) return `${formatXOF(p.shortStayNightlyRate)} / nuit`;
+  return "Prix à définir avec l'agence";
+}
 import { PropertyStatusBadge } from "@/components/status-badges";
 import { PropertyForm, PropertyFormValues } from "@/components/properties/property-form";
 
@@ -65,23 +75,42 @@ export default function OwnerPropertiesPage() {
           action={canCreate ? <Button onClick={() => setModalOpen(true)}>Ajouter un bien</Button> : undefined}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(data?.data ?? []).map((p: any) => (
-            <Card key={p.id} onClick={() => router.push(`/owner/properties/${p.id}`)} className="cursor-pointer">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium text-ink">{p.name}</p>
-                  <p className="flex items-center gap-1 text-xs text-ink-muted">
-                    <MapPin className="h-3 w-3" /> {p.commune}
-                  </p>
-                </div>
-                <PropertyStatusBadge status={p.status} />
-              </div>
-              <p className="mt-3 text-xs text-ink-muted">{PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS]}</p>
-              <p className="mt-1 text-sm font-semibold text-primary">{formatXOF(p.rentAmount)}/mois</p>
-            </Card>
-          ))}
-        </div>
+        <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoading &&
+            Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-64 animate-pulse rounded-2xl bg-gray-100" />)}
+          {(data?.data ?? []).map((p: any) => {
+            const cover = p.images?.[0]?.url;
+            return (
+              <StaggerItem key={p.id}>
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -4 }}
+                  onClick={() => router.push(`/owner/properties/${p.id}`)}
+                  className="group block w-full overflow-hidden rounded-2xl border border-gray-100 bg-white text-left shadow-sm transition-shadow hover:shadow-lg"
+                >
+                  <div className="relative h-36 bg-gradient-to-br from-primary/10 to-primary/5">
+                    {cover ? (
+                      <Image src={fileUrl(cover) ?? ""} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <Building2 className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 text-primary/30" />
+                    )}
+                    <span className="absolute right-3 top-3">
+                      <PropertyStatusBadge status={p.status} />
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <p className="font-medium text-ink">{p.name}</p>
+                    <p className="flex items-center gap-1 text-xs text-ink-muted">
+                      <MapPin className="h-3 w-3" /> {p.commune} · {PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS]}
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-primary">{priceLabel(p)}</p>
+                    {p.currentTenant && <p className="mt-1 text-xs text-ink-muted">Locataire : {p.currentTenant.fullName}</p>}
+                  </div>
+                </motion.button>
+              </StaggerItem>
+            );
+          })}
+        </StaggerContainer>
       )}
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un bien" width="max-w-2xl">

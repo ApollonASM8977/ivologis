@@ -92,7 +92,7 @@ export default function TenantDashboardPage() {
                   <p className="text-sm text-white/80">{property.address}, {property.commune}</p>
                   <div className="mt-5 flex flex-wrap items-center gap-3">
                     <span className="text-3xl font-extrabold">
-                      <CountUp value={Number(property.rentAmount)} format={(n) => formatXOF(n)} />
+                      <CountUp value={Number(lease?.rentAmount ?? property.rentAmount)} format={(n) => formatXOF(n)} />
                     </span>
                     <span className="text-sm text-white/80">/ mois</span>
                   </div>

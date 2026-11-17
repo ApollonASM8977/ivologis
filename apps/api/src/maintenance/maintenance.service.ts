@@ -1,6 +1,8 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { MaintenanceStatus } from "@prisma/client";
+import { MaintenancePriority, MaintenanceStatus, UserRole } from "@prisma/client";
+import { MAINTENANCE_ISSUE_LABELS, MAINTENANCE_STATUS_LABELS } from "@ivologis/shared";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
 import { NotificationsService } from "../notifications/notifications.service";
 import { CreateMaintenanceDto } from "./dto/create-maintenance.dto";
@@ -34,23 +36,15 @@ export class MaintenanceService {
       },
     });
 
-    const admins = await this.prisma.user.findMany({
-      where: { role: "SUPER_ADMIN" },
-      select: { id: true },
-    });
-    const recipients = new Set<string>(admins.map((a) => a.id));
-    if (property.owner?.userId) recipients.add(property.owner.userId);
-
-    await Promise.all(
-      Array.from(recipients).map((userId) =>
-        this.notifications.notify({
-          userId,
-          type: "MAINTENANCE_NEW",
-          title: "Nouvelle demande de maintenance",
-          message: `${property.name} : nouvelle demande (${dto.issueType.toLowerCase()}) signalée par le locataire.`,
-        }),
-      ),
-    );
+    const urgent = dto.priority === MaintenancePriority.URGENTE ? "URGENT : " : "";
+    const notice = {
+      type: "MAINTENANCE_NEW",
+      title: `${urgent}Nouvelle demande de maintenance`,
+      message: `Signalement « ${MAINTENANCE_ISSUE_LABELS[dto.issueType]} » sur ${property.name}, envoyé par le locataire.`,
+    };
+    // Toute l'équipe (super admins et agents), pas seulement les super admins.
+    await this.notifications.notifyStaff(notice);
+    if (property.owner?.userId) await this.notifications.notify({ userId: property.owner.userId, ...notice });
 
     return request;
   }
@@ -109,26 +103,47 @@ export class MaintenanceService {
       },
     });
 
-    if (dto.status === MaintenanceStatus.RESOLU && existing.tenant.userId) {
-      await this.notifications.notify({
-        userId: existing.tenant.userId,
-        type: "MAINTENANCE_RESOLVED",
-        title: "Demande de maintenance résolue",
-        message: `Votre demande concernant "${existing.property.name}" a été marquée comme résolue.`,
-      });
+    if (existing.tenant.userId) {
+      const statusChanged = dto.status && dto.status !== existing.status;
+      const technicianAssigned = dto.technicianId && dto.technicianId !== existing.technicianId;
+      if (statusChanged || technicianAssigned) {
+        const technician = technicianAssigned
+          ? await this.prisma.technician.findUnique({ where: { id: dto.technicianId! }, select: { fullName: true } })
+          : null;
+        const parts = [
+          statusChanged ? `statut : ${MAINTENANCE_STATUS_LABELS[dto.status!].toLowerCase()}` : null,
+          technician ? `intervenant : ${technician.fullName}` : null,
+        ].filter(Boolean);
+        await this.notifications.notify({
+          userId: existing.tenant.userId,
+          type: dto.status === MaintenanceStatus.RESOLU ? "MAINTENANCE_RESOLVED" : "MAINTENANCE_UPDATE",
+          title: dto.status === MaintenanceStatus.RESOLU ? "Demande de maintenance résolue" : "Votre demande de maintenance avance",
+          message: `« ${existing.property.name} » : ${parts.join(", ")}.`,
+        });
+      }
     }
 
     return updated;
   }
 
-  async addComment(maintenanceRequestId: string, authorId: string, comment: string) {
+  async addComment(maintenanceRequestId: string, author: AuthenticatedUser, comment: string) {
+    const authorId = author.id;
     const request = await this.findOne(maintenanceRequestId);
     if (!comment?.trim()) throw new BadRequestException("Le commentaire ne peut pas être vide.");
 
     const created = await this.prisma.maintenanceComment.create({
-      data: { maintenanceRequestId, authorId, comment },
+      data: { maintenanceRequestId, authorId, comment: comment.trim() },
       include: { author: { select: { fullName: true, role: true } } },
     });
+
+    const isStaff = author.role === UserRole.SUPER_ADMIN || author.role === UserRole.ADMIN_AGENT;
+    if (!isStaff) {
+      await this.notifications.notifyStaff({
+        type: "MAINTENANCE_COMMENT",
+        title: "Nouveau message sur une demande de maintenance",
+        message: `${created.author.fullName} a écrit au sujet de « ${request.property.name} ».`,
+      });
+    }
 
     const property = await this.prisma.property.findUnique({
       where: { id: request.propertyId },

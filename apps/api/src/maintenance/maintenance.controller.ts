@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -7,9 +8,15 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { Throttle } from "@nestjs/throttler";
 import { MaintenanceStatus, UserRole } from "@prisma/client";
+import { imageUploadOptions } from "../common/image-upload/image-upload.options";
+import { StorageService } from "../storage/storage.service";
 import { PERMISSION_KEYS } from "@ivologis/shared";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../common/guards/roles.guard";
@@ -26,7 +33,10 @@ import { AddCommentDto, UpdateMaintenanceDto } from "./dto/update-maintenance.dt
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller("maintenance")
 export class MaintenanceController {
-  constructor(private maintenanceService: MaintenanceService) {}
+  constructor(
+    private maintenanceService: MaintenanceService,
+    private storage: StorageService,
+  ) {}
 
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER, UserRole.TENANT)
@@ -48,6 +58,16 @@ export class MaintenanceController {
   @Roles(UserRole.TENANT)
   create(@Body() dto: CreateMaintenanceDto, @CurrentUser() user: AuthenticatedUser) {
     return this.maintenanceService.create(dto, user.tenantId!);
+  }
+
+  @Post("photos")
+  @Roles(UserRole.TENANT)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @UseInterceptors(FileInterceptor("file", imageUploadOptions(5)))
+  async uploadPhoto(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException("Aucune photo reçue.");
+    const url = await this.storage.save({ buffer: file.buffer, filename: file.originalname, mimeType: file.mimetype });
+    return { url };
   }
 
   @Get(":id")
@@ -73,7 +93,7 @@ export class MaintenanceController {
   ) {
     const request = await this.maintenanceService.findOne(id);
     this.assertCanAccess(request, user);
-    return this.maintenanceService.addComment(id, user.id, dto.comment);
+    return this.maintenanceService.addComment(id, user, dto.comment);
   }
 
   private assertCanAccess(request: { tenantId: string; property: { ownerId: string } }, user: AuthenticatedUser) {

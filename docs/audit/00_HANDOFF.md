@@ -10,7 +10,11 @@
 
 **Session du 2026-11-17 après-midi** : P1-02 `b18843c` (filtres/tri/pagination), P1-04 `2972c65` (SEO), P1-06 `954b3fa` (nouvelle identité + recherche d'accueil, design system v1 dans `06`), T-11 `9d3791c`, E-13 `f0e79d6`. Build prod OK, 20/20 tests. Poussé et déployé (`dep-dbu7ig6c6qcc73fckkqg` API, `dep-dbu7ig8jo6nc738e0fb0` web).
 
-**Prochaine action exacte** : terminer la Phase 8 → Lighthouse mobile sur la prod (accueil, catalogue, fiche) et consigner les scores dans `08_QA_CHECKLIST.md` ; parcours complets par rôle sur la prod avec les comptes de test (décision D-06). Ensuite : suite design (galerie plein écran, sections B2B selon E-10), T-11 (messages de validation des DTO), P1-07 (suivi public d'une demande), P1-08 (types/équipements ivoiriens), P1-14 (tests web + lint en CI).
+**Retour utilisateur du 2026-11-17 soir (important)** : la nouvelle identité de P1-06 a été **refusée** → design d'origine restauré (`d3e6adf`, décision D-10 : ne jamais changer couleurs/polices/accueil sans accord), animations et chargements ajoutés (`84c545f`), boîte « Demandes clients » + notifications (`669d3a6`, A-01). L'utilisateur juge le travail trop superficiel : **audit écran par écran des espaces en cours**, consigné dans `12_AUDIT_ESPACES.md`. Fait : espace locataire (L-01, L-02, M-01..05) et propriétaire (O-01..03), fiche maintenance admin (AD-01), fiche bien (PD-01, PD-03). Afficher le bloc « Demande interprétée (améliorée) » à chaque réponse (AGENTS.md).
+
+**Prochaine action exacte** : pousser et déployer (API puis web) pour que la prod quitte le design refusé ; puis audit admin en profondeur (bien → bail → paiement → quittance → relevé, import CSV, paramètres, équipe/permissions) dans `12_AUDIT_ESPACES.md`. Ensuite : décisions A-02/A-03, S-17, P1-07, P1-08, P1-14, performance (LCP).
+
+**Comptes de test sur `audit-qa`** : le mot de passe du propriétaire `kouadio.jean@ivologis.ci` a été réinitialisé sur la branche QA uniquement (valeur dans le scratchpad de session, `owner-qa-password.txt`) ; la prod n'est pas touchée.
 
 **Environnement de test local** (ne jamais tester contre la prod) :
 - Branche Neon `audit-qa` (`br-shy-fog-b1hl85o4`), copie de la prod du 2026-11-17 + données de test. Chaîne de connexion : outil Neon `get_connection_string` (branch_id ci-dessus) ; un `qa.env` (DATABASE_URL, JWT_SECRET de test, PORT=3101, CORS_ORIGIN=http://localhost:3100) existe dans le scratchpad de session.

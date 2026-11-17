@@ -1,6 +1,6 @@
 import { MaintenancePriority, MaintenanceStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
 
 export class UpdateMaintenanceDto {
   @IsOptional()
@@ -32,5 +32,6 @@ export class UpdateMaintenanceDto {
 
 export class AddCommentDto {
   @IsString()
+  @MaxLength(2000, { message: "Le message est trop long (2 000 caractères maximum)." })
   comment: string;
 }

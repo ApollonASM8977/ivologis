@@ -18,11 +18,16 @@ import { PropertyForm, PropertyFormValues } from "@/components/properties/proper
 import { ShortStayCard } from "@/components/properties/short-stay-card";
 import { SaleCard } from "@/components/properties/sale-card";
 import { RentListingCard } from "@/components/properties/rent-listing-card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useAuthStore } from "@/lib/auth-store";
 
 export function PropertyDetail({ id, listHref, canManage = true }: { id: string; listHref: string; canManage?: boolean }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  // Même règle que l'API : super admin, ou permission « properties.manage » (agent ou propriétaire autorisé par l'agence).
+  const canEdit = useAuthStore((s) => s.user?.role === "SUPER_ADMIN" || !!s.user?.permissions?.includes("properties.manage"));
 
   const { data: property, isLoading } = useQuery({
     queryKey: ["properties", id],
@@ -93,14 +98,16 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
             <MapPin className="h-4 w-4" /> {property.address}, {property.commune}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>
-            <Pencil className="h-4 w-4" /> Modifier
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => archiveMutation.mutate()} loading={archiveMutation.isPending}>
-            <Archive className="h-4 w-4" /> Archiver
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex gap-2">
+            <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4" /> Modifier
+            </Button>
+            <Button size="sm" variant="danger" onClick={() => setArchiveOpen(true)}>
+              <Archive className="h-4 w-4" /> Archiver
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -258,6 +265,17 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
           onSubmit={(values) => updateMutation.mutate(values)}
         />
       </Modal>
+
+      <ConfirmDialog
+        open={archiveOpen}
+        danger
+        title="Archiver ce bien ?"
+        message={`« ${property.name} » disparaîtra de la liste des biens et de toutes les annonces publiques. Son historique (baux, paiements, quittances) est conservé.`}
+        confirmLabel="Archiver"
+        loading={archiveMutation.isPending}
+        onConfirm={() => archiveMutation.mutate()}
+        onClose={() => setArchiveOpen(false)}
+      />
     </div>
   );
 }

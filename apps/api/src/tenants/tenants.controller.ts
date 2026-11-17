@@ -38,8 +38,11 @@ export class TenantsController {
 
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
-  @RequirePermissions(PERMISSION_KEYS.TENANTS_MANAGE)
   findAll(@Query() pagination: PaginationDto, @CurrentUser() user: AuthenticatedUser) {
+    // Un propriétaire voit toujours ses propres locataires (liste filtrée) ; la permission ne concerne que les agents.
+    if (user.role === UserRole.ADMIN_AGENT && !user.permissions.includes(PERMISSION_KEYS.TENANTS_MANAGE)) {
+      throw new ForbiddenException("Vous n'avez pas la permission requise pour cette action.");
+    }
     const ownerId = user.role === UserRole.OWNER ? user.ownerId! : undefined;
     return this.tenantsService.findAll(pagination, ownerId);
   }

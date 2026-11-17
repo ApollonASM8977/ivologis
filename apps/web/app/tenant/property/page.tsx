@@ -115,7 +115,7 @@ export default function TenantPropertyPage() {
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Fact icon={Home} label="Loyer mensuel" value={formatXOF(property.rentAmount)} />
+              <Fact icon={Home} label="Loyer mensuel" value={formatXOF(property.leases?.[0]?.rentAmount ?? property.rentAmount)} />
               <Fact icon={Layers} label="Étage" value={property.floor ?? "-"} />
               <Fact icon={CalendarDays} label="Année de construction" value={property.yearBuilt ?? "-"} />
               <Fact icon={Sofa} label="Meublé" value={property.furnished ? "Oui" : "Non"} />

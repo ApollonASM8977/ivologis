@@ -10,7 +10,6 @@ import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { formatXOF, PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label } from "@/components/ui/input";
 import { DataTable, Column } from "@/components/ui/data-table";
@@ -33,10 +32,19 @@ export default function TenantPaymentsPage() {
     queryFn: async () => (await api.get("/properties/me")).data,
   });
   const property = properties?.[0];
+  const lease = property?.leases?.[0];
+  // Le loyer du bail fait foi : une révision le modifie sans toucher la fiche du bien.
+  const rent = Number(lease?.rentAmount ?? property?.rentAmount ?? 0);
+  const monthLabel = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
   const { data, isLoading } = useQuery({
     queryKey: ["payments", "mine"],
     queryFn: async () => (await api.get("/payments", { params: { limit: 20 } })).data,
+  });
+  const now = new Date();
+  const thisMonth = (data?.data ?? []).find((p: any) => {
+    const d = new Date(p.periodMonth);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && (p.status === "PAID" || p.status === "PENDING");
   });
 
   const { register, handleSubmit, reset, watch, setValue } = useForm<PayForm>({
@@ -60,7 +68,15 @@ export default function TenantPaymentsPage() {
     { header: "Mois", cell: (r: any) => new Date(r.periodMonth).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) },
     { header: "Montant", cell: (r: any) => formatXOF(r.amount) },
     { header: "Moyen", cell: (r: any) => <PaymentMethodBadge method={r.method as PaymentMethod} size="sm" /> },
-    { header: "Statut", cell: (r: any) => <PaymentStatusBadge status={r.status} /> },
+    {
+      header: "Statut",
+      cell: (r: any) => (
+        <div>
+          <PaymentStatusBadge status={r.status} />
+          {r.status === "CANCELLED" && r.notes && <p className="mt-1 max-w-[16rem] text-xs text-danger">{r.notes}</p>}
+        </div>
+      ),
+    },
     {
       header: "Quittance",
       cell: (r: any) =>
@@ -80,13 +96,21 @@ export default function TenantPaymentsPage() {
         title="Mes paiements"
         subtitle="Historique de vos loyers et quittances"
         action={
-          property && (
+          lease && !thisMonth && (
             <Button size="sm" onClick={() => setPayOpen(true)}>
               <CreditCard className="h-4 w-4" /> Déclarer un paiement
             </Button>
           )
         }
       />
+
+      {thisMonth && (
+        <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${thisMonth.status === "PAID" ? "bg-success/10 text-success" : "bg-amber-50 text-amber-700"}`}>
+          {thisMonth.status === "PAID"
+            ? `Loyer de ${monthLabel} réglé. Merci !`
+            : `Paiement de ${monthLabel} déclaré : l'agence vérifie la transaction (réf. ${thisMonth.transactionRef ?? "-"}).`}
+        </div>
+      )}
 
       {!isLoading && data?.data?.length === 0 ? (
         <EmptyState icon={Wallet} title="Aucun paiement pour le moment" />
@@ -95,16 +119,10 @@ export default function TenantPaymentsPage() {
       )}
 
       <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Déclarer le paiement de mon loyer">
-        <Card className="mb-4 bg-primary/5">
-          <p className="text-sm text-ink-muted">Bien concerné</p>
-          <p className="font-semibold text-ink">{property?.name}</p>
-          <p className="mt-2 text-sm text-ink-muted">Loyer mensuel</p>
-          <p className="font-semibold text-primary">{formatXOF(property?.rentAmount ?? 0)}</p>
-        </Card>
         <form onSubmit={handleSubmit((v) => payMutation.mutate(v))} className="space-y-4">
           <div className="rounded-xl bg-primary/5 px-4 py-3">
-            <p className="text-xs text-ink-muted">Montant du loyer du mois</p>
-            <p className="text-lg font-semibold text-primary">{formatXOF(property?.rentAmount ?? 0)}</p>
+            <p className="text-xs text-ink-muted">{property?.name} · loyer de {monthLabel}</p>
+            <p className="text-lg font-semibold text-primary">{formatXOF(rent)}</p>
           </div>
           <div>
             <Label>Moyen utilisé</Label>

@@ -1,18 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import { motion } from "motion/react";
 import { toast } from "sonner";
-import { ArrowLeft, Send } from "lucide-react";
-import { api, apiErrorMessage, fileUrl } from "@/lib/api";
-import { formatXOF, MAINTENANCE_ISSUE_LABELS, MAINTENANCE_PRIORITY_LABELS } from "@ivologis/shared";
+import { ArrowLeft, Phone } from "lucide-react";
+import { api, apiErrorMessage } from "@/lib/api";
+import { MAINTENANCE_ISSUE_LABELS, MAINTENANCE_PRIORITY_LABELS } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
 import { MaintenanceStatusBadge } from "@/components/status-badges";
+import { MaintenancePhotos, MaintenanceThread, timeLabel } from "@/components/maintenance/maintenance-thread";
 
 interface UpdateForm {
   status: string;
@@ -38,22 +39,19 @@ export default function MaintenanceDetailPage() {
   });
 
   const { register, handleSubmit } = useForm<UpdateForm>();
-  const { register: registerComment, handleSubmit: handleCommentSubmit, reset: resetComment } = useForm<{ comment: string }>();
 
   const updateMutation = useMutation({
-    mutationFn: (values: UpdateForm) => api.patch(`/maintenance/${id}`, values),
+    // "Aucun" technicien = chaîne vide côté formulaire : on envoie null (désassigner), et null pour un coût vide.
+    mutationFn: (v: UpdateForm) =>
+      api.patch(`/maintenance/${id}`, {
+        ...v,
+        technicianId: v.technicianId || null,
+        estimatedCost: Number.isFinite(v.estimatedCost) ? v.estimatedCost : null,
+        finalCost: Number.isFinite(v.finalCost) ? v.finalCost : null,
+      }),
     onSuccess: () => {
-      toast.success("Demande mise à jour.");
-      queryClient.invalidateQueries({ queryKey: ["maintenance", id] });
-    },
-    onError: (error) => toast.error(apiErrorMessage(error)),
-  });
-
-  const commentMutation = useMutation({
-    mutationFn: (comment: string) => api.post(`/maintenance/${id}/comments`, { comment }),
-    onSuccess: () => {
-      resetComment();
-      queryClient.invalidateQueries({ queryKey: ["maintenance", id] });
+      toast.success("Demande mise à jour. Le locataire est prévenu.");
+      queryClient.invalidateQueries({ queryKey: ["maintenance"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -67,7 +65,7 @@ export default function MaintenanceDetailPage() {
       </button>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-4 lg:col-span-2">
           <Card>
             <div className="mb-2 flex items-center justify-between">
               <h1 className="text-lg font-semibold text-ink">
@@ -76,53 +74,28 @@ export default function MaintenanceDetailPage() {
               <MaintenanceStatusBadge status={request.status} />
             </div>
             <p className="text-sm text-ink-muted">
-              {request.property?.name} · Signalé par {request.tenant?.fullName} · Priorité{" "}
+              {request.property?.name} · Signalé par {request.tenant?.fullName} le {timeLabel(request.createdAt)} · Priorité{" "}
               {MAINTENANCE_PRIORITY_LABELS[request.priority as keyof typeof MAINTENANCE_PRIORITY_LABELS]}
             </p>
-            <p className="mt-4 text-sm text-ink">{request.description}</p>
-            {!!request.photos?.length && (
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                {request.photos.map((url: string, i: number) => (
-                  <span key={i} className="relative block h-24 w-full overflow-hidden rounded-lg">
-                    <Image src={fileUrl(url) ?? ""} alt="Photo du signalement" fill sizes="33vw" className="object-cover" />
-                  </span>
-                ))}
-              </div>
+            {request.tenant?.phone && (
+              <a href={`tel:${request.tenant.phone}`} className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+                <Phone className="h-3.5 w-3.5" /> Appeler le locataire ({request.tenant.phone})
+              </a>
             )}
+            <p className="mt-4 whitespace-pre-line text-sm text-ink">{request.description}</p>
+            <MaintenancePhotos photos={request.photos} />
           </Card>
 
-          <Card>
-            <CardHeader title="Commentaires" />
-            <div className="mb-3 space-y-3">
-              {request.comments?.length ? (
-                request.comments.map((c: any) => (
-                  <div key={c.id} className="rounded-lg bg-gray-50 p-3 text-sm">
-                    <p className="font-medium text-ink">{c.author?.fullName}</p>
-                    <p className="text-ink-muted">{c.comment}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-ink-muted">Aucun commentaire.</p>
-              )}
-            </div>
-            <form
-              onSubmit={handleCommentSubmit((v) => v.comment?.trim() && commentMutation.mutate(v.comment))}
-              className="flex gap-2"
-            >
-              <Input placeholder="Ajouter un commentaire..." {...registerComment("comment")} />
-              <Button type="submit" size="sm" loading={commentMutation.isPending}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          </Card>
-        </div>
+          <MaintenanceThread requestId={id} comments={request.comments} />
+        </motion.div>
 
+        <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, delay: 0.1 }}>
         <Card>
           <CardHeader title="Traitement" />
           <form onSubmit={handleSubmit((v) => updateMutation.mutate(v))} className="space-y-3">
             <div>
-              <Label>Statut</Label>
-              <Select defaultValue={request.status} {...register("status")}>
+              <Label htmlFor="mt-status">Statut</Label>
+              <Select id="mt-status" defaultValue={request.status} {...register("status")}>
                 <option value="RECU">Reçu</option>
                 <option value="EN_COURS">En cours</option>
                 <option value="RESOLU">Résolu</option>
@@ -130,8 +103,8 @@ export default function MaintenanceDetailPage() {
               </Select>
             </div>
             <div>
-              <Label>Technicien assigné</Label>
-              <Select defaultValue={request.technicianId ?? ""} {...register("technicianId")}>
+              <Label htmlFor="mt-tech">Technicien assigné</Label>
+              <Select id="mt-tech" defaultValue={request.technicianId ?? ""} {...register("technicianId")}>
                 <option value="">Aucun</option>
                 {technicians?.map((t: any) => (
                   <option key={t.id} value={t.id}>
@@ -141,22 +114,23 @@ export default function MaintenanceDetailPage() {
               </Select>
             </div>
             <div>
-              <Label>Coût estimé (FCFA)</Label>
-              <Input type="number" defaultValue={request.estimatedCost ?? ""} {...register("estimatedCost", { valueAsNumber: true })} />
+              <Label htmlFor="mt-est">Coût estimé (FCFA)</Label>
+              <Input id="mt-est" type="number" min={0} defaultValue={request.estimatedCost ?? ""} {...register("estimatedCost", { valueAsNumber: true })} />
             </div>
             <div>
-              <Label>Coût final (FCFA)</Label>
-              <Input type="number" defaultValue={request.finalCost ?? ""} {...register("finalCost", { valueAsNumber: true })} />
+              <Label htmlFor="mt-final">Coût final (FCFA)</Label>
+              <Input id="mt-final" type="number" min={0} defaultValue={request.finalCost ?? ""} {...register("finalCost", { valueAsNumber: true })} />
             </div>
             <div>
-              <Label>Commentaire admin</Label>
-              <Textarea rows={2} defaultValue={request.adminComment ?? ""} {...register("adminComment")} />
+              <Label htmlFor="mt-note">Note visible par le locataire et le propriétaire</Label>
+              <Textarea id="mt-note" rows={2} defaultValue={request.adminComment ?? ""} {...register("adminComment")} />
             </div>
             <Button type="submit" className="w-full" loading={updateMutation.isPending}>
               Mettre à jour
             </Button>
           </form>
         </Card>
+        </motion.div>
       </div>
     </div>
   );
