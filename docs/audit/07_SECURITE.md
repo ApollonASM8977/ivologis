@@ -24,6 +24,12 @@ Sévérité : CRITIQUE > ÉLEVÉ > MOYEN > FAIBLE.
 | S-14 | FAIBLE | Uploads : type MIME déclaré par le client (pas de vérification des octets magiques), fichiers stockés en `bytea` dans Postgres (base Neon limitée à 1 Go). Les images sont servies sans authentification par UUID (non devinable). | `common/image-upload`, `storage/storage.service.ts` | Vérifier la signature binaire ; stockage objet externe (R2/S3) en P1. | OUVERT |
 | S-15 | FAIBLE | NestJS 10 / multer : avis de sécurité (DoS) corrigés seulement en NestJS 12 (noté dans le README). | `README.md` §10 | `npm audit` + plan de montée de version. | OUVERT |
 
+## Preuves par test (2026-11-17, API locale sur la branche Neon `audit-qa` = copie de la prod)
+- **S-01 confirmé** : `POST /api/auth/login` avec les identifiants du README → jeton obtenu pour `admin@ivologis.ci` (SUPER_ADMIN), un locataire et un propriétaire. Les mots de passe de prod sont donc ceux publiés.
+- **S-02 confirmé** : l'agence crée un dossier locataire (sans compte) avec le téléphone X ; un inconnu s'inscrit avec le téléphone X → `GET /tenants/me` lui renvoie le nom, le n° de pièce d'identité et le garant de la victime.
+- **S-03 confirmé** : `POST /payments/pay-rent` (locataire, `method: WAVE`) → `status=PAID`, `transactionRef=SIM-…`, quittance `QUIT-2026-…` émise pour 350 000 FCFA, aucun encaissement.
+- **S-04 confirmé** : `GET /api/catalog/sales` (sans authentification) renvoie 46 champs dont `saleBuyerName`, `saleBuyerPhone`, `saleCommissionRate`, `currentTenantId`, `rentAmount`. Après finalisation d'une vente, `GET /api/catalog/sales/:id` (public) renvoie `saleStatus=VENDU` + nom et téléphone de l'acheteur.
+
 ## Points déjà solides (vérifiés dans le code)
 - Mots de passe : bcrypt 12 tours. Validation globale des DTO (`whitelist` + `forbidNonWhitelisted`).
 - Gardes de rôle présentes sur chaque contrôleur ; isolation propriétaire/locataire via `assertOwnsResource` / `ownerScope` côté serveur.
