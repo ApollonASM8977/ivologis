@@ -6,7 +6,11 @@
 
 **État** : audit (01, 03, 07), marché/légal sourcé (02), gap par domaine (03 partie 2), backlog avec jalons (04) écrits. 4 failles critiques/élevées confirmées par test (S-01 à S-04).
 
-**Prochaine action exacte** : implémenter les P0 dans l'ordre de `04_BACKLOG.md` : P0-01 (code d'invitation) → P0-02 → P0-03 → P0-04 → P0-05 → … Pour chaque tâche : statut EN COURS → code → `npx tsc --noEmit -p apps/api/tsconfig.json`, `npm run test --workspace=@ivologis/api`, `npx tsc --noEmit -p apps/web/tsconfig.json` → test sur l'API locale (`audit-qa`) → FAIT + commit.
+**FAIT (commits locaux, non poussés)** : P0-01 `f971151`, P0-02 `f12e37d`, P0-03 `ed339c0`, P0-04 `5ce49e5`, P0-05 `dae6275`, P0-12 `975d588`, P0-07 `d63bf57`, P0-10 `37fff8a`, P0-09 `d22a13b`, P0-11 `78d29a5`. Migrations nouvelles (appliquées sur `audit-qa` seulement) : `20261117120000_invite_codes`, `20261117130000_demo_listings`.
+
+**Prochaine action exacte** : P0-13 (plafond caution/avance côté serveur, `leases.service.ts`) → P0-06 (mot de passe oublié honnête + lien de réinitialisation généré par l'admin) → P0-08 (identifiants hors README/seed/tests) → P0-14 (communes + quartier) → P0-15 (identité légale de l'agence). Pour chaque tâche : code → `npx tsc --noEmit -p apps/api/tsconfig.json`, `npm run test --workspace=@ivologis/api`, `npx tsc --noEmit -p apps/web/tsconfig.json` → test sur l'API locale (`audit-qa`) → FAIT + commit.
+
+**Déploiement** : rien n'est déployé. Quand l'utilisateur aura changé les mots de passe (S-01) et choisi public/privé (D-04) : `git push`, puis MCP Render `trigger_deploy` sur `srv-db00q9mgekts73fobbc0` (API, applique les migrations au build) puis `srv-db00qg942hec73efhqg0` (web), puis vérifier S-07 (IP des sessions).
 
 **Environnement de test local** (ne jamais tester contre la prod) :
 - Branche Neon `audit-qa` (`br-shy-fog-b1hl85o4`), copie de la prod du 2026-11-17. Sa chaîne de connexion et un `JWT_SECRET` de test sont dans le fichier temporaire `qa.env` du scratchpad de session (hors dépôt) ; sinon la récupérer avec l'outil Neon `get_connection_string` (branch_id ci-dessus).

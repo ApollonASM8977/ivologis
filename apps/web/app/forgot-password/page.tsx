@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthLayout title="Mot de passe oublié" subtitle="Recevez un lien de réinitialisation par email">
+    <AuthLayout title="Mot de passe oublié" subtitle="Votre agence vous transmet un lien de réinitialisation">
       <AnimatePresence mode="wait">
         {sent ? (
           <motion.div
@@ -48,20 +48,26 @@ export default function ForgotPasswordPage() {
             >
               <MailCheck className="h-6 w-6 text-success" />
             </motion.div>
-            <p className="text-sm text-green-700">
-              Si ce compte existe, un lien de réinitialisation a été envoyé à cette adresse.
+            <p className="text-sm text-green-800">
+              Demande enregistrée. Contactez votre agence par téléphone ou WhatsApp : après vérification de votre identité, elle vous
+              transmet un lien de réinitialisation valable une heure.
             </p>
           </motion.div>
         ) : (
           <form key="form" onSubmit={handleSubmit(onSubmit)}>
             <StaggerContainer className="space-y-4">
               <StaggerItem>
+                <p className="text-sm text-ink-muted">
+                  L&apos;envoi automatique par email n&apos;est pas encore disponible. Indiquez votre email, puis contactez votre agence pour recevoir le lien.
+                </p>
+              </StaggerItem>
+              <StaggerItem>
                 <Label>Email</Label>
                 <Input type="email" placeholder="vous@exemple.ci" {...register("email", { required: true })} />
               </StaggerItem>
               <StaggerItem>
                 <Button type="submit" className="w-full" loading={loading}>
-                  Envoyer le lien
+                  Enregistrer ma demande
                 </Button>
               </StaggerItem>
             </StaggerContainer>

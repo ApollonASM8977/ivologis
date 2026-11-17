@@ -6,7 +6,10 @@ import { AuthService, SessionMeta } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ForgotPasswordDto, ResetPasswordDto } from "./dto/forgot-password.dto";
+import { UserRole } from "@prisma/client";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { Roles } from "../common/decorators/roles.decorator";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 
@@ -67,9 +70,17 @@ export class AuthController {
     return this.authService.forgotPassword(dto.email);
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post("reset-password")
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.token, dto.newPassword);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Post("reset-link/:userId")
+  createResetLink(@Param("userId") userId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.createResetLink(userId, user.id);
   }
 
   @Post("2fa/mandatory-setup")

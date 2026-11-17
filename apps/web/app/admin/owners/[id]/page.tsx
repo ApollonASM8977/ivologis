@@ -59,7 +59,7 @@ export default function OwnerDetailPage() {
       </div>
 
       <div className="mt-4">
-        <InviteCodeCard resource="owners" id={id} hasAccount={!!owner.userId} pendingUntil={owner.inviteExpiresAt} />
+        <InviteCodeCard resource="owners" id={id} userId={owner.userId} pendingUntil={owner.inviteExpiresAt} />
       </div>
 
       <Card>

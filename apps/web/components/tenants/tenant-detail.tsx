@@ -38,7 +38,7 @@ export function TenantDetail({ id }: { id: string }) {
         </div>
       </div>
 
-      <InviteCodeCard resource="tenants" id={id} hasAccount={!!tenant.userId} pendingUntil={tenant.inviteExpiresAt} />
+      <InviteCodeCard resource="tenants" id={id} userId={tenant.userId} pendingUntil={tenant.inviteExpiresAt} />
 
       <Card className="mb-4">
         <CardHeader title="Informations complémentaires" />

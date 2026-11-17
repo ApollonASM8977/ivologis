@@ -174,24 +174,47 @@ export class AuthService {
     return { accessToken, user: this.sanitizeUser(user) };
   }
 
-  async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    // On ne révèle jamais si l'email existe ou non (anti-énumération de comptes).
-    if (!user) {
-      return { message: "Si ce compte existe, un lien de réinitialisation a été envoyé." };
-    }
-
-    const resetToken = await this.jwt.signAsync(
+  private resetToken(user: { id: string; passwordHash: string }) {
+    return this.jwt.signAsync(
       { sub: user.id, purpose: "reset", h: this.passwordFingerprint(user.passwordHash) },
       { expiresIn: "1h" },
     );
+  }
 
-    if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
-      console.log(`[IVOLOGIS][dev] Lien de réinitialisation pour ${email}: /reset-password?token=${resetToken}`);
+  // Aucun fournisseur email/SMS n'est branché : la réinitialisation passe par l'agence (voir createResetLink).
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (user) {
+      const admins = await this.prisma.user.findMany({
+        where: { role: UserRole.SUPER_ADMIN, status: AccountStatus.ACTIVE },
+        select: { id: true },
+      });
+      await this.prisma.notification.createMany({
+        data: admins.map((a) => ({
+          userId: a.id,
+          type: "PASSWORD_RESET_REQUEST",
+          title: "Mot de passe oublié",
+          message: `${user.fullName} (${user.phone}) demande un lien de réinitialisation. Vérifiez son identité avant de le lui transmettre.`,
+        })),
+      });
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.log(`[IVOLOGIS][dev] Lien de réinitialisation pour ${email}: /reset-password?token=${await this.resetToken(user)}`);
+      }
     }
+    // Même réponse que le compte existe ou non (anti-énumération).
+    return {
+      message: "Demande enregistrée. Contactez votre agence : elle vous transmettra un lien de réinitialisation valable une heure.",
+    };
+  }
 
-    return { message: "Si ce compte existe, un lien de réinitialisation a été envoyé." };
+  /** Lien à usage unique (1 h) que l'agence transmet à l'utilisateur, par exemple par WhatsApp. */
+  async createResetLink(userId: string, actorId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException("Utilisateur introuvable.");
+    const token = await this.resetToken(user);
+    await this.audit.log({ userId: actorId, action: "CREATE_RESET_LINK", entityType: "User", entityId: userId });
+    return { path: `/reset-password?token=${token}`, expiresAt: new Date(Date.now() + 60 * 60 * 1000) };
   }
 
   async resetPassword(token: string, newPassword: string) {

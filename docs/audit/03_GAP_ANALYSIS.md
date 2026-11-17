@@ -33,6 +33,7 @@ Notation : **criticité 1 (faible) à 5 (bloquant)** · **effort S/M/L** · impa
 | T-07 | Mentions légales en ligne avec **`[à compléter]`** (raison sociale, siège, RCCM, directeur de publication, n° de déclaration ARTCI) ; pas de CGU ; politique de confidentialité muette sur les données des visiteurs/invités, les cookies et l'hébergement hors CI. | `mentions-legales/page.tsx`, `confidentialite/page.tsx` | 4 | S (structure) — contenu = utilisateur/juriste |
 | T-08 | Affirmation juridique non sourcée sur la fiche vente : « droits de mutation … 4 % du prix ». | `sale-listing-detail.tsx` | 3 | S — **À VÉRIFIER PAR UN JURISTE** |
 | T-09 | Libellé inexact : « mots de passe chiffrés » (ils sont hachés). | vitrine, FAQ | 1 | S |
+| T-11 | Messages d'erreur par défaut de NestJS en **anglais** visibles par l'utilisateur (« Forbidden resource », « transactionRef must be longer than… », « Too Many Requests »). | tests API 2026-11-17 | 2 | S (messages FR dans les gardes + `exceptionFactory` du ValidationPipe) |
 | T-10 | Placeholders de téléphone « +225 07 00 00 00 00 » partout (acceptable) ; textes globalement en français correct et sobre (points positifs : pas de Lorem, pas d'anglais traduit). | grep | 1 | — |
 
 ### c) Dette technique
