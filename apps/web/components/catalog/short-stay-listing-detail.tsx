@@ -167,6 +167,12 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
         <CalendarCheck className="h-4 w-4" /> Demander une réservation
       </Button>
       {property.isDemo && <p className="mt-2 text-xs text-ink-muted">Indisponible sur une annonce de démonstration.</p>}
+      <p className="mt-3 text-xs text-ink-muted">
+        Ne payez rien avant la confirmation écrite de l&apos;agence, et uniquement à l&apos;agence.{" "}
+        <Link href="/verification" className="font-medium text-primary hover:underline">
+          Comment nous vérifions les annonces
+        </Link>
+      </p>
 
       <Modal
         open={modalOpen}

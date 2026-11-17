@@ -28,6 +28,7 @@ export function SiteFooter() {
         <div>
           <p className="text-sm font-semibold text-ink">Légal</p>
           <ul className="mt-3 space-y-2 text-sm text-ink-muted">
+            <li><Link href="/verification" className="hover:text-primary">Vérification des annonces</Link></li>
             <li><Link href="/mentions-legales" className="hover:text-primary">Mentions légales</Link></li>
             <li><Link href="/confidentialite" className="hover:text-primary">Confidentialité</Link></li>
           </ul>

@@ -157,7 +157,10 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
           <li className="flex items-start gap-2">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
             <span>
-              Ne versez jamais d&apos;argent avant la visite et la vérification des documents. Tout paiement se fait auprès de l&apos;agence, contre reçu, jamais à un intermédiaire.
+              Ne versez jamais d&apos;argent avant la visite et la vérification des documents. Tout paiement se fait auprès de l&apos;agence, contre reçu, jamais à un intermédiaire.{" "}
+              <Link href="/verification" className="font-medium text-primary hover:underline">
+                Comment nous vérifions les annonces
+              </Link>
             </span>
           </li>
         </ul>
