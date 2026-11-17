@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Header, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { UserRole } from "@prisma/client";
+import { IsOptional, IsString, MaxLength } from "class-validator";
 import { PERMISSION_KEYS } from "@ivologis/shared";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../common/guards/roles.guard";
@@ -13,6 +14,13 @@ import { PaymentsService } from "./payments.service";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 import { PayRentDto } from "./dto/pay-rent.dto";
 import { PaymentFilterDto } from "./dto/payment-filter.dto";
+
+class RejectPaymentDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  reason?: string;
+}
 
 function scopeFor(user: AuthenticatedUser) {
   if (user.role === UserRole.OWNER) return { ownerId: user.ownerId! };
@@ -60,17 +68,10 @@ export class PaymentsController {
     return this.paymentsService.create(dto);
   }
 
-  @Post("simulate")
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
-  @RequirePermissions(PERMISSION_KEYS.PAYMENTS_MANAGE)
-  simulate(@Body() dto: CreatePaymentDto) {
-    return this.paymentsService.simulateMobileMoneyPayment(dto);
-  }
-
   @Post("pay-rent")
   @Roles(UserRole.TENANT)
   payRent(@Body() dto: PayRentDto, @CurrentUser() user: AuthenticatedUser) {
-    return this.paymentsService.payOwnRent(user.tenantId!, dto.method);
+    return this.paymentsService.declareOwnRent(user.tenantId!, dto);
   }
 
   @Post(":id/confirm")
@@ -78,6 +79,13 @@ export class PaymentsController {
   @RequirePermissions(PERMISSION_KEYS.PAYMENTS_MANAGE)
   confirm(@Param("id") id: string) {
     return this.paymentsService.confirmPayment(id);
+  }
+
+  @Post(":id/reject")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.PAYMENTS_MANAGE)
+  reject(@Param("id") id: string, @Body() dto: RejectPaymentDto) {
+    return this.paymentsService.rejectPayment(id, dto.reason);
   }
 
   @Get(":id")

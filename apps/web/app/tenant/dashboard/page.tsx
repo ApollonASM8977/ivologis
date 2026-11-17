@@ -117,7 +117,7 @@ export default function TenantDashboardPage() {
                       />
                     )}
                     <span className="relative inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-primary shadow-lg transition-transform hover:-translate-y-0.5">
-                      {paidThisMonth ? "Voir mes paiements" : "Payer maintenant"} <ArrowRight className="h-4 w-4" />
+                      {paidThisMonth ? "Voir mes paiements" : "Déclarer mon paiement"} <ArrowRight className="h-4 w-4" />
                     </span>
                   </Link>
                 </div>

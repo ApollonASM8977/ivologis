@@ -1,6 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { LeaseStatus, PaymentStatus } from "@prisma/client";
-import type { PaymentMethod } from "@prisma/client";
+import { AccountStatus, LeaseStatus, PaymentStatus, UserRole } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { PdfService } from "../common/pdf/pdf.service";
@@ -11,6 +10,7 @@ import { StorageService } from "../storage/storage.service";
 import { SettingsService } from "../settings/settings.service";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 import { PaymentFilterDto } from "./dto/payment-filter.dto";
+import { PayRentDto } from "./dto/pay-rent.dto";
 
 function generateReceiptNumber() {
   const year = new Date().getFullYear();
@@ -100,40 +100,89 @@ export class PaymentsService {
   }
 
   /**
-   * Aucune intégration Orange Money / MTN / Wave n'est encore disponible :
-   * on simule une confirmation quasi instantanée comme le ferait le
-   * fournisseur réel, et on génère directement la quittance.
+   * Le locataire déclare avoir payé (aucun encaissement en ligne n'est branché) : le paiement reste
+   * EN ATTENTE jusqu'à ce que l'agence retrouve la transaction. Montant, bien et période viennent du bail.
    */
-  async simulateMobileMoneyPayment(dto: CreatePaymentDto) {
-    return this.create({
-      ...dto,
-      status: PaymentStatus.PAID,
-      transactionRef: dto.transactionRef ?? `SIM-${Date.now()}`,
-    });
-  }
-
-  /** Le locataire règle son loyer : montant, bien et période viennent du bail actif, jamais du client. */
-  async payOwnRent(tenantId: string, method: PaymentMethod) {
+  async declareOwnRent(tenantId: string, dto: PayRentDto) {
     const lease = await this.prisma.lease.findFirst({
       where: { tenantId, status: LeaseStatus.ACTIVE },
       orderBy: { startDate: "desc" },
+      include: { property: { select: { name: true } }, tenant: { select: { fullName: true } } },
     });
     if (!lease) throw new BadRequestException("Aucun bail actif ne vous est rattaché.");
 
-    return this.simulateMobileMoneyPayment({
-      tenantId,
-      propertyId: lease.propertyId,
-      leaseId: lease.id,
-      amount: Number(lease.rentAmount),
-      periodMonth: startOfMonth(new Date()).toISOString(),
-      method,
+    const periodMonth = startOfMonth(new Date());
+    const existing = await this.prisma.payment.findFirst({
+      where: { leaseId: lease.id, periodMonth, status: { in: [PaymentStatus.PAID, PaymentStatus.PENDING] } },
     });
+    if (existing?.status === PaymentStatus.PAID) throw new ConflictException("Le loyer de ce mois est déjà réglé.");
+    if (existing) throw new ConflictException("Un paiement est déjà en cours de vérification pour ce mois.");
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        tenantId,
+        propertyId: lease.propertyId,
+        ownerId: lease.ownerId,
+        leaseId: lease.id,
+        amount: lease.rentAmount,
+        periodMonth,
+        method: dto.method,
+        transactionRef: dto.transactionRef.trim(),
+        notes: dto.notes,
+        status: PaymentStatus.PENDING,
+      },
+    });
+
+    const staff = await this.prisma.user.findMany({
+      where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT] }, status: AccountStatus.ACTIVE },
+      select: { id: true },
+    });
+    for (const { id } of staff) {
+      await this.notifications.notify({
+        userId: id,
+        type: "PAYMENT_DECLARED",
+        title: "Paiement à vérifier",
+        message: `${lease.tenant.fullName} déclare avoir payé ${formatXOF(Number(lease.rentAmount))} (${lease.property.name}), réf. ${payment.transactionRef}.`,
+      });
+    }
+
+    return this.findOne(payment.id);
   }
 
   async confirmPayment(id: string) {
+    const payment = await this.findOne(id);
+    if (payment.status !== PaymentStatus.PENDING && payment.status !== PaymentStatus.LATE) {
+      throw new BadRequestException("Seul un paiement en attente ou en retard peut être confirmé.");
+    }
+    if (payment.leaseId) {
+      const alreadyPaid = await this.prisma.payment.findFirst({
+        where: { leaseId: payment.leaseId, periodMonth: payment.periodMonth, status: PaymentStatus.PAID, id: { not: id } },
+      });
+      if (alreadyPaid) throw new ConflictException("Un paiement a déjà été confirmé pour cette période.");
+    }
     await this.prisma.payment.update({ where: { id }, data: { status: PaymentStatus.PAID } });
     await this.generateReceipt(id);
     await this.notifyTenantPaymentReceived(id);
+    return this.findOne(id);
+  }
+
+  async rejectPayment(id: string, reason?: string) {
+    const payment = await this.findOne(id);
+    if (payment.status !== PaymentStatus.PENDING) {
+      throw new BadRequestException("Seul un paiement en attente peut être refusé.");
+    }
+    await this.prisma.payment.update({
+      where: { id },
+      data: { status: PaymentStatus.CANCELLED, notes: reason ? `Refusé : ${reason}` : payment.notes },
+    });
+    if (payment.tenant.userId) {
+      await this.notifications.notify({
+        userId: payment.tenant.userId,
+        type: "PAYMENT_REJECTED",
+        title: "Paiement non retrouvé",
+        message: `L'agence n'a pas retrouvé votre paiement (réf. ${payment.transactionRef ?? "-"}).${reason ? ` Motif : ${reason}.` : ""} Contactez-la si vous avez bien payé.`,
+      });
+    }
     return this.findOne(id);
   }
 
@@ -179,6 +228,9 @@ export class PaymentsService {
 
   async generateReceipt(paymentId: string) {
     const payment = await this.findOne(paymentId);
+    if (payment.status !== PaymentStatus.PAID) {
+      throw new BadRequestException("Une quittance ne peut être émise que pour un paiement encaissé.");
+    }
     const receiptNumber = generateReceiptNumber();
     const company = await this.settings.get();
     const previous = await this.prisma.receipt.findUnique({ where: { paymentId } });

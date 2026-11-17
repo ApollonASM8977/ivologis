@@ -65,7 +65,7 @@ const AUDIENCES = [
     label: "Locataires",
     title: "Locataires",
     intro: "Votre logement, votre bail et vos quittances, accessibles à tout moment.",
-    items: ["Quittances et contrat à portée de main", "Signalement de panne avec photos", "Paiement du loyer en quelques clics"],
+    items: ["Quittances et contrat à portée de main", "Signalement de panne avec photos", "Déclaration de paiement suivie par l'agence"],
   },
 ];
 
@@ -82,7 +82,7 @@ const FAQ = [
   },
   {
     q: "Les locataires peuvent-ils payer leur loyer en ligne ?",
-    a: "L'interface de paiement mobile money (Orange Money, MTN MoMo, Moov Money, Wave) est en place. L'encaissement réel auprès des opérateurs est en cours de finalisation : d'ici là, les paiements sont enregistrés par votre agence.",
+    a: "Pas encore directement. Le locataire paie par Orange Money, MTN MoMo, Moov Money ou Wave au numéro de l'agence, puis déclare la transaction dans son espace. L'agence la vérifie et la quittance est émise automatiquement. Le paiement en ligne direct est prévu.",
   },
   {
     q: "Puis-je exporter mes relevés et mes documents ?",

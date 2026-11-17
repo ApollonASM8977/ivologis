@@ -199,6 +199,15 @@ test("finalisation de vente : acheteur et prix final requis", async () => {
   assert.ok((await errorsOf(FinalizeSaleDto, { finalPrice: 42000000 })).includes("buyerName"));
 });
 
+const { PayRentDto } = require("../dist/src/payments/dto/pay-rent.dto.js");
+
+test("déclaration de loyer : référence de transaction obligatoire", async () => {
+  assert.deepEqual(await errorsOf(PayRentDto, { method: "WAVE", transactionRef: "T2611171432" }), []);
+  assert.ok((await errorsOf(PayRentDto, { method: "WAVE" })).includes("transactionRef"));
+  assert.ok((await errorsOf(PayRentDto, { method: "WAVE", transactionRef: "ab" })).includes("transactionRef"));
+  assert.ok((await errorsOf(PayRentDto, { method: "PAYPAL", transactionRef: "T2611171432" })).includes("method"));
+});
+
 const { generateInviteCode, hashInviteCode, normalizeInviteCode, inviteExpiry } = require("../dist/src/common/utils/invite-code.util.js");
 
 test("code d'invitation : 8 caractères sans ambiguïté, empreinte dépendante du secret", () => {

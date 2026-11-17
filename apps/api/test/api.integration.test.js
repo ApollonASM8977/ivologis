@@ -90,7 +90,7 @@ test("contrôle d'accès par rôle", async (t) => {
   if (!requireApi(t)) return;
   assert.equal((await call("/users", { token: ctx.tenant })).status, 403, "locataire ne liste pas les utilisateurs");
   assert.equal((await call("/audit-logs", { token: ctx.owner })).status, 403, "propriétaire ne lit pas le journal");
-  assert.equal((await call("/payments/simulate", { method: "POST", token: ctx.tenant, body: {} })).status, 403, "locataire ne simule pas de paiement");
+  assert.equal((await call("/payments", { method: "POST", token: ctx.tenant, body: {} })).status, 403, "locataire n'enregistre pas de paiement encaissé");
   assert.equal((await call("/contact-requests", { token: ctx.tenant })).status, 403, "locataire ne lit pas les demandes");
   assert.equal((await call("/search?q=ab", { token: ctx.owner })).status, 403, "propriétaire n'accède pas à la recherche interne");
   assert.equal((await call("/leases/revisions/due", { token: ctx.tenant })).status, 403, "locataire ne voit pas les révisions");

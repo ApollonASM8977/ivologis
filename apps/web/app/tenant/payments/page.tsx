@@ -21,6 +21,7 @@ import { PaymentMethodPicker } from "@/components/payment-method-picker";
 
 interface PayForm {
   method: PaymentMethod;
+  transactionRef: string;
 }
 
 export default function TenantPaymentsPage() {
@@ -44,9 +45,9 @@ export default function TenantPaymentsPage() {
   const selectedMethod = watch("method");
 
   const payMutation = useMutation({
-    mutationFn: (values: PayForm) => api.post("/payments/pay-rent", { method: values.method }),
+    mutationFn: (values: PayForm) => api.post("/payments/pay-rent", values),
     onSuccess: () => {
-      toast.success("Paiement confirmé ! Votre quittance est disponible.");
+      toast.success("Paiement déclaré. Votre quittance sera disponible dès que l'agence aura vérifié la transaction.");
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       setPayOpen(false);
       reset();
@@ -81,7 +82,7 @@ export default function TenantPaymentsPage() {
         action={
           property && (
             <Button size="sm" onClick={() => setPayOpen(true)}>
-              <CreditCard className="h-4 w-4" /> Payer maintenant
+              <CreditCard className="h-4 w-4" /> Déclarer un paiement
             </Button>
           )
         }
@@ -93,7 +94,7 @@ export default function TenantPaymentsPage() {
         <DataTable columns={columns} rows={data?.data ?? []} loading={isLoading} rowKey={(r) => r.id} />
       )}
 
-      <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Payer mon loyer">
+      <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Déclarer le paiement de mon loyer">
         <Card className="mb-4 bg-primary/5">
           <p className="text-sm text-ink-muted">Bien concerné</p>
           <p className="font-semibold text-ink">{property?.name}</p>
@@ -106,15 +107,26 @@ export default function TenantPaymentsPage() {
             <p className="text-lg font-semibold text-primary">{formatXOF(property?.rentAmount ?? 0)}</p>
           </div>
           <div>
-            <Label>Moyen de paiement</Label>
+            <Label>Moyen utilisé</Label>
             <input type="hidden" {...register("method", { required: true })} />
             <PaymentMethodPicker value={selectedMethod} onChange={(m) => setValue("method", m)} />
           </div>
-          <p className="text-xs text-ink-muted">
-            L'intégration Mobile Money réelle arrive bientôt. Ce paiement est simulé pour la démonstration.
+          <div>
+            <Label htmlFor="tx-ref">Référence de la transaction</Label>
+            <Input
+              id="tx-ref"
+              autoComplete="off"
+              placeholder="Ex : MP261117.1432.A12345"
+              {...register("transactionRef", { required: true, minLength: 4 })}
+            />
+            <p className="mt-1 text-xs text-ink-muted">Elle figure dans le SMS ou la notification de confirmation de votre opérateur.</p>
+          </div>
+          <p className="rounded-lg bg-surface px-3 py-2 text-xs text-ink-muted">
+            Payez d&apos;abord depuis votre téléphone au numéro indiqué par votre agence, puis déclarez-le ici. L&apos;agence vérifie la
+            transaction : la quittance est émise seulement après cette vérification.
           </p>
           <Button type="submit" className="w-full" loading={payMutation.isPending}>
-            Confirmer le paiement
+            Envoyer la déclaration
           </Button>
         </form>
       </Modal>

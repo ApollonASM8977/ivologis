@@ -25,6 +25,7 @@ interface PaymentRow {
   method: string;
   status: any;
   paymentDate: string;
+  transactionRef?: string | null;
   receipt?: { pdfUrl?: string } | null;
 }
 
@@ -64,16 +65,46 @@ export default function AdminPaymentsPage() {
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
+  const decisionMutation = useMutation({
+    mutationFn: ({ id, decision }: { id: string; decision: "confirm" | "reject" }) => api.post(`/payments/${id}/${decision}`, {}),
+    onSuccess: (_res, { decision }) => {
+      toast.success(decision === "confirm" ? "Paiement confirmé, quittance émise." : "Déclaration refusée, le locataire est prévenu.");
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+
   const columns: Column<PaymentRow>[] = [
     { header: "Date", cell: (r) => new Date(r.paymentDate).toLocaleDateString("fr-FR") },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
     { header: "Bien", cell: (r) => r.property?.name },
     { header: "Montant", cell: (r) => formatXOF(r.amount) },
     { header: "Moyen", cell: (r) => <PaymentMethodBadge method={r.method as PaymentMethod} size="sm" /> },
+    { header: "Référence", cell: (r) => <span className="font-mono text-xs">{r.transactionRef ?? "-"}</span> },
     { header: "Statut", cell: (r) => <PaymentStatusBadge status={r.status} /> },
     {
       header: "Quittance",
-      cell: (r) => (
+      cell: (r) =>
+        r.status === "PENDING" ? (
+          <div className="flex gap-1">
+            <button
+              onClick={() => decisionMutation.mutate({ id: r.id, decision: "confirm" })}
+              disabled={decisionMutation.isPending}
+              className="rounded px-1.5 py-1 text-xs font-semibold text-success hover:bg-success/10 disabled:opacity-50"
+            >
+              Confirmer
+            </button>
+            <button
+              onClick={() => decisionMutation.mutate({ id: r.id, decision: "reject" })}
+              disabled={decisionMutation.isPending}
+              className="rounded px-1.5 py-1 text-xs font-semibold text-danger hover:bg-danger/10 disabled:opacity-50"
+            >
+              Refuser
+            </button>
+          </div>
+        ) : r.status !== "PAID" ? (
+          "-"
+        ) : (
         <button
           title="Générer la quittance PDF"
           onClick={() => receiptMutation.mutate(r.id)}
