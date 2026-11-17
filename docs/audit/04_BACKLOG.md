@@ -66,3 +66,7 @@ Une tâche = un commit `type(ID): ...`. Chaque tâche se vérifie sur l'environn
 | P2-10 | Signature électronique (prestataire agréé ARTCI) | L |
 | P2-11 | Assistant IA (rédaction d'annonces, réponses FAQ) | M |
 | P2-12 | Dark mode | S |
+| P2-13 | Hors ligne : lecture des données déjà consultées + bandeau (voir `10_MODE_HORS_LIGNE.md`) | M |
+| P2-14 | Hors ligne : file d'attente idempotente (paiement espèces PENDING, maintenance, état des lieux + photos) | L |
+| P2-15 | Hors ligne : écran de synchronisation et résolution des conflits | M |
+| P2-16 | Hors ligne : tests coupure / double rejeu / session expirée / 3G | M |

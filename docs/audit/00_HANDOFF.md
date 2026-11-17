@@ -24,10 +24,12 @@
 - Sous Windows, arrêter l'API locale avant `prisma generate`.
 - `/auth/login` et `/auth/register` : 5 req/min/IP ; formulaires publics : 5 req/min/IP.
 
-**Déploiement (quand l'utilisateur l'autorise)** : `git push` → MCP Render `trigger_deploy` API `srv-db00q9mgekts73fobbc0` (applique les migrations) puis web `srv-db00qg942hec73efhqg0` → vérifier S-07 (IP réelle dans Profil → Sessions) → saisir l'identité légale dans Paramètres.
+**Déploiement** : FAIT le 2026-11-17 à 11:55 UTC (commit `11dc937`, deploys `dep-dbu40ijm8hqs73e2b6v0` API et `dep-dbu40j68bjmc73a91kgg` web, statut `live`). Vérifié en prod : 6 migrations appliquées, catalogue sans champ interne, `/verification` en ligne avec en-têtes. Donnée de test ajoutée en prod (accord implicite D-06) : « Maison Yopougon Niangon » publiée à la location et marquée Démo. Procédure de redéploiement : `git push` puis `trigger_deploy` (workspace `tea-dai7od3m8hqs73f60pf0`) API puis web. Reste à vérifier par l'utilisateur : IP réelle dans Profil → Sessions (S-07).
+
+**Décisions utilisateur** : D-06 (comptes de test conservés jusqu'à la fin, 2FA et vrais comptes ensuite), D-07 (fournisseurs, non souscrits), D-08 (hors ligne en PWA), D-09 (AGENTS.md du projet).
 
 **Attend l'utilisateur** :
-1. URGENT : changer en prod les mots de passe des 10 comptes du seed (le Super Admin a encore le mot de passe publié) et activer sa 2FA (S-01, P0-17).
-2. Décisions : 2FA obligatoire (D-03/P0-16), mono-agence vs SaaS multi-agences (E-10), sort des 6 annonces démo (T-01, désormais marquées « Démo »), dépôt public ou privé (D-04).
-3. Données légales réelles : raison sociale, RCCM, NCC, agrément, ARTCI, directeur de publication, WhatsApp (à saisir dans Paramètres après déploiement).
-4. Comptes externes pour débloquer P1-10 (email), P1-11 (paiement CinetPay), P1-12 (stockage objet).
+1. Fin des développements : 2FA (P0-16), vrais comptes, suppression des comptes de test (P0-17).
+2. Domaine + comptes Brevo, Paystack (test), Cloudflare R2 pour débloquer P1-10/11/12 (`09_FOURNISSEURS.md`).
+3. Décisions : mono-agence vs SaaS (E-10), propriétaire sans droit de création (E-13), qui paie les frais de paiement, réponses aux questions de `10_MODE_HORS_LIGNE.md` §7.
+4. Données légales réelles à saisir dans Paramètres.
