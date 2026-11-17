@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
 import {
   Building2,
   Users,
@@ -20,9 +20,7 @@ import {
   Tag,
   CalendarRange,
   ArrowRight,
-} from "lucide-react";
-import { ContactForm } from "@/components/marketing/contact-form";
-import { HeroSearch } from "@/components/marketing/hero-search";
+} from "lucide-react";import { ContactForm } from "@/components/marketing/contact-form";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { LogoMarquee } from "@/components/marketing/logo-marquee";
 
@@ -36,9 +34,9 @@ const FEATURES = [
 ];
 
 const CATALOG_OFFERS = [
-  { href: "/catalogue/locations", icon: KeyRound, title: "Logements à louer", text: "Studios, appartements, villas au mois : loyer, avance et caution affichés, frais d'agence encadrés. Demandez une visite sans créer de compte." },
-  { href: "/catalogue/sales", icon: Tag, title: "Biens à vendre", text: "Terrains, villas, appartements et locaux, publiés après contrôle du document foncier. Demandez un rendez-vous de visite en un clic." },
-  { href: "/catalogue/short-stay", icon: CalendarRange, title: "Résidences meublées", text: "Réservez un séjour à la nuitée, façon Airbnb simplifié : choisissez vos dates, envoyez votre demande, le paiement se règle sur place ou avant l'arrivée." },
+  { icon: KeyRound, title: "Logements à louer", text: "Studios, appartements, villas au mois : loyer, avance et caution affichés, frais d'agence encadrés. Demandez une visite sans créer de compte." },
+  { icon: Tag, title: "Biens à vendre", text: "Terrains, villas, appartements et locaux, publiés après contrôle du document foncier. Demandez un rendez-vous de visite en un clic." },
+  { icon: CalendarRange, title: "Résidences meublées", text: "Réservez un séjour à la nuitée, façon Airbnb simplifié : choisissez vos dates, envoyez votre demande, le paiement se règle sur place ou avant l'arrivée." },
 ];
 
 const STEPS = [
@@ -114,6 +112,103 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
   );
 }
 
+function HeroBlobs() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div
+        className="absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, #0B5FFF 1px, transparent 1px), linear-gradient(to bottom, #0B5FFF 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+        }}
+      />
+      <motion.div
+        animate={{ scale: [1, 1.06, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -right-20 top-0 h-[26rem] w-[26rem] rounded-full bg-primary/10"
+      />
+    </div>
+  );
+}
+
+function DashboardMockup() {
+  const bars = [42, 58, 49, 71, 66, 84];
+  const rx = useMotionValue(0);
+  const ry = useMotionValue(0);
+  const springX = useSpring(rx, { stiffness: 150, damping: 18 });
+  const springY = useSpring(ry, { stiffness: 150, damping: 18 });
+  const rotateX = useTransform(springY, [-0.5, 0.5], [6, -6]);
+  const rotateY = useTransform(springX, [-0.5, 0.5], [-8, 8]);
+
+  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    const r = e.currentTarget.getBoundingClientRect();
+    rx.set((e.clientX - r.left) / r.width - 0.5);
+    ry.set((e.clientY - r.top) / r.height - 0.5);
+  }
+
+  return (
+    <div className="[perspective:1200px]" onMouseMove={onMove} onMouseLeave={() => { rx.set(0); ry.set(0); }}>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        style={{ rotateX, rotateY }}
+        className="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl shadow-primary/15"
+        aria-hidden="true"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm font-semibold text-ink">Vue d&apos;ensemble</p>
+          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-800">À jour</span>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Biens", value: "24" },
+            { label: "Loyers encaissés", value: "9,4 M" },
+            { label: "Retards", value: "3" },
+          ].map((k, i) => (
+            <motion.div
+              key={k.label}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              className="rounded-xl bg-surface p-3"
+            >
+              <p className="text-[11px] text-ink-muted">{k.label}</p>
+              <p className="mt-1 text-lg font-bold text-ink">{k.value}</p>
+            </motion.div>
+          ))}
+        </div>
+        <div className="mt-5 flex h-28 items-end gap-2">
+          {bars.map((h, i) => (
+            <motion.div
+              key={i}
+              initial={{ height: 0 }}
+              animate={{ height: `${h}%` }}
+              transition={{ duration: 0.7, delay: 0.5 + i * 0.07, ease: "easeOut" }}
+              className="flex-1 rounded-t-md bg-gradient-to-t from-primary to-primary/60"
+            />
+          ))}
+        </div>
+        <div className="mt-5 space-y-2">
+          {["Quittance émise · Villa Riviera 3", "Demande de maintenance · Plomberie", "Bail renouvelé · Studio Angré"].map((t, i) => (
+            <motion.div
+              key={t}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1 + i * 0.12 }}
+              className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-xs text-ink-muted"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {t}
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
   return (
     <div className="border-b border-gray-100">
@@ -154,7 +249,51 @@ export default function HomePage() {
 
   return (
     <>
-      <HeroSearch />
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-white to-white">
+        <HeroBlobs />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-2 lg:py-24">
+          <div>
+            <motion.span
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center rounded-full border border-primary/20 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm"
+            >
+              Conçu pour la location en Côte d&apos;Ivoire
+            </motion.span>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="mt-5 text-4xl font-extrabold leading-[1.1] tracking-tight text-primary-dark sm:text-5xl lg:text-6xl"
+            >
+              La gestion locative, <span className="text-primary">simple et sécurisée.</span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="mt-5 max-w-xl text-lg leading-relaxed text-ink-muted"
+            >
+              Biens, locataires, baux, loyers, travaux et relevés propriétaires réunis dans une seule plateforme, pour les agences, les propriétaires et leurs locataires.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="mt-8 flex flex-wrap gap-3"
+            >
+              <Link href="#contact" className="group relative overflow-hidden rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-transform hover:-translate-y-0.5">
+                <span className="relative z-10">Demander une démo</span>
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+              </Link>
+              <Link href="/securite" className="rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:text-primary">
+                Voir la sécurité
+              </Link>
+            </motion.div>
+          </div>
+          <DashboardMockup />
+        </div>
+      </section>
 
       <section id="catalogue" className="scroll-mt-20 border-y border-gray-100 bg-surface py-16">
         <div className="mx-auto max-w-6xl px-5">
@@ -166,7 +305,7 @@ export default function HomePage() {
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {CATALOG_OFFERS.map((o, i) => (
               <Reveal key={o.title} delay={i * 0.08}>
-                <Link href={o.href} className="group block h-full rounded-2xl border border-gray-100 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
+                <Link href="/catalogue" className="group block h-full rounded-2xl border border-gray-100 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                     <o.icon className="h-5 w-5" />
                   </span>
@@ -185,7 +324,7 @@ export default function HomePage() {
       <section aria-labelledby="paiements-titre" className="border-y border-gray-100 bg-white py-8">
         <div className="mx-auto max-w-6xl px-5">
           <p id="paiements-titre" className="mb-4 text-center text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            Moyens de paiement acceptés par l&apos;agence
+            Moyens de paiement mobile money
           </p>
           <LogoMarquee />
         </div>
@@ -369,7 +508,7 @@ export default function HomePage() {
             ].map((s, i) => (
               <motion.div
                 key={s.label}
-                whileHover={{ y: -4, boxShadow: "0 12px 30px -10px rgba(11,85,99,0.25)" }}
+                whileHover={{ y: -4, boxShadow: "0 12px 30px -10px rgba(11,95,255,0.25)" }}
                 transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.03 }}
                 className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-5"
               >

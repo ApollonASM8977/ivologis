@@ -27,7 +27,7 @@ export function SpotlightCard({ children, className = "" }: { children: ReactNod
         aria-hidden="true"
         className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          background: "radial-gradient(360px circle at var(--mx) var(--my), rgba(11,85,99,0.12), transparent 60%)",
+          background: "radial-gradient(360px circle at var(--mx) var(--my), rgba(11,95,255,0.12), transparent 60%)",
         }}
       />
       <div className="relative h-full p-6">{children}</div>

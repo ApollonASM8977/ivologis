@@ -28,7 +28,7 @@ export function SearchInput({
 
   return (
     <motion.div
-      animate={{ boxShadow: focused ? "0 0 0 3px rgba(11,85,99,0.15)" : "0 0 0 0px rgba(11,85,99,0)" }}
+      animate={{ boxShadow: focused ? "0 0 0 3px rgba(11,95,255,0.15)" : "0 0 0 0px rgba(11,95,255,0)" }}
       className={`relative w-full max-w-sm rounded-lg ${className}`}
     >
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
