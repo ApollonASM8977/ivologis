@@ -93,8 +93,10 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
           <p className="mt-1 text-sm font-semibold text-ink">{property.surfaceM2 ? `${property.surfaceM2} m²` : "-"}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase text-ink-muted">Propriétaire</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{property.owner?.fullName ?? "-"}</p>
+          <p className="text-xs uppercase text-ink-muted">Pièces</p>
+          <p className="mt-1 text-sm font-semibold text-ink">
+            {property.rooms ? `${property.rooms}${property.bedrooms ? ` dont ${property.bedrooms} ch.` : ""}` : "-"}
+          </p>
         </Card>
         <Card>
           <p className="flex items-center gap-1 text-xs uppercase text-ink-muted">

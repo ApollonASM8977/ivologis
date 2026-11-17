@@ -121,11 +121,16 @@ export class ShortStayService {
   /** Demande en libre-service depuis le catalogue (connecté ou invité) : statut EN_ATTENTE, à confirmer par l'agence ou le propriétaire. */
   async requestBooking(propertyId: string, dto: RequestShortStayBookingDto, user?: AuthenticatedUser) {
     const property = await this.getProperty(propertyId);
-    if (!property.shortStayEnabled) {
-      throw new BadRequestException("Ce bien n'est pas activé pour la location courte durée.");
+    if (!property.shortStayEnabled || property.archivedAt) {
+      throw new BadRequestException("Ce bien n'est pas disponible en location courte durée.");
     }
     if (!property.shortStayNightlyRate) {
       throw new BadRequestException("Le tarif par nuitée n'a pas encore été défini pour ce bien.");
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(dto.checkIn) < today) {
+      throw new BadRequestException("La date d'arrivée est déjà passée.");
     }
     if (!user && !dto.guestName) {
       throw new BadRequestException("Votre nom est requis pour envoyer une demande.");

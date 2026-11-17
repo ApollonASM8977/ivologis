@@ -176,8 +176,8 @@ export class SalesService {
   /** Accessible connecté ou en invité (visiteur du catalogue sans compte). */
   async createVisitRequest(propertyId: string, dto: CreateVisitRequestDto, user?: AuthenticatedUser) {
     const property = await this.getProperty(propertyId);
-    if (!property.forSale) {
-      throw new BadRequestException("Ce bien n'est pas en vente.");
+    if (!property.forSale || property.archivedAt || property.saleStatus === SaleStatus.VENDU) {
+      throw new BadRequestException("Ce bien n'est plus disponible à la vente.");
     }
     if (!user && !dto.guestName) {
       throw new BadRequestException("Votre nom est requis pour envoyer une demande.");
