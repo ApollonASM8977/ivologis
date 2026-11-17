@@ -343,6 +343,8 @@ model Property {
   shortStayNightlyRate Decimal? @db.Decimal(14, 2)
   // Publication au catalogue public validée par l'agence (remise à false à chaque modification par le propriétaire).
   shortStayApproved Boolean @default(false)
+  // Location longue durée publiée au catalogue (bien vacant, publication décidée par l'agence uniquement).
+  rentListed        Boolean @default(false)
 
   // --- Vente ---
   forSale            Boolean    @default(false)

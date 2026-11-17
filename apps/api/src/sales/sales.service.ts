@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { SaleDocumentType, SaleOfferStatus, SaleStatus, UserRole, VisitRequestStatus } from "@prisma/client";
+import { PropertyStatus, SaleDocumentType, SaleOfferStatus, SaleStatus, UserRole, VisitRequestStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
@@ -176,8 +176,10 @@ export class SalesService {
   /** Accessible connecté ou en invité (visiteur du catalogue sans compte). */
   async createVisitRequest(propertyId: string, dto: CreateVisitRequestDto, user?: AuthenticatedUser) {
     const property = await this.getProperty(propertyId);
-    if (!property.forSale || property.archivedAt || property.saleStatus === SaleStatus.VENDU) {
-      throw new BadRequestException("Ce bien n'est plus disponible à la vente.");
+    const saleOpen = property.forSale && property.saleStatus !== SaleStatus.VENDU;
+    const rentalOpen = property.rentListed && property.status === PropertyStatus.VACANT;
+    if (property.archivedAt || (!saleOpen && !rentalOpen)) {
+      throw new BadRequestException("Ce bien n'est plus disponible.");
     }
     if (property.isDemo) {
       throw new BadRequestException("Annonce de démonstration : ce bien est fictif, aucune visite n'est possible.");

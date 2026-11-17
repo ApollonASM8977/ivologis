@@ -17,6 +17,7 @@ import { PropertyStatusBadge, PaymentStatusBadge, MaintenanceStatusBadge } from 
 import { PropertyForm, PropertyFormValues } from "@/components/properties/property-form";
 import { ShortStayCard } from "@/components/properties/short-stay-card";
 import { SaleCard } from "@/components/properties/sale-card";
+import { RentListingCard } from "@/components/properties/rent-listing-card";
 
 export function PropertyDetail({ id, listHref, canManage = true }: { id: string; listHref: string; canManage?: boolean }) {
   const router = useRouter();
@@ -209,6 +210,8 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
           approved={property.shortStayApproved}
         />
       )}
+
+      <RentListingCard property={property} />
 
       {(property.forSale || canManage) && <SaleCard propertyId={id} property={property} canManage={canManage} />}
 

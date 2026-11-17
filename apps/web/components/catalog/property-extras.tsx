@@ -51,7 +51,10 @@ interface Located {
 /** « Quartier, Commune » (+ ville hors Abidjan), avec l'adresse en tête si demandée. */
 export function locationLabel(p: Located, withAddress = false) {
   const city = p.city && p.city !== "Abidjan" && p.city !== p.commune ? p.city : null;
-  return [withAddress ? p.address : null, p.neighborhood, p.commune, city].filter(Boolean).join(", ");
+  const address = withAddress ? p.address : null;
+  // Les adresses saisies contiennent souvent déjà le quartier ou la commune : on évite « Yopougon, Yopougon ».
+  const rest = [p.neighborhood, p.commune, city].filter((part) => part && !address?.toLowerCase().includes(part.toLowerCase()));
+  return [address, ...rest].filter(Boolean).join(", ");
 }
 
 export function DemoBadge() {

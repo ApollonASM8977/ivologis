@@ -142,6 +142,12 @@ export class CreatePropertyDto {
   @IsBoolean()
   shortStayApproved?: boolean;
 
+  /** Ignoré pour un propriétaire : seule l'agence publie un bien à louer au catalogue. */
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  rentListed?: boolean;
+
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()

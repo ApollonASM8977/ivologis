@@ -56,6 +56,15 @@ export const PAYMENT_METHOD_COLORS: Record<string, { bg: string; text: string; b
   BANK_TRANSFER: { bg: "#0B1F3A", text: "#FFFFFF", border: "#0B1F3A" },
 };
 
+/**
+ * Somme à verser à l'entrée dans un logement : avance + caution + part locataire des frais d'agence.
+ * Décret n° 2024-1115 du 19/12/2024 : frais d'agence = 1 mois de loyer HT, partagés à parts égales bailleur/locataire.
+ */
+export function rentalEntryCost(rent: number, deposit: number, advance: number) {
+  const agencyFeeTenantShare = Math.round(rent / 2);
+  return { advance, deposit, agencyFeeTenantShare, total: advance + deposit + agencyFeeTenantShare };
+}
+
 /** Formate un montant en Francs CFA, ex: formatXOF(250000) -> "250 000 FCFA" */
 export function formatXOF(amount: number): string {
   return `${new Intl.NumberFormat("fr-FR").format(Math.round(amount))} FCFA`;

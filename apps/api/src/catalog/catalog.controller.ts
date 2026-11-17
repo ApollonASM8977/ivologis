@@ -20,6 +20,16 @@ export class CatalogController {
     return this.catalogService.getSaleDetail(id);
   }
 
+  @Get("rentals")
+  listRentals() {
+    return this.catalogService.listRentals();
+  }
+
+  @Get("rentals/:id")
+  getRentalDetail(@Param("id") id: string) {
+    return this.catalogService.getRentalDetail(id);
+  }
+
   @Get("short-stay")
   listShortStay() {
     return this.catalogService.listShortStay();

@@ -83,7 +83,7 @@ export class LeasesService {
 
       await tx.property.update({
         where: { id: dto.propertyId },
-        data: { status: PropertyStatus.LOUE, currentTenantId: dto.tenantId },
+        data: { status: PropertyStatus.LOUE, currentTenantId: dto.tenantId, rentListed: false },
       });
 
       return lease;

@@ -199,6 +199,13 @@ test("finalisation de vente : acheteur et prix final requis", async () => {
   assert.ok((await errorsOf(FinalizeSaleDto, { finalPrice: 42000000 })).includes("buyerName"));
 });
 
+const { rentalEntryCost } = require("@ivologis/shared");
+
+test("coût d'entrée location : avance + caution + moitié d'un mois de frais d'agence", () => {
+  assert.deepEqual(rentalEntryCost(150000, 300000, 300000), { advance: 300000, deposit: 300000, agencyFeeTenantShare: 75000, total: 675000 });
+  assert.equal(rentalEntryCost(85000, 85000, 170000).agencyFeeTenantShare, 42500);
+});
+
 const { entryCostViolation } = require("../dist/src/common/utils/lease-rules.js");
 
 test("bail d'habitation : caution et avance plafonnées à 2 mois (loi 2019-576)", () => {

@@ -58,6 +58,7 @@ export class PropertiesService {
         shortStayEnabled: dto.shortStayEnabled ?? false,
         shortStayNightlyRate: dto.shortStayNightlyRate,
         shortStayApproved: isStaff(user) && (dto.shortStayApproved ?? !!dto.shortStayEnabled),
+        rentListed: isStaff(user) && !!dto.rentListed,
         virtualTourUrl: dto.virtualTourUrl,
         isDemo: isStaff(user) && (dto.isDemo ?? false),
         ownerId,
@@ -126,11 +127,11 @@ export class PropertiesService {
 
   async update(id: string, dto: UpdatePropertyDto, user: AuthenticatedUser) {
     await this.findOne(id);
-    const { ownerId, shortStayApproved, isDemo, ...rest } = dto;
-    // Toute modification par le propriétaire repasse l'annonce « courte durée » en attente de validation par l'agence.
+    const { ownerId, shortStayApproved, rentListed, isDemo, ...rest } = dto;
+    // Toute modification par le propriétaire retire ses annonces publiques jusqu'à une nouvelle validation de l'agence.
     const moderation = isStaff(user)
-      ? { isDemo, shortStayApproved: shortStayApproved ?? (rest.shortStayEnabled === true ? true : undefined) }
-      : { shortStayApproved: false };
+      ? { isDemo, rentListed, shortStayApproved: shortStayApproved ?? (rest.shortStayEnabled === true ? true : undefined) }
+      : { shortStayApproved: false, rentListed: false };
     return this.prisma.property.update({ where: { id }, data: { ...rest, ...moderation } });
   }
 

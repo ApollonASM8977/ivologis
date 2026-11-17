@@ -20,8 +20,7 @@ import {
   Tag,
   CalendarRange,
   ArrowRight,
-} from "lucide-react";
-import { ContactForm } from "@/components/marketing/contact-form";
+} from "lucide-react";import { ContactForm } from "@/components/marketing/contact-form";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { LogoMarquee } from "@/components/marketing/logo-marquee";
 
@@ -35,7 +34,8 @@ const FEATURES = [
 ];
 
 const CATALOG_OFFERS = [
-  { icon: Tag, title: "Biens à vendre", text: "Terrains, villas, appartements et locaux : zone, prix, surface, photos. Demandez un rendez-vous de visite en un clic." },
+  { icon: KeyRound, title: "Logements à louer", text: "Studios, appartements, villas au mois : loyer, avance et caution affichés, frais d'agence encadrés. Demandez une visite sans créer de compte." },
+  { icon: Tag, title: "Biens à vendre", text: "Terrains, villas, appartements et locaux, publiés après contrôle du document foncier. Demandez un rendez-vous de visite en un clic." },
   { icon: CalendarRange, title: "Résidences meublées", text: "Réservez un séjour à la nuitée, façon Airbnb simplifié : choisissez vos dates, envoyez votre demande, le paiement se règle sur place ou avant l'arrivée." },
 ];
 
@@ -300,9 +300,9 @@ export default function HomePage() {
           <Reveal className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-wider text-primary">Catalogue public</p>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-primary-dark">Vous cherchez un bien ou un séjour ?</h2>
-            <p className="mt-3 text-ink-muted">Parcourez nos annonces sans créer de compte : terrains et biens à vendre, résidences meublées à la nuitée.</p>
+            <p className="mt-3 text-ink-muted">Parcourez nos annonces sans créer de compte : logements à louer, terrains et biens à vendre, résidences meublées à la nuitée.</p>
           </Reveal>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2">
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {CATALOG_OFFERS.map((o, i) => (
               <Reveal key={o.title} delay={i * 0.08}>
                 <Link href="/catalogue" className="group block h-full rounded-2xl border border-gray-100 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">

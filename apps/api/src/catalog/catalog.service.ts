@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma, SaleStatus } from "@prisma/client";
+import { Prisma, PropertyStatus, SaleStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 
 // Liste blanche : le catalogue est public, rien d'interne (propriétaire, acheteur, commission, locataire) n'en sort.
@@ -38,6 +38,15 @@ const SALE_FIELDS = {
 
 const SHORT_STAY_FIELDS = { ...PUBLIC_FIELDS, shortStayNightlyRate: true } satisfies Prisma.PropertySelect;
 
+const RENTAL_FIELDS = { ...PUBLIC_FIELDS, rentAmount: true, deposit: true, advance: true } satisfies Prisma.PropertySelect;
+
+const PUBLISHED_RENTAL = {
+  rentListed: true,
+  status: PropertyStatus.VACANT,
+  archivedAt: null,
+  rentAmount: { gt: 0 },
+} satisfies Prisma.PropertyWhereInput;
+
 const PUBLISHED_SALE = {
   forSale: true,
   archivedAt: null,
@@ -57,6 +66,17 @@ export class CatalogService {
 
   async getSaleDetail(id: string) {
     const property = await this.prisma.property.findFirst({ where: { id, ...PUBLISHED_SALE }, select: SALE_FIELDS });
+    if (!property) throw new NotFoundException("Annonce introuvable ou plus disponible.");
+    await this.prisma.property.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+    return property;
+  }
+
+  async listRentals() {
+    return this.prisma.property.findMany({ where: PUBLISHED_RENTAL, select: RENTAL_FIELDS, orderBy: { updatedAt: "desc" } });
+  }
+
+  async getRentalDetail(id: string) {
+    const property = await this.prisma.property.findFirst({ where: { id, ...PUBLISHED_RENTAL }, select: RENTAL_FIELDS });
     if (!property) throw new NotFoundException("Annonce introuvable ou plus disponible.");
     await this.prisma.property.update({ where: { id }, data: { viewCount: { increment: 1 } } });
     return property;
