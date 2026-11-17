@@ -9,26 +9,45 @@ const FILE_URL_PREFIX = "/api/files/";
 export class StorageService {
   constructor(private prisma: PrismaService) {}
 
-  async authorizeDocument(url: string, user: AuthenticatedUser) {
+  /** Retrouve à qui appartient un document servi par lien signé (bail, quittance, pièce jointe, reçu de séjour, document de vente). */
+  private async findDocumentParties(url: string): Promise<{ ownerId: string | null; tenantId: string | null; userId?: string | null } | null> {
     const lease = await this.prisma.lease.findFirst({
       where: { OR: [{ documentUrl: url }, { wordUrl: url }] },
       select: { ownerId: true, tenantId: true },
     });
-    const receipt = lease
-      ? null
-      : await this.prisma.receipt.findFirst({
-          where: { pdfUrl: url },
-          select: { payment: { select: { ownerId: true, tenantId: true } } },
-        });
-    const request = lease || receipt ? null : await this.prisma.tenantRequest.findFirst({ where: { attachmentUrl: url }, select: { tenantId: true } });
-    const owned = lease ?? receipt?.payment ?? (request ? { ownerId: null, tenantId: request.tenantId } : null);
-    if (!owned) throw new NotFoundException("Document introuvable.");
+    if (lease) return lease;
+    const receipt = await this.prisma.receipt.findFirst({
+      where: { pdfUrl: url },
+      select: { payment: { select: { ownerId: true, tenantId: true } } },
+    });
+    if (receipt) return receipt.payment;
+    const request = await this.prisma.tenantRequest.findFirst({ where: { attachmentUrl: url }, select: { tenantId: true } });
+    if (request) return { ownerId: null, tenantId: request.tenantId };
+    const booking = await this.prisma.shortStayBooking.findFirst({
+      where: { receiptUrl: url },
+      select: { ownerId: true, tenantId: true, requestedByUserId: true },
+    });
+    if (booking) return { ownerId: booking.ownerId, tenantId: booking.tenantId, userId: booking.requestedByUserId };
+    const saleDocument = await this.prisma.propertySaleDocument.findFirst({
+      where: { url },
+      select: { property: { select: { ownerId: true } } },
+    });
+    if (saleDocument) return { ownerId: saleDocument.property.ownerId, tenantId: null };
+    const soldProperty = await this.prisma.property.findFirst({ where: { saleDocumentUrl: url }, select: { ownerId: true } });
+    if (soldProperty) return { ownerId: soldProperty.ownerId, tenantId: null };
+    return null;
+  }
+
+  async authorizeDocument(url: string, user: AuthenticatedUser) {
+    const parties = await this.findDocumentParties(url);
+    if (!parties) throw new NotFoundException("Document introuvable.");
 
     const isStaff = user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN_AGENT;
     const allowed =
       isStaff ||
-      (user.role === UserRole.OWNER && owned.ownerId === user.ownerId) ||
-      (user.role === UserRole.TENANT && owned.tenantId === user.tenantId);
+      (user.role === UserRole.OWNER && parties.ownerId === user.ownerId) ||
+      (user.role === UserRole.TENANT && !!parties.tenantId && parties.tenantId === user.tenantId) ||
+      (!!parties.userId && parties.userId === user.id);
     if (!allowed) throw new ForbiddenException("Vous n'avez pas accès à ce document.");
 
     return url;
