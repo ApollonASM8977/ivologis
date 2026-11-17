@@ -37,6 +37,8 @@ export function BrandLogo({
         className={`relative flex ${box} shrink-0 items-center justify-center shadow-sm ${mark}`}
         style={{ borderRadius: "14px 6px 14px 6px" }}
         aria-hidden="true"
+        // whileTap rend l'élément focusable (tabindex=0) ; un logo décoratif masqué ne doit pas l'être.
+        tabIndex={-1}
       >
         <svg viewBox="0 0 24 24" className="h-[60%] w-[60%]">
           <rect x="7.2" y="11" width="9.6" height="7.4" rx="3.4" fill="currentColor" />
