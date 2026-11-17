@@ -2,11 +2,11 @@
 
 **Projet** : IVOLOGIS — `G:\Projet a mettre sur github\IMMO+` (monorepo npm : `apps/api` NestJS+Prisma, `apps/web` Next.js 15, `packages/shared`). Dépôt GitHub **PUBLIC** `ApollonASM8977/ivologis`, branche `main`. Prod : `ivologis-web.onrender.com` / `ivologis-api.onrender.com` (Render gratuit, déploiement manuel via MCP Render `trigger_deploy`), base Neon projet `fancy-star-15869804` (branche `main` = prod).
 
-**Phase en cours** : PHASE 1 terminée (2026-11-17) → démarrer PHASE 2 (recherche marché/légal).
+**Phase en cours** : PHASE 5 (implémentation). Phases 1 à 4 terminées le 2026-11-17.
 
-**État** : `01_ARCHITECTURE.md`, `03_GAP_ANALYSIS.md` (partie 1), `07_SECURITE.md` remplis. 4 failles critiques/élevées **confirmées par test** (S-01 à S-04).
+**État** : audit (01, 03, 07), marché/légal sourcé (02), gap par domaine (03 partie 2), backlog avec jalons (04) écrits. 4 failles critiques/élevées confirmées par test (S-01 à S-04).
 
-**Prochaine action exacte** : Phase 2 → recherches web (sources + dates) et remplir `02_MARCHE_CI_AFRIQUE.md` ; puis Phase 3 (partie 2 du gap) et Phase 4 (backlog). Les correctifs S-02/S-03/S-04/E-02 seront les premières tâches P0 de la Phase 5.
+**Prochaine action exacte** : implémenter les P0 dans l'ordre de `04_BACKLOG.md` : P0-01 (code d'invitation) → P0-02 → P0-03 → P0-04 → P0-05 → … Pour chaque tâche : statut EN COURS → code → `npx tsc --noEmit -p apps/api/tsconfig.json`, `npm run test --workspace=@ivologis/api`, `npx tsc --noEmit -p apps/web/tsconfig.json` → test sur l'API locale (`audit-qa`) → FAIT + commit.
 
 **Environnement de test local** (ne jamais tester contre la prod) :
 - Branche Neon `audit-qa` (`br-shy-fog-b1hl85o4`), copie de la prod du 2026-11-17. Sa chaîne de connexion et un `JWT_SECRET` de test sont dans le fichier temporaire `qa.env` du scratchpad de session (hors dépôt) ; sinon la récupérer avec l'outil Neon `get_connection_string` (branch_id ci-dessus).

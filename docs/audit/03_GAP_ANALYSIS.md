@@ -64,5 +64,102 @@ Voir `07_SECURITE.md` : 4 CRITIQUES/ÉLEVÉS confirmés par test (S-01 à S-04) 
 - Vente : statut titre foncier + vérification par l'agence, offres, documents, finalisation.
 - Formats ivoiriens déjà présents : FCFA (`formatXOF` → « 150 000 FCFA »), moyens de paiement locaux, avance/caution.
 
-## Partie 2 — Écarts par domaine (Phase 3)
-(à compléter après la Phase 2)
+## Partie 2 — Écarts par domaine (Phase 3, 2026-11-17)
+Légende état : ❌ manquant · ◐ incomplet · ↻ à refaire · ✅ présent. Exigences `R-xx` : voir `02_MARCHE_CI_AFRIQUE.md`.
+
+### Fonctionnalités de recherche et de contact
+| Élément | État | Impact | Crit. | Effort |
+|---|---|---|---|---|
+| Location **longue durée** dans le catalogue public (R-01) | ❌ | U, R | 5 | M |
+| Recherche : commune, quartier, budget FCFA, type, pièces, meublé, équipements (CIE/SODECI, sécurité, parking, clim, cour commune) | ❌ | U, R | 5 | M |
+| Tri, pagination, compteur de résultats | ❌ | U | 3 | S |
+| Carte interactive des résultats | ❌ (carte par fiche ✅) | U | 2 | M |
+| Favoris, filtres sauvegardés, alertes | ❌ | U, R | 2 | M |
+| Comparateur | ❌ | U | 1 | M |
+| Calculateur coût d'entrée location (loyer + avance + caution + ½ frais d'agence) | ❌ | U, L | 4 | S |
+| Simulateur de crédit / rentabilité | ❌ | U | 2 | S |
+| Rendez-vous de visite (vente) | ✅ | — | — | — |
+| Rendez-vous de visite (location longue) | ❌ | U, R | 4 | S (réutiliser `PropertyVisitRequest`) |
+| Bouton WhatsApp / appel **agence** (R-07) | ❌ | U, R | 4 | S |
+| Messagerie interne | ❌ | U | 2 | L |
+| Visite virtuelle / vidéo | ◐ (lien externe optionnel) | U, C | 2 | — |
+| Statuts d'annonce (disponible, loué, expiré, vendu) visibles + expiration auto | ◐ | C | 3 | S |
+| Signalement d'annonce | ❌ | C | 3 | S |
+| Avis vérifiés | ❌ | C | 2 | M |
+| Suivi d'une demande invité par référence | ◐ (référence affichée, pas de page de suivi) | U | 3 | S |
+
+### Confiance et anti-arnaque
+| Élément | État | Impact | Crit. | Effort |
+|---|---|---|---|---|
+| Données de démo clairement marquées (R-05) | ❌ (T-01) | C, L | 5 | S |
+| Vérification foncière documentée (date, vérificateur, pièce archivée) | ◐ (booléen seul) | C, L | 4 | M |
+| Vérification d'identité propriétaire (CNI) / agence (RCCM, agrément) | ◐ (champs texte, pas d'upload, pas de contrôle) | C | 3 | M |
+| Badge « Vérifié » avec sens précis + page « Comment on vérifie » | ◐ | C | 4 | S |
+| Avertissements anti-fraude sur les annonces (R-06) | ❌ | C | 4 | S |
+| Détection de doublons, modération, historique d'annonce | ❌ | C | 2 | M |
+| Identité du propriétaire masquée au public (passage par l'agence) | ↻ (nom affiché) | C, R | 4 | S |
+
+### Documents
+| Élément | État | Impact | Crit. | Effort |
+|---|---|---|---|---|
+| Contrat de bail (PDF + Word) par type | ✅ | — | — | — |
+| Mentions conformes : 2 mois + 2 mois, enregistrement aux impôts, agrément agence | ◐ | L | 4 | S |
+| Quittances | ✅ (mais émises sur faux paiement : E-01) | L | 5 | — |
+| États des lieux | ✅ | — | — | — |
+| Mandat de gestion / de vente | ❌ | L | 3 | M |
+| Coffre-fort documents de vente | ↻ (illisibles : E-02) | U | 4 | S |
+| Checklist documents fonciers pour l'acheteur | ❌ | C | 3 | S |
+| Signature électronique (prestataire agréé ARTCI) | ❌ | L | 2 | L |
+
+### Informations et contenus
+| Élément | État | Impact | Crit. | Effort |
+|---|---|---|---|---|
+| Mentions légales complètes, CGU, confidentialité conforme loi 2013-450 | ↻ (T-07) | L | 5 | S (structure) + utilisateur (contenu) |
+| Guides : louer à Abidjan, acheter un terrain sans se faire arnaquer, comprendre l'ACD | ❌ | C, SEO | 3 | M (contenu juriste) |
+| Fiches communes/quartiers | ❌ | SEO | 2 | M (données à sourcer) |
+| FAQ visiteurs (acheteurs/locataires) | ❌ (FAQ = agences) | U | 2 | S |
+
+### Gestion pour les pros
+| Élément | État | Crit. | Effort |
+|---|---|---|---|
+| Tableaux de bord admin/propriétaire/locataire | ✅ | — | — |
+| Statistiques d'annonce (vues, demandes) | ◐ (compteurs non dédupliqués) | 2 | S |
+| Leads / CRM léger (pipeline des demandes de visite et réservations) | ◐ (listes par bien) | 3 | M |
+| Import en masse | ◐ (locataires CSV) | 2 | M |
+| Relances automatiques de loyers | ❌ (E-04) | 3 | M |
+| Multi-agences / abonnements / boosts payants | ❌ (E-10, décision) | 3 | L |
+
+### Paiement
+| Élément | État | Crit. | Effort |
+|---|---|---|---|
+| Aucun « payé » sans encaissement (déclaration + confirmation agence) | ↻ (S-03) | 5 | S |
+| Paiement réel Mobile Money via agrégateur + webhook signé idempotent | ❌ | 4 | L (compte marchand requis) |
+| Séquestre / dépôt de garantie | ❌ | 2 | L |
+| Reçus automatiques après confirmation | ✅ (à brancher sur le vrai statut) | — | — |
+
+### Notifications
+| Élément | État | Crit. | Effort |
+|---|---|---|---|
+| In-app | ✅ | — | — |
+| Email transactionnel (réinitialisation, confirmation de demande) | ❌ | 4 | M (fournisseur requis) |
+| SMS / WhatsApp avec repli | ❌ | 3 | L (fournisseur requis) |
+
+### Performance / SEO
+| Élément | État | Crit. | Effort |
+|---|---|---|---|
+| Annonces rendues côté serveur + `metadata` par annonce + schema.org | ❌ (P-01) | 4 | M |
+| Sitemap incluant les annonces | ❌ | 3 | S |
+| Images compressées à l'upload | ❌ | 3 | M |
+| PWA / hors-ligne partiel | ✅ (de base) | — | — |
+| Réveil Render (plan gratuit) | ◐ (message palliatif) | 4 | décision € |
+
+### Admin
+| Élément | État | Crit. | Effort |
+|---|---|---|---|
+| Modération des annonces publiques (file « à vérifier ») | ◐ | 3 | S |
+| Gestion utilisateurs, journal d'audit | ✅ | — | — |
+| Réinitialisation de mot de passe assistée par l'admin | ❌ | 4 | S |
+| Paramétrage identité légale de l'agence (RCCM, agrément, ARTCI, WhatsApp) | ❌ | 4 | S |
+| Paramétrage pays/devises | ❌ | 1 | L |
+
+### Sécurité et conformité — voir `07_SECURITE.md`. ### Design/UX — voir `06_DESIGN_SYSTEM.md` (Phase 7).
