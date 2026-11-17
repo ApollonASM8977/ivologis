@@ -19,6 +19,7 @@ Notation : **criticité 1 (faible) à 5 (bloquant)** · **effort S/M/L** · impa
 | E-08 | Demandes publiques : dates passées acceptées (réservation), demande de visite possible sur un bien **vendu/archivé**. | `short-stay.service.ts` l.137-141, `sales.service.ts` l.177-187 | 2 | S | U |
 | E-09 | Pièce d'identité du propriétaire : champ `idDocumentUrl` en base/DTO mais **aucun upload** dans l'interface. Champs `receiptTemplate`, `contractTemplate` (paramètres) et modèle `FinancialReport` **jamais utilisés**. | grep | 2 | S | — |
 | E-10 | **Positionnement contradictoire** : la vitrine vend un SaaS multi-agences (« Demander une démo », 3 formules « Sur devis ») alors que l'application est **mono-agence** (un seul `CompanySettings`, tout le personnel voit tout). Elle mélange aussi un discours B2B (gestion locative) et un catalogue B2C (acheteurs, voyageurs). | `page.tsx`, `schema.prisma` | 4 | décision | C, R |
+| E-12 | **Enregistrement des paramètres de l'entreprise cassé** : la page envoyait l'objet complet (`id`, `currency`, `receiptTemplate`…) refusé par la validation stricte → 400. Corrigé par P0-15. | test API 2026-11-17 | 4 | S | U |
 | E-11 | Pas de location longue durée dans le catalogue public : on ne peut pas chercher un appartement à louer au mois (cœur du marché), seulement vente et courte durée. | `catalog.controller.ts` | 5 | M | U, R |
 
 ### b) Traces typiques de code généré par IA

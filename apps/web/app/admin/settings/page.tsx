@@ -18,8 +18,25 @@ interface SettingsForm {
   address?: string;
   email?: string;
   phone?: string;
+  whatsappPhone?: string;
+  legalName?: string;
+  rccmNumber?: string;
+  taxNumber?: string;
+  agentLicenseNumber?: string;
+  artciNumber?: string;
+  publicationDirector?: string;
   commissionRate: number;
   enabledPaymentMethods: PaymentMethod[];
+}
+
+const FIELDS: (keyof SettingsForm)[] = [
+  "companyName", "address", "email", "phone", "whatsappPhone", "legalName", "rccmNumber", "taxNumber",
+  "agentLicenseNumber", "artciNumber", "publicationDirector", "commissionRate", "enabledPaymentMethods",
+];
+
+// L'API refuse les champs inconnus (id, dates…) : on n'envoie que ceux du formulaire, null → chaîne vide évitée.
+function toPayload(values: SettingsForm) {
+  return Object.fromEntries(FIELDS.filter((k) => values[k] != null).map((k) => [k, values[k]]));
 }
 
 export default function AdminSettingsPage() {
@@ -36,10 +53,11 @@ export default function AdminSettingsPage() {
   }, [settings, reset]);
 
   const updateMutation = useMutation({
-    mutationFn: (values: SettingsForm) => api.patch("/settings", values),
+    mutationFn: (values: SettingsForm) => api.patch("/settings", toPayload(values)),
     onSuccess: () => {
       toast.success("Paramètres mis à jour.");
       queryClient.invalidateQueries({ queryKey: ["settings"] });
+      queryClient.invalidateQueries({ queryKey: ["company"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -70,9 +88,46 @@ export default function AdminSettingsPage() {
               <Label>Téléphone</Label>
               <Input {...register("phone")} />
             </div>
-            <div className="sm:col-span-2">
-              <Label>Adresse</Label>
+            <div>
+              <Label>WhatsApp de l&apos;agence</Label>
+              <Input placeholder="+225 07 ..." {...register("whatsappPhone")} />
+            </div>
+            <div>
+              <Label>Adresse du siège</Label>
               <Input {...register("address")} />
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Identité légale"
+            subtitle="Affichée dans les mentions légales et le pied de page. Un champ vide n'apparaît nulle part."
+          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label>Raison sociale</Label>
+              <Input placeholder="Ex : IVOLOGIS SARL" {...register("legalName")} />
+            </div>
+            <div>
+              <Label>Directeur de la publication</Label>
+              <Input {...register("publicationDirector")} />
+            </div>
+            <div>
+              <Label>N° RCCM</Label>
+              <Input placeholder="CI-ABJ-..." {...register("rccmNumber")} />
+            </div>
+            <div>
+              <Label>N° de compte contribuable (NCC)</Label>
+              <Input {...register("taxNumber")} />
+            </div>
+            <div>
+              <Label>N° d&apos;agrément d&apos;agent immobilier</Label>
+              <Input {...register("agentLicenseNumber")} />
+            </div>
+            <div>
+              <Label>N° d&apos;autorisation ARTCI (données personnelles)</Label>
+              <Input {...register("artciNumber")} />
             </div>
           </div>
         </Card>

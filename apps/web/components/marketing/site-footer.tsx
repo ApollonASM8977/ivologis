@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
+import { FooterLegalLine } from "@/components/marketing/legal-identity";
 
 export function SiteFooter() {
   return (
@@ -34,6 +35,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-gray-100 py-5 text-center text-xs text-ink-muted">
         © {new Date().getFullYear()} IVOLOGIS. Tous droits réservés.
+        <FooterLegalLine />
       </div>
     </footer>
   );

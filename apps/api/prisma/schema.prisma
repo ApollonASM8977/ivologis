@@ -697,6 +697,14 @@ model CompanySettings {
   address                String?
   email                  String?
   phone                  String?
+  whatsappPhone          String?
+  // Identité légale affichée dans les mentions légales et sur les documents.
+  legalName              String?
+  rccmNumber             String?
+  taxNumber              String?
+  agentLicenseNumber     String?
+  artciNumber            String?
+  publicationDirector    String?
   commissionRate         Decimal  @db.Decimal(5, 2) @default(10)
   currency               String   @default("XOF")
   enabledPaymentMethods  String[] @default(["ORANGE_MONEY", "MTN_MONEY", "MOOV_MONEY", "WAVE", "CASH", "BANK_TRANSFER"])

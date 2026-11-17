@@ -6,16 +6,23 @@ import { Roles } from "../common/decorators/roles.decorator";
 import { SettingsService } from "./settings.service";
 import { UpdateSettingsDto } from "./dto/update-settings.dto";
 
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("settings")
 export class SettingsController {
   constructor(private settingsService: SettingsService) {}
 
+  /** Public : identité de l'agence pour les mentions légales, le pied de page et les contacts. */
+  @Get("public")
+  getPublic() {
+    return this.settingsService.getPublic();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   get() {
     return this.settingsService.get();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch()
   @Roles(UserRole.SUPER_ADMIN)
   update(@Body() dto: UpdateSettingsDto) {
