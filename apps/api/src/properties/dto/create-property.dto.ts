@@ -126,4 +126,9 @@ export class CreatePropertyDto {
   @IsOptional()
   @IsString()
   virtualTourUrl?: string;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isDemo?: boolean;
 }

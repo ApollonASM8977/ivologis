@@ -179,6 +179,9 @@ export class SalesService {
     if (!property.forSale || property.archivedAt || property.saleStatus === SaleStatus.VENDU) {
       throw new BadRequestException("Ce bien n'est plus disponible à la vente.");
     }
+    if (property.isDemo) {
+      throw new BadRequestException("Annonce de démonstration : ce bien est fictif, aucune visite n'est possible.");
+    }
     if (!user && !dto.guestName) {
       throw new BadRequestException("Votre nom est requis pour envoyer une demande.");
     }

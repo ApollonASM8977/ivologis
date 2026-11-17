@@ -124,6 +124,9 @@ export class ShortStayService {
     if (!property.shortStayEnabled || property.archivedAt) {
       throw new BadRequestException("Ce bien n'est pas disponible en location courte durée.");
     }
+    if (property.isDemo) {
+      throw new BadRequestException("Annonce de démonstration : ce logement est fictif, aucune réservation n'est possible.");
+    }
     if (!property.shortStayNightlyRate) {
       throw new BadRequestException("Le tarif par nuitée n'a pas encore été défini pour ce bien.");
     }

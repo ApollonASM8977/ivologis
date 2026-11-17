@@ -1,6 +1,27 @@
 "use client";
 
+import { FlaskConical } from "lucide-react";
 import { CardHeader } from "@/components/ui/card";
+
+export function DemoBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-900">
+      <FlaskConical className="h-3 w-3" aria-hidden="true" /> Démo
+    </span>
+  );
+}
+
+export function DemoNotice() {
+  return (
+    <div role="note" className="mb-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+      <FlaskConical className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+      <p>
+        <strong>Annonce de démonstration.</strong> Ce bien est fictif : il sert à montrer le fonctionnement du catalogue. Les photos, le prix et
+        les documents ne correspondent à aucun bien réel, et aucune demande ne peut être envoyée.
+      </p>
+    </div>
+  );
+}
 
 export function LocationMap({ latitude, longitude }: { latitude?: number | string | null; longitude?: number | string | null }) {
   const lat = latitude != null ? Number(latitude) : null;

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
-import { LocationMap, VirtualTourCard } from "@/components/catalog/property-extras";
+import { LocationMap, VirtualTourCard, DemoNotice } from "@/components/catalog/property-extras";
 
 interface RequestForm {
   checkIn: string;
@@ -82,6 +82,8 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
       <Link href={basePath} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" /> Retour au catalogue
       </Link>
+
+      {property.isDemo && <DemoNotice />}
 
       {!!property.images?.length && (
         <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -157,9 +159,10 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
         </div>
       </Card>
 
-      <Button className="mt-6" onClick={() => setModalOpen(true)}>
+      <Button className="mt-6" onClick={() => setModalOpen(true)} disabled={property.isDemo}>
         <CalendarCheck className="h-4 w-4" /> Demander une réservation
       </Button>
+      {property.isDemo && <p className="mt-2 text-xs text-ink-muted">Indisponible sur une annonce de démonstration.</p>}
 
       <Modal
         open={modalOpen}

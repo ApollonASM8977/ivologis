@@ -22,6 +22,7 @@ const PUBLIC_FIELDS = {
   amenities: true,
   landmark: true,
   virtualTourUrl: true,
+  isDemo: true,
   updatedAt: true,
   images: { select: { id: true, url: true, isCover: true }, orderBy: { isCover: "desc" } },
 } satisfies Prisma.PropertySelect;

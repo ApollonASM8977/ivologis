@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import { PropertyType, PROPERTY_TYPE_LABELS, COMMUNES_ABIDJAN, PROPERTY_AMENITIES } from "@ivologis/shared";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 
@@ -31,6 +32,7 @@ export interface PropertyFormValues {
   latitude?: number;
   longitude?: number;
   virtualTourUrl?: string;
+  isDemo?: boolean;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -56,6 +58,8 @@ export function PropertyForm({
 }) {
   const { register, handleSubmit, watch } = useForm<PropertyFormValues>({ defaultValues });
   const shortStayEnabled = watch("shortStayEnabled");
+  const role = useAuthStore((s) => s.user?.role);
+  const isStaff = role === "SUPER_ADMIN" || role === "ADMIN_AGENT";
 
   const { data: owners } = useQuery({
     queryKey: ["owners", "all-for-select"],
@@ -203,6 +207,18 @@ export function PropertyForm({
           <Label>Lien visite virtuelle 360° (optionnel)</Label>
           <Input placeholder="Lien Matterport, Kuula, ou autre visite 360°..." {...register("virtualTourUrl")} />
         </div>
+
+        {isStaff && (
+          <div className="col-span-2">
+            <label className="flex items-start gap-2 text-sm text-ink">
+              <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-gray-300" {...register("isDemo")} />
+              <span>
+                Annonce de démonstration (bien fictif)
+                <span className="block text-xs text-ink-muted">Affiche un bandeau « Démo » et bloque toute demande de visite ou de réservation.</span>
+              </span>
+            </label>
+          </div>
+        )}
       </div>
 
       <Button type="submit" className="w-full" loading={loading}>

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
-import { LocationMap, VirtualTourCard } from "@/components/catalog/property-extras";
+import { LocationMap, VirtualTourCard, DemoNotice } from "@/components/catalog/property-extras";
 
 interface VisitForm {
   preferredDate?: string;
@@ -53,6 +53,8 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
         <ArrowLeft className="h-4 w-4" /> Retour au catalogue
       </Link>
 
+      {property.isDemo && <DemoNotice />}
+
       {!!property.images?.length && (
         <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {property.images.map((img: any) => (
@@ -72,7 +74,7 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-primary">{formatXOF(Number(property.salePrice ?? 0))}</p>
-          {property.landTitleVerified && (
+          {property.landTitleVerified && !property.isDemo && (
             <p className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-success">
               <ShieldCheck className="h-3.5 w-3.5" />
               Titre vérifié · {LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS]}
@@ -141,9 +143,10 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
         </div>
       </Card>
 
-      <Button className="mt-6" onClick={() => setModalOpen(true)}>
+      <Button className="mt-6" onClick={() => setModalOpen(true)} disabled={property.isDemo}>
         <CalendarCheck className="h-4 w-4" /> Prendre rendez-vous pour visiter
       </Button>
+      {property.isDemo && <p className="mt-2 text-xs text-ink-muted">Indisponible sur une annonce de démonstration.</p>}
 
       <Modal
         open={modalOpen}

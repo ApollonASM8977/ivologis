@@ -355,6 +355,7 @@ model Property {
   landTitleVerified  Boolean        @default(false)
 
   // --- Catalogue / analytics ---
+  isDemo         Boolean @default(false)
   viewCount      Int     @default(0)
   inquiryCount   Int     @default(0)
   virtualTourUrl String?

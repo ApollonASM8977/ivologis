@@ -8,6 +8,7 @@ import { api, fileUrl } from "@/lib/api";
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
+import { DemoBadge } from "@/components/catalog/property-extras";
 
 export function ShortStayCatalog({ basePath }: { basePath: string }) {
   const { data, isLoading } = useQuery<any[]>({
@@ -31,6 +32,11 @@ export function ShortStayCatalog({ basePath }: { basePath: string }) {
               <Link key={p.id} href={`${basePath}/${p.id}`}>
                 <div className="h-full cursor-pointer overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
                   <div className="relative h-40 w-full bg-gray-100">
+                    {p.isDemo && (
+                      <span className="absolute left-2 top-2 z-10">
+                        <DemoBadge />
+                      </span>
+                    )}
                     {cover ? (
                       <Image src={fileUrl(cover.url) ?? ""} alt={p.name} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
                     ) : (
