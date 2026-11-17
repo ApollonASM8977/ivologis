@@ -19,6 +19,9 @@
 - Aucune suppression de données en prod sans accord explicite. Ne jamais se connecter au site de prod avec les mots de passe de test.
 - `prisma migrate dev` échoue (non interactif) : `prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script` → dossier de migration créé à la main → `prisma migrate deploy` (sur `audit-qa` d'abord).
 - Composant `Card` : ne pas surcharger le padding via `className`, utiliser un `<div>`.
+- **Ne jamais réécrire un fichier source avec PowerShell `Get-Content`/`Set-Content`** (Windows PowerShell 5.1 lit en ANSI et écrit un BOM → accents corrompus, Prisma casse). Utiliser l'outil Edit.
+- Sous Windows, arrêter l'API locale avant `prisma generate` (le moteur Prisma est verrouillé sinon).
+- `/auth/login` et `/auth/register` sont limités à 5 req/min/IP : espacer les tests.
 
 **Attend l'utilisateur** :
 1. URGENT : changer en prod les mots de passe des 10 comptes du seed (le Super Admin a encore le mot de passe publié) et activer la 2FA du Super Admin (S-01).

@@ -1,8 +1,10 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import * as bcrypt from "bcryptjs";
 import { AccountStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
+import { generateInviteCode, hashInviteCode, inviteExpiry } from "../common/utils/invite-code.util";
 import { CreateTenantDto } from "./dto/create-tenant.dto";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
@@ -10,7 +12,25 @@ import { UpdateTenantDto } from "./dto/update-tenant.dto";
 
 @Injectable()
 export class TenantsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) {}
+
+  /** Code à transmettre au locataire pour qu'il crée son compte ; seul son HMAC est stocké. */
+  async createInvite(id: string, actorId: string) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id }, select: { userId: true } });
+    if (!tenant) throw new NotFoundException("Locataire introuvable.");
+    if (tenant.userId) throw new BadRequestException("Ce locataire a déjà un compte.");
+    const code = generateInviteCode();
+    const expiresAt = inviteExpiry();
+    await this.prisma.tenant.update({
+      where: { id },
+      data: { inviteCodeHash: hashInviteCode(code, process.env.JWT_SECRET as string), inviteExpiresAt: expiresAt },
+    });
+    await this.audit.log({ userId: actorId, action: "CREATE_INVITE", entityType: "Tenant", entityId: id });
+    return { code, expiresAt };
+  }
 
   async importRows(rows: unknown[]) {
     const errors: { line: number; message: string }[] = [];

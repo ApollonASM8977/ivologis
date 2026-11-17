@@ -246,6 +246,8 @@ model Owner {
   idDocumentUrl    String?
   commissionRate   Decimal?      @db.Decimal(5, 2)
   status           AccountStatus @default(ACTIVE)
+  inviteCodeHash   String?       @unique
+  inviteExpiresAt  DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -284,6 +286,8 @@ model Tenant {
   guarantorAddress      String?
   guarantorIdDocument   String?
   status                AccountStatus @default(ACTIVE)
+  inviteCodeHash        String?       @unique
+  inviteExpiresAt       DateTime?
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 

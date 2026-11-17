@@ -73,6 +73,13 @@ export class OwnersController {
     return this.ownersService.updateStatus(id, status);
   }
 
+  @Post(":id/invite")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.OWNERS_MANAGE)
+  createInvite(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.ownersService.createInvite(id, user.id);
+  }
+
   @Get(":id/payouts")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   async listPayouts(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {

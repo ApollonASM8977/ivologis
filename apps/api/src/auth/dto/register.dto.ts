@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from "class-validator";
 
@@ -26,4 +27,9 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  inviteCode?: string;
 }

@@ -38,6 +38,7 @@ function metaOf(req: Request): SessionMeta {
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post("register")
   register(@Body() dto: RegisterDto, @Req() req: Request) {
     return this.authService.register(dto, metaOf(req));

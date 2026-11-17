@@ -8,6 +8,7 @@ import { formatXOF, MARITAL_STATUS_LABELS } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/empty-state";
 import { PaymentStatusBadge, LeaseStatusBadge, MaintenanceStatusBadge } from "@/components/status-badges";
+import { InviteCodeCard } from "@/components/invite-code-card";
 
 export function TenantDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -36,6 +37,8 @@ export function TenantDetail({ id }: { id: string }) {
           </p>
         </div>
       </div>
+
+      <InviteCodeCard resource="tenants" id={id} hasAccount={!!tenant.userId} pendingUntil={tenant.inviteExpiresAt} />
 
       <Card className="mb-4">
         <CardHeader title="Informations complémentaires" />

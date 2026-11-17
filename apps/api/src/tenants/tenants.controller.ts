@@ -90,4 +90,11 @@ export class TenantsController {
   updateStatus(@Param("id") id: string, @Body("status") status: AccountStatus) {
     return this.tenantsService.updateStatus(id, status);
   }
+
+  @Post(":id/invite")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.TENANTS_MANAGE)
+  createInvite(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.tenantsService.createInvite(id, user.id);
+  }
 }

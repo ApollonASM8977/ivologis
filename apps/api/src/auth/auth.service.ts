@@ -13,6 +13,7 @@ import { LoginDto } from "./dto/login.dto";
 import { AuditService } from "../audit/audit.service";
 import { authenticator } from "otplib";
 import { publicUser } from "../common/utils/public-user";
+import { hashInviteCode } from "../common/utils/invite-code.util";
 
 const SELF_REGISTER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.TENANT];
 const INTERNAL_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT];
@@ -67,69 +68,50 @@ export class AuthService {
       );
     }
 
+    if (role === UserRole.TENANT && !dto.inviteCode) {
+      throw new BadRequestException(
+        "Un code d'invitation est nécessaire pour créer un compte locataire. Demandez-le à votre agence.",
+      );
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, 12);
+    // Rattachement à un dossier existant uniquement par code d'invitation, jamais par numéro de téléphone.
+    const inviteMatch = dto.inviteCode
+      ? {
+          inviteCodeHash: hashInviteCode(dto.inviteCode, process.env.JWT_SECRET as string),
+          inviteExpiresAt: { gt: new Date() },
+          userId: null,
+        }
+      : null;
+    const invalidInvite = () =>
+      new BadRequestException("Code d'invitation invalide, déjà utilisé ou expiré. Demandez un nouveau code à votre agence.");
 
     const user = await this.prisma.$transaction(async (tx) => {
-      if (role === UserRole.OWNER) {
-        const existingOwner = await tx.owner.findFirst({
-          where: { phone: dto.phone, userId: null },
-        });
-
-        const createdUser = await tx.user.create({
-          data: {
-            fullName: dto.fullName,
-            email: dto.email,
-            phone: dto.phone,
-            passwordHash,
-            role: UserRole.OWNER,
-            status: AccountStatus.ACTIVE,
-          },
-        });
-
-        if (existingOwner) {
-          await tx.owner.update({
-            where: { id: existingOwner.id },
-            data: { userId: createdUser.id, email: dto.email },
-          });
-        } else {
-          await tx.owner.create({
-            data: {
-              userId: createdUser.id,
-              fullName: dto.fullName,
-              phone: dto.phone,
-              email: dto.email,
-            },
-          });
-        }
-        return createdUser;
-      }
-
-      // TENANT : doit déjà avoir un dossier créé par un agent/propriétaire.
-      const existingTenant = await tx.tenant.findFirst({
-        where: { phone: dto.phone, userId: null },
-      });
-      if (!existingTenant) {
-        throw new BadRequestException(
-          "Aucun dossier locataire trouvé pour ce numéro. Contactez votre agence IVOLOGIS.",
-        );
-      }
-
       const createdUser = await tx.user.create({
         data: {
           fullName: dto.fullName,
           email: dto.email,
           phone: dto.phone,
           passwordHash,
-          role: UserRole.TENANT,
+          role,
           status: AccountStatus.ACTIVE,
         },
       });
+      const link = { userId: createdUser.id, email: dto.email, inviteCodeHash: null, inviteExpiresAt: null };
 
-      await tx.tenant.update({
-        where: { id: existingTenant.id },
-        data: { userId: createdUser.id, email: dto.email },
+      if (inviteMatch) {
+        // updateMany + count : un code ne peut être consommé qu'une fois, même en cas de requêtes simultanées.
+        const linked =
+          role === UserRole.OWNER
+            ? await tx.owner.updateMany({ where: inviteMatch, data: link })
+            : await tx.tenant.updateMany({ where: inviteMatch, data: link });
+        if (linked.count !== 1) throw invalidInvite();
+        return createdUser;
+      }
+
+      await tx.owner.create({
+        data: { userId: createdUser.id, fullName: dto.fullName, phone: dto.phone, email: dto.email },
       });
-
       return createdUser;
     });
 

@@ -9,6 +9,7 @@ import { formatXOF } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { PropertyStatusBadge } from "@/components/status-badges";
+import { InviteCodeCard } from "@/components/invite-code-card";
 
 export default function OwnerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +58,11 @@ export default function OwnerDetailPage() {
         </Card>
       </div>
 
-      <Card className="mt-4">
+      <div className="mt-4">
+        <InviteCodeCard resource="owners" id={id} hasAccount={!!owner.userId} pendingUntil={owner.inviteExpiresAt} />
+      </div>
+
+      <Card>
         <CardHeader title="Informations complémentaires" />
         <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div>

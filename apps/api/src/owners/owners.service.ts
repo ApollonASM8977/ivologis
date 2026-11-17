@@ -1,8 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import * as bcrypt from "bcryptjs";
 import { AccountStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
+import { generateInviteCode, hashInviteCode, inviteExpiry } from "../common/utils/invite-code.util";
 import { SettingsService } from "../settings/settings.service";
 import { AuditService } from "../audit/audit.service";
 import { CreatePayoutDto } from "./dto/create-payout.dto";
@@ -16,6 +17,21 @@ export class OwnersService {
     private settings: SettingsService,
     private audit: AuditService,
   ) {}
+
+  /** Code à transmettre au propriétaire pour qu'il crée son compte ; seul son HMAC est stocké. */
+  async createInvite(id: string, actorId: string) {
+    const owner = await this.prisma.owner.findUnique({ where: { id }, select: { userId: true } });
+    if (!owner) throw new NotFoundException("Propriétaire introuvable.");
+    if (owner.userId) throw new BadRequestException("Ce propriétaire a déjà un compte.");
+    const code = generateInviteCode();
+    const expiresAt = inviteExpiry();
+    await this.prisma.owner.update({
+      where: { id },
+      data: { inviteCodeHash: hashInviteCode(code, process.env.JWT_SECRET as string), inviteExpiresAt: expiresAt },
+    });
+    await this.audit.log({ userId: actorId, action: "CREATE_INVITE", entityType: "Owner", entityId: id });
+    return { code, expiresAt };
+  }
 
   async createPayout(ownerId: string, dto: CreatePayoutDto, actorId?: string) {
     await this.findOne(ownerId);

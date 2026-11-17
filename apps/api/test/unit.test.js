@@ -198,3 +198,17 @@ test("finalisation de vente : acheteur et prix final requis", async () => {
   assert.ok((await errorsOf(FinalizeSaleDto, { buyerName: "Konan", finalPrice: 42000000, saleDate: "pas une date" })).includes("saleDate"));
   assert.ok((await errorsOf(FinalizeSaleDto, { finalPrice: 42000000 })).includes("buyerName"));
 });
+
+const { generateInviteCode, hashInviteCode, normalizeInviteCode, inviteExpiry } = require("../dist/src/common/utils/invite-code.util.js");
+
+test("code d'invitation : 8 caractères sans ambiguïté, empreinte dépendante du secret", () => {
+  const codes = new Set(Array.from({ length: 200 }, () => generateInviteCode()));
+  assert.ok(codes.size > 195);
+  for (const code of codes) assert.match(code, /^[ABCDEFGHJKLMNPQRSTUVWXYZ2-9]{8}$/);
+  const code = generateInviteCode();
+  assert.equal(normalizeInviteCode(`${code.slice(0, 4).toLowerCase()} - ${code.slice(4)}`), code);
+  assert.equal(hashInviteCode(code.toLowerCase(), "s1"), hashInviteCode(code, "s1"));
+  assert.notEqual(hashInviteCode(code, "s1"), hashInviteCode(code, "s2"));
+  const now = new Date("2026-11-17T10:00:00Z");
+  assert.equal(inviteExpiry(now).toISOString(), "2026-11-24T10:00:00.000Z");
+});
