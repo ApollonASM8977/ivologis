@@ -63,7 +63,8 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
   const rentAmount = watch("rentAmount");
   const deposit = watch("deposit");
   const advance = watch("advance");
-  const depositCeiling = Number(rentAmount) > 0 ? Number(rentAmount) * 2 : 0;
+  const isHabitation = HABITATION_TYPES.includes(type);
+  const depositCeiling = isHabitation && Number(rentAmount) > 0 ? Number(rentAmount) * 2 : 0;
   const depositExceeds = depositCeiling > 0 && Number(deposit) > depositCeiling;
   const advanceExceeds = depositCeiling > 0 && Number(advance) > depositCeiling;
 
@@ -223,7 +224,7 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
                 ? "La caution dépasse 2 mois de loyer"
                 : "L'avance dépasse 2 mois de loyer"}{" "}
             ({formatXOF(depositCeiling)} maximum par poste). Le Code de la construction et de l&apos;habitat (loi n° 2019-576)
-            plafonne la caution et l&apos;avance à 2 mois de loyer chacune pour un bail d&apos;habitation.
+            plafonne la caution et l&apos;avance à 2 mois de loyer chacune pour un bail d&apos;habitation : le contrat ne pourra pas être enregistré.
           </p>
         </div>
       )}

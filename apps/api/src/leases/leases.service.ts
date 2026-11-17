@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import { InspectionType, LeaseStatus, PropertyStatus } from "@prisma/client";
+import { entryCostViolation } from "../common/utils/lease-rules";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
 import { PdfService } from "../common/pdf/pdf.service";
@@ -57,6 +58,9 @@ export class LeasesService {
 
     const tenant = await this.prisma.tenant.findUnique({ where: { id: dto.tenantId } });
     if (!tenant) throw new NotFoundException("Locataire introuvable.");
+
+    const violation = entryCostViolation(dto.type, Number(dto.rentAmount), Number(dto.deposit), Number(dto.advance));
+    if (violation) throw new BadRequestException(violation);
 
     return this.prisma.$transaction(async (tx) => {
       const lease = await tx.lease.create({

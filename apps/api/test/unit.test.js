@@ -199,6 +199,15 @@ test("finalisation de vente : acheteur et prix final requis", async () => {
   assert.ok((await errorsOf(FinalizeSaleDto, { finalPrice: 42000000 })).includes("buyerName"));
 });
 
+const { entryCostViolation } = require("../dist/src/common/utils/lease-rules.js");
+
+test("bail d'habitation : caution et avance plafonnées à 2 mois (loi 2019-576)", () => {
+  assert.equal(entryCostViolation("HABITATION_NUE", 150000, 300000, 300000), null);
+  assert.match(entryCostViolation("HABITATION_MEUBLEE", 150000, 450000, 300000), /caution dépasse 2 mois/);
+  assert.match(entryCostViolation("HABITATION_NUE", 150000, 300000, 900000), /avance dépasse 2 mois/);
+  assert.equal(entryCostViolation("COMMERCIAL", 500000, 3000000, 3000000), null);
+});
+
 const { PayRentDto } = require("../dist/src/payments/dto/pay-rent.dto.js");
 
 test("déclaration de loyer : référence de transaction obligatoire", async () => {
