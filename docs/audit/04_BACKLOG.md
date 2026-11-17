@@ -34,7 +34,7 @@ Une tâche = un commit `type(ID): ...`. Chaque tâche se vérifie sur l'environn
 | ID | Titre | Effort | Statut | Critères d'acceptation (résumé) |
 |---|---|---|---|---|
 | P1-01 | **Location longue durée** dans le catalogue public (biens vacants publiés) + coût d'entrée détaillé (1er loyer + avance + caution + ½ frais d'agence) + demande de visite (R-01) | M | FAIT (2026-11-17) — `rentListed` (agence seule, retiré à la signature d'un bail ou si le propriétaire modifie le bien), `GET /catalog/rentals[/:id]`, `rentalEntryCost` partagé + test, pages `/catalogue/locations` (+ espaces admin/propriétaire/locataire), carte « Mise en location » avec demandes de visite ; vérifié à 375 px | Onglet « Louer » ; fiche avec récapitulatif chiffré en FCFA ; demande de visite invitée avec référence. |
-| P1-02 | Recherche et filtres catalogue (commune, quartier, type, budget, pièces, meublé), tri, pagination | M | TODO | Filtres dans l'URL (partageables), résultats < 1 s sur la base de test. |
+| P1-02 | Recherche et filtres catalogue (commune, quartier, type, budget, pièces, meublé), tri, pagination | M | FAIT (2026-11-17) — `CatalogFilterDto` + recherche paginée commune (`{data,total,page,limit}`), un seul composant `catalog-list.tsx` pour les 3 catalogues, filtres dans l'URL ; testé (API + 375 px) | Filtres dans l'URL (partageables), résultats < 1 s sur la base de test. |
 | P1-03 | Contact en 2 taps vers l'agence (WhatsApp prérempli avec la référence de l'annonce + appel) (R-07) | S | FAIT (2026-11-17) — numéro = Paramètres (`whatsappPhone`/`phone`), masqué sur les démos ; vérifié à 375 px | Boutons visibles sans défiler sur mobile ; numéro = paramètres agence ; jamais le propriétaire. |
 | P1-04 | SEO : pages annonces rendues côté serveur, `generateMetadata`, schema.org `RealEstateListing`, sitemap dynamique (P-01, R-11) | M | TODO | HTML initial contient titre, prix, commune ; sitemap liste les annonces publiées. |
 | P1-05 | Bloc anti-arnaque sur les annonces + page « Comment on vérifie les annonces » (R-06) | S | FAIT (2026-11-17) — `/verification` (rendue côté serveur, dans le sitemap), liens depuis les fiches et le pied de page ; n'affirme que ce que le logiciel garantit | Présent sur chaque fiche ; page liée depuis le footer. |
@@ -60,7 +60,7 @@ Une tâche = un commit `type(ID): ...`. Chaque tâche se vérifie sur l'environn
 | P2-04 | Comparateur de biens | M |
 | P2-05 | Messagerie interne agence ↔ client | L |
 | P2-06 | Avis vérifiés après séjour / bail | M |
-| P2-07 | Visite virtuelle native (voir étude 3D, projet séparé) | L |
+| P2-07 | Visite virtuelle « type Matterport » faite maison (décision utilisateur 2026-11-17, à reprendre) : (1) caméra 360° à acheter + visite pièce par pièce avec Photo Sphere Viewer (MIT) ; (2) plan et dimensions via RoomPlan (iPhone LiDAR déjà possédé) affichés avec `<model-viewer>` ; (3) option 3D photoréaliste (Gaussian Splatting calculé sur la RTX 3060). Prérequis : P1-12 stockage R2 | L |
 | P2-08 | Configuration multi-pays (Country/City/Quartier, devise, règles légales, paiements) | L |
 | P2-09 | Multi-agences (si décision SaaS, E-10), abonnements et mises en avant | L |
 | P2-10 | Signature électronique (prestataire agréé ARTCI) | L |

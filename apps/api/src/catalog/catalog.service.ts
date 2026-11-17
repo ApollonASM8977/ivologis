@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma, PropertyStatus, SaleStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { CatalogFilterDto } from "./dto/catalog-filter.dto";
 
 // Liste blanche : le catalogue est public, rien d'interne (propriétaire, acheteur, commission, locataire) n'en sort.
 const PUBLIC_FIELDS = {
@@ -56,37 +57,81 @@ const PUBLISHED_SALE = {
 
 const PUBLISHED_SHORT_STAY = { shortStayEnabled: true, shortStayApproved: true, archivedAt: null } satisfies Prisma.PropertyWhereInput;
 
+type PriceField = "salePrice" | "rentAmount" | "shortStayNightlyRate";
+
+function filterWhere(f: CatalogFilterDto, priceField: PriceField): Prisma.PropertyWhereInput {
+  const price: Prisma.DecimalFilter = {};
+  if (f.minPrice != null) price.gte = f.minPrice;
+  if (f.maxPrice != null) price.lte = f.maxPrice;
+  return {
+    ...(f.zone
+      ? { OR: [{ commune: { equals: f.zone, mode: "insensitive" } }, { city: { equals: f.zone, mode: "insensitive" } }] }
+      : {}),
+    ...(f.neighborhood ? { neighborhood: { contains: f.neighborhood, mode: "insensitive" } } : {}),
+    ...(f.type ? { type: f.type } : {}),
+    ...(f.minRooms ? { rooms: { gte: f.minRooms } } : {}),
+    ...(f.furnished ? { furnished: true } : {}),
+    ...(Object.keys(price).length ? { [priceField]: price } : {}),
+  };
+}
+
+function filterOrder(f: CatalogFilterDto, priceField: PriceField): Prisma.PropertyOrderByWithRelationInput {
+  if (f.sort === "price_asc") return { [priceField]: "asc" };
+  if (f.sort === "price_desc") return { [priceField]: "desc" };
+  return { updatedAt: "desc" };
+}
+
 @Injectable()
 export class CatalogService {
   constructor(private prisma: PrismaService) {}
 
-  async listSales() {
-    return this.prisma.property.findMany({ where: PUBLISHED_SALE, select: SALE_FIELDS, orderBy: { updatedAt: "desc" } });
+  private async search<S extends Prisma.PropertySelect>(
+    published: Prisma.PropertyWhereInput,
+    select: S,
+    priceField: PriceField,
+    f: CatalogFilterDto,
+  ) {
+    const page = f.page ?? 1;
+    const limit = f.limit ?? 24;
+    const where = { AND: [published, filterWhere(f, priceField)] };
+    const [data, total] = await Promise.all([
+      this.prisma.property.findMany({ where, select, orderBy: filterOrder(f, priceField), skip: (page - 1) * limit, take: limit }),
+      this.prisma.property.count({ where }),
+    ]);
+    return { data, total, page, limit };
   }
 
-  async getSaleDetail(id: string) {
+  private countView(id: string, countView: boolean) {
+    return countView ? this.prisma.property.update({ where: { id }, data: { viewCount: { increment: 1 } } }) : null;
+  }
+
+  listSales(f: CatalogFilterDto = {}) {
+    return this.search(PUBLISHED_SALE, SALE_FIELDS, "salePrice", f);
+  }
+
+  async getSaleDetail(id: string, countView = true) {
     const property = await this.prisma.property.findFirst({ where: { id, ...PUBLISHED_SALE }, select: SALE_FIELDS });
     if (!property) throw new NotFoundException("Annonce introuvable ou plus disponible.");
-    await this.prisma.property.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+    await this.countView(id, countView);
     return property;
   }
 
-  async listRentals() {
-    return this.prisma.property.findMany({ where: PUBLISHED_RENTAL, select: RENTAL_FIELDS, orderBy: { updatedAt: "desc" } });
+  listRentals(f: CatalogFilterDto = {}) {
+    return this.search(PUBLISHED_RENTAL, RENTAL_FIELDS, "rentAmount", f);
   }
 
-  async getRentalDetail(id: string) {
+  async getRentalDetail(id: string, countView = true) {
     const property = await this.prisma.property.findFirst({ where: { id, ...PUBLISHED_RENTAL }, select: RENTAL_FIELDS });
     if (!property) throw new NotFoundException("Annonce introuvable ou plus disponible.");
-    await this.prisma.property.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+    await this.countView(id, countView);
     return property;
   }
 
-  async listShortStay() {
-    return this.prisma.property.findMany({ where: PUBLISHED_SHORT_STAY, select: SHORT_STAY_FIELDS, orderBy: { updatedAt: "desc" } });
+  listShortStay(f: CatalogFilterDto = {}) {
+    return this.search(PUBLISHED_SHORT_STAY, SHORT_STAY_FIELDS, "shortStayNightlyRate", f);
   }
 
-  async getShortStayDetail(id: string) {
+  async getShortStayDetail(id: string, countView = true) {
     const property = await this.prisma.property.findFirst({
       where: { id, ...PUBLISHED_SHORT_STAY },
       select: {
@@ -98,7 +143,7 @@ export class CatalogService {
       },
     });
     if (!property) throw new NotFoundException("Annonce introuvable ou plus disponible.");
-    await this.prisma.property.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+    await this.countView(id, countView);
     return property;
   }
 }
