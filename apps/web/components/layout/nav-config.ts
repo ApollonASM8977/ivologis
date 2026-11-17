@@ -20,6 +20,7 @@ import {
   CalendarRange,
   Tag,
   LayoutGrid,
+  CalendarCheck,
 } from "lucide-react";
 
 export interface NavItem {
@@ -34,6 +35,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Propriétaires", href: "/admin/owners", icon: Users },
   { label: "Locataires", href: "/admin/tenants", icon: UserRound },
   { label: "Contrats", href: "/admin/leases", icon: FileText },
+  { label: "Demandes clients", href: "/admin/requests", icon: CalendarCheck },
   { label: "Catalogue", href: "/admin/catalog", icon: LayoutGrid },
   { label: "Courte durée", href: "/admin/short-stay", icon: CalendarRange },
   { label: "Ventes", href: "/admin/sales", icon: Tag },

@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { PdfService } from "../common/pdf/pdf.service";
 import { SettingsService } from "../settings/settings.service";
 import { AuditService } from "../audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { ownerScope, assertOwnsResource } from "../common/utils/scope.util";
 import { generateReference } from "../common/utils/reference.util";
@@ -22,6 +23,7 @@ export class ShortStayService {
     private pdfService: PdfService,
     private settings: SettingsService,
     private audit: AuditService,
+    private notifications: NotificationsService,
   ) {}
 
   private async getProperty(propertyId: string) {
@@ -181,6 +183,12 @@ export class ShortStayService {
         status: ShortStayStatus.EN_ATTENTE,
         notes: dto.notes,
       },
+    });
+
+    await this.notifications.notifyStaff({
+      type: "BOOKING_REQUEST",
+      title: "Nouvelle demande de réservation",
+      message: `${booking.guestName} (${booking.guestPhone ?? "-"}) demande « ${property.name} » du ${checkIn.toLocaleDateString("fr-FR")} au ${checkOut.toLocaleDateString("fr-FR")}, réf. ${booking.reference}.`,
     });
 
     await this.audit.log({

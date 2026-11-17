@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Delete, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Delete, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 import { SaleOfferStatus, UserRole, VisitRequestStatus } from "@prisma/client";
@@ -103,6 +103,14 @@ export class SalesController {
     // Champ piège rempli = robot : réponse identique, rien n'est enregistré.
     if (dto.website) return { reference: generateReference("RDV") };
     return this.salesService.createVisitRequest(propertyId, dto, user);
+  }
+
+  @Get("visit-requests")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  listAllVisitRequests(@Query("status") status?: string) {
+    const valid = Object.values(VisitRequestStatus).includes(status as VisitRequestStatus);
+    return this.salesService.listAllVisitRequests(valid ? (status as VisitRequestStatus) : undefined);
   }
 
   @Get("properties/:propertyId/visit-requests")

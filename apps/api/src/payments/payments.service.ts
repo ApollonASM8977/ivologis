@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { AccountStatus, LeaseStatus, PaymentStatus, UserRole } from "@prisma/client";
+import { LeaseStatus, PaymentStatus } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { PdfService } from "../common/pdf/pdf.service";
@@ -133,18 +133,11 @@ export class PaymentsService {
       },
     });
 
-    const staff = await this.prisma.user.findMany({
-      where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT] }, status: AccountStatus.ACTIVE },
-      select: { id: true },
+    await this.notifications.notifyStaff({
+      type: "PAYMENT_DECLARED",
+      title: "Paiement à vérifier",
+      message: `${lease.tenant.fullName} déclare avoir payé ${formatXOF(Number(lease.rentAmount))} (${lease.property.name}), réf. ${payment.transactionRef}.`,
     });
-    for (const { id } of staff) {
-      await this.notifications.notify({
-        userId: id,
-        type: "PAYMENT_DECLARED",
-        title: "Paiement à vérifier",
-        message: `${lease.tenant.fullName} déclare avoir payé ${formatXOF(Number(lease.rentAmount))} (${lease.property.name}), réf. ${payment.transactionRef}.`,
-      });
-    }
 
     return this.findOne(payment.id);
   }

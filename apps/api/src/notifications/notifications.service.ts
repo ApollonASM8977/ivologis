@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { NotificationChannel } from "@prisma/client";
+import { AccountStatus, NotificationChannel, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
 
@@ -22,6 +22,18 @@ export class NotificationsService {
         message: params.message,
         channel: params.channel ?? NotificationChannel.IN_APP,
       },
+    });
+  }
+
+  /** Prévient toute l'équipe de l'agence (super admins et agents actifs), ex. nouvelle demande d'un visiteur. */
+  async notifyStaff(params: { type: string; title: string; message: string }) {
+    const staff = await this.prisma.user.findMany({
+      where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT] }, status: AccountStatus.ACTIVE },
+      select: { id: true },
+    });
+    if (!staff.length) return;
+    await this.prisma.notification.createMany({
+      data: staff.map((s) => ({ userId: s.id, ...params, channel: NotificationChannel.IN_APP })),
     });
   }
 

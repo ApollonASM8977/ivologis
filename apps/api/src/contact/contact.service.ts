@@ -1,13 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { CreateContactDto } from "./dto/create-contact.dto";
 
 @Injectable()
 export class ContactService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
-  create(dto: CreateContactDto) {
-    return this.prisma.contactRequest.create({
+  async create(dto: CreateContactDto) {
+    const request = await this.prisma.contactRequest.create({
       data: {
         fullName: dto.fullName.trim(),
         email: dto.email.trim().toLowerCase(),
@@ -18,6 +22,12 @@ export class ContactService {
       },
       select: { id: true },
     });
+    await this.notifications.notifyStaff({
+      type: "CONTACT_REQUEST",
+      title: "Nouvelle demande de contact",
+      message: `${dto.fullName.trim()} (${dto.phone?.trim() || dto.email.trim()}) a écrit depuis le site.`,
+    });
+    return request;
   }
 
   async findAll(page = 1, limit = 25) {

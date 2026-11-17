@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { PropertyStatus, SaleDocumentType, SaleOfferStatus, SaleStatus, UserRole, VisitRequestStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { ownerScope, assertOwnsResource } from "../common/utils/scope.util";
 import { generateReference } from "../common/utils/reference.util";
@@ -17,7 +18,21 @@ export class SalesService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private notifications: NotificationsService,
   ) {}
+
+  /** Boîte de réception de l'agence : toutes les demandes de visite (vente et location), plus récentes d'abord. */
+  async listAllVisitRequests(status?: VisitRequestStatus) {
+    return this.prisma.propertyVisitRequest.findMany({
+      where: status ? { status } : {},
+      include: {
+        property: { select: { id: true, name: true, commune: true, forSale: true, rentListed: true, isDemo: true } },
+        user: { select: { fullName: true, phone: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
+  }
 
   private async getProperty(id: string) {
     const property = await this.prisma.property.findUnique({ where: { id } });
@@ -205,6 +220,12 @@ export class SalesService {
     });
 
     await this.prisma.property.update({ where: { id: propertyId }, data: { inquiryCount: { increment: 1 } } });
+
+    await this.notifications.notifyStaff({
+      type: "VISIT_REQUEST",
+      title: "Nouvelle demande de visite",
+      message: `${user?.fullName ?? dto.guestName} (${dto.guestPhone ?? user?.email ?? "-"}) souhaite visiter « ${property.name} » (${saleOpen ? "vente" : "location"}), réf. ${request.reference}.`,
+    });
 
     await this.audit.log({
       userId: user?.id,
