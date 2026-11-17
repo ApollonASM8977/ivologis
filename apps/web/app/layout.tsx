@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { PwaRegister } from "@/components/pwa-register";
 import { siteUrl } from "@/lib/site";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+// Polices auto-hébergées par Next (aucun appel à Google côté visiteur) ; titres uniquement pour Fraunces.
+const body = Manrope({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const display = Fraunces({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-display", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -26,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B5FFF",
+  themeColor: "#0B5563",
   width: "device-width",
   initialScale: 1,
 };
@@ -34,7 +36,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${body.variable} ${display.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
         <PwaRegister />
       </body>

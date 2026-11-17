@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 
-const COLORS = ["#0B5FFF", "#16A34A", "#F59E0B", "#DC2626", "#0B1F3A", "#6B7280", "#a855f7"];
+const COLORS = ["#0B5563", "#16A34A", "#F59E0B", "#DC2626", "#082F37", "#6B7280", "#a855f7"];
 
 export default function AdminFinancialCharts({ data }: { data: any }) {
   return (
@@ -18,7 +18,7 @@ export default function AdminFinancialCharts({ data }: { data: any }) {
               <XAxis dataKey="commune" tick={{ fontSize: 11, fill: "#6B7280" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: "#6B7280" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
               <Tooltip formatter={(v: any) => formatXOF(Number(v))} />
-              <Bar dataKey="revenue" fill="#0B5FFF" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="revenue" fill="#0B5563" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

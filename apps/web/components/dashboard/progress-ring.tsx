@@ -6,7 +6,7 @@ export function ProgressRing({
   value,
   size = 96,
   stroke = 9,
-  color = "#0B5FFF",
+  color = "#0B5563",
   children,
 }: {
   value: number;

@@ -12,7 +12,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       >
         Aller au contenu
       </a>
-      <div className="min-h-screen bg-white text-ink">
+      <div className="marketing min-h-screen bg-white text-ink">
         <ScrollProgress />
         <SiteHeader />
         <main id="contenu">{children}</main>

@@ -6,7 +6,7 @@ import { formatXOF } from "@ivologis/shared";
 export default function RevenueAreaChart({
   data,
   gradientId = "revenue",
-  color = "#0B5FFF",
+  color = "#0B5563",
 }: {
   data: { month: string; revenue: number }[];
   gradientId?: string;

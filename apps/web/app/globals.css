@@ -7,8 +7,15 @@ html {
 }
 
 body {
-  background-color: #f8fafc;
-  color: #111827;
+  background-color: #f7f4ee;
+  color: #1c1917;
+}
+
+/* Vitrine : titres en Fraunces ; l'espace de gestion garde une seule police, plus dense. */
+.marketing h1,
+.marketing h2 {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 .scrollbar-thin::-webkit-scrollbar {

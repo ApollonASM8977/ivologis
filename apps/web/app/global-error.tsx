@@ -12,7 +12,7 @@ export default function GlobalError({ reset }: { error: Error; reset: () => void
           onClick={() => reset()}
           style={{
             marginTop: "1.5rem",
-            background: "#0B5FFF",
+            background: "#0B5563",
             color: "white",
             border: "none",
             borderRadius: "0.5rem",
