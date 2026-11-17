@@ -237,3 +237,20 @@ test("code d'invitation : 8 caractères sans ambiguïté, empreinte dépendante 
   const now = new Date("2026-11-17T10:00:00Z");
   assert.equal(inviteExpiry(now).toISOString(), "2026-11-24T10:00:00.000Z");
 });
+
+test("messages de validation : traduits en français, messages du DTO conservés", () => {
+  const { frenchConstraintMessage } = require("../dist/src/common/validation/validation-messages.js");
+  assert.equal(frenchConstraintMessage("amount", "min", "amount must not be less than 0"), "Le montant est trop petit.");
+  assert.equal(frenchConstraintMessage("type", "isEnum", "type must be one of the following values: A, B"), "Le type : valeur non reconnue.");
+  assert.equal(frenchConstraintMessage("foo", "whitelistValidation", "property foo should not exist"), "Champ non autorisé : foo.");
+  assert.equal(frenchConstraintMessage("zz", "isUUID", "zz must be a UUID"), "Le champ « zz » : identifiant invalide.");
+  assert.equal(frenchConstraintMessage("amount", "min", "Le montant doit être supérieur à zéro."), "Le montant doit être supérieur à zéro.");
+});
+
+test("messages de validation : un champ absent est signalé « obligatoire » une seule fois", () => {
+  const { messagesFor } = require("../dist/src/common/validation/validation-messages.js");
+  const missing = { property: "phone", value: undefined, constraints: { isString: "phone must be a string", minLength: "phone must be longer than or equal to 8 characters" } };
+  assert.deepEqual(messagesFor(missing), ["Le téléphone est obligatoire."]);
+  const short = { property: "phone", value: "07", constraints: { minLength: "phone must be longer than or equal to 8 characters" } };
+  assert.deepEqual(messagesFor(short), ["Le téléphone est trop court."]);
+});

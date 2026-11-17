@@ -36,8 +36,25 @@ Faux positifs écartés : infobulle Recharts (`role=status`), copie invisible 0�
 | Mes biens | **O-02 (MOYEN)** : « 0 FCFA/mois » affiché pour un bien en vente ou un terrain ; cartes sans photo ni animation. | **CORRIGÉ** : prix selon l'usage (loyer, prix de vente, nuitée, sinon « Prix à définir avec l'agence »), photo de couverture, locataire actuel, squelettes de chargement, apparition en cascade et survol animé. |
 | Fiche bien | **O-03 (MOYEN)** : « Modifier » et « Archiver » proposés à un propriétaire sans autorisation (403 au clic). | **CORRIGÉ** : boutons affichés seulement avec le droit correspondant. |
 
+## Admin en profondeur (2026-11-17, chaîne testée par l'API sur `audit-qa`)
+Parcours scripté : création d'un bien → locataire → bail → paiement → quittance → relevé propriétaire → résiliation → archivage, plus les cas d'erreur.
+
+| Étape | Constats | Statut |
+|---|---|---|
+| Bail | Caution > 2 mois refusée (loi 2019-576) : OK. Second bail sur un bien loué refusé : OK. **AD-03 (ÉLEVÉ)** : un bail dont la **fin précède le début** était accepté. **AD-04 (MOYEN)** : résilier une 2e fois un bail déjà résilié libérait le bien, même reloué depuis à un autre locataire. **AD-05 (MOYEN)** : « renouveler » un bail résilié le réactivait (deux baux actifs possibles). | **CORRIGÉS** : dates contrôlées ; résiliation refusée si déjà résiliée, et le bien n'est libéré que s'il est encore occupé par ce locataire ; renouvellement refusé pour un bail résilié, si le bien est occupé par un autre locataire, ou si la nouvelle fin n'est pas postérieure. |
+| Paiement / quittance | Doublon du même mois refusé (409) : OK ; quittance générée avec numéro : OK. **AD-02 (ÉLEVÉ)** : un paiement « Payé » **avec quittance** pouvait être créé pour un locataire **sans aucun bail** sur le bien (et le contrôle de doublon sautait dans ce cas). Montant 0 accepté. | **CORRIGÉS** : bail obligatoire (message clair), montant > 0. |
+| Relevé propriétaire | Revenus et solde cohérents avec les paiements créés : OK. | OK |
+| Archivage | Refusé tant qu'un bail est actif (PD-03) ; accepté après résiliation : OK. | OK |
+| Équipe | **U-01 (MOYEN)** : un super admin pouvait **suspendre son propre compte** (risque de bloquer l'agence). **U-02** : statut non validé (valeur libre → erreur 500). Suspension d'un agent en un clic sans confirmation. | **CORRIGÉS** : action sur soi-même refusée, statut validé, fenêtre de confirmation qui explique la déconnexion immédiate, boutons d'icône nommés pour les lecteurs d'écran. |
+| Paramètres | **U-03 (MOYEN)** : taux de commission libre (négatif ou 150 %) → tous les relevés faussés. | **CORRIGÉ** : entre 0 et 50 %. |
+| Profil | **S-19 (FAIBLE)** : `avatarUrl` acceptait un lien externe (pixel de pistage affiché aux autres utilisateurs). | **CORRIGÉ** : uniquement une image envoyée sur la plateforme. |
+| Import CSV locataires | Messages d'erreur par ligne en anglais, et texte technique de la base renvoyé tel quel. | **CORRIGÉ** : messages en français, « obligatoire » pour un champ absent, message générique pour une erreur technique. |
+| Toute l'API | **T-11 (MOYEN)** : les messages de validation par défaut étaient en anglais (« amount must not be less than 0 », « type must be one of… »). **S-20 (FAIBLE)** : une erreur interne renvoyait son texte technique au navigateur. | **CORRIGÉS globalement** : traduction de tous les messages par défaut (ValidationPipe), messages rédigés dans les DTO conservés ; erreur interne → message neutre, détail dans les journaux serveur. Tests unitaires ajoutés (22/22). |
+
+**Question produit (AD-06)** : `expireOutdatedLeases` existe mais n'est appelé nulle part : un bail arrivé à échéance reste « Actif ». En Côte d'Ivoire, la tacite reconduction des baux d'habitation est à confirmer **par un juriste** avant de décider : passer automatiquement en « Expiré », ou reconduire tacitement.
+
 ## À poursuivre (prochain lot)
-- Admin, actions en profondeur : création de bien → bail → paiement → quittance → relevé propriétaire ; import CSV ; paramètres ; équipe et permissions.
+- Admin, écrans restants à parcourir à la main : création de bail depuis l'interface (dates et coût d'entrée affichés avant envoi), page Paiements (enregistrement), Ventes, Courte durée, Statistiques.
 - **Question produit (A-03)** : la page « Mon logement » du locataire affiche le nom et le téléphone du propriétaire. En gestion par agence, le locataire passe normalement par l'agence. Garder, masquer ou remplacer par le contact de l'agence ? (décision utilisateur)
 - Sécurité **S-17 (FAIBLE)** : les images (photos de biens, de maintenance, pièces jointes image des demandes locataires) sont servies sans signature, protégées seulement par un identifiant aléatoire non devinable. Une pièce d'identité envoyée en JPG dans une demande serait lisible par quiconque obtient le lien. Piste : signer aussi les images non publiques.
 - **Question produit (A-02)** : un propriétaire voit le nom et le téléphone des visiteurs qui demandent à visiter son bien (`GET /properties/:id/visit-requests`), ce qui permet de contourner l'agence. Masquer ces coordonnées au propriétaire ? (décision utilisateur)

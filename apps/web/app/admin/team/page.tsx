@@ -15,6 +15,7 @@ import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AccountStatusBadge } from "@/components/status-badges";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface AdminRow {
   id: string;
@@ -65,6 +66,7 @@ export default function AdminTeamPage() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [permissionsFor, setPermissionsFor] = useState<AdminRow | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<AdminRow | null>(null);
   const [newAgentPermissions, setNewAgentPermissions] = useState<Set<string>>(new Set());
   const [editPermissions, setEditPermissions] = useState<Set<string>>(new Set());
 
@@ -133,6 +135,7 @@ export default function AdminTeamPage() {
         <div className="flex gap-1">
           <button
             title="Gérer les permissions"
+            aria-label={`Gérer les permissions de ${r.fullName}`}
             onClick={() => openPermissions(r)}
             className="rounded p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary"
           >
@@ -140,8 +143,9 @@ export default function AdminTeamPage() {
           </button>
           <button
             title={r.status === "SUSPENDED" ? "Réactiver" : "Suspendre"}
+            aria-label={`${r.status === "SUSPENDED" ? "Réactiver" : "Suspendre"} ${r.fullName}`}
             onClick={() =>
-              statusMutation.mutate({ id: r.id, status: r.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED" })
+              r.status === "SUSPENDED" ? statusMutation.mutate({ id: r.id, status: "ACTIVE" }) : setSuspendTarget(r)
             }
             className={`rounded p-1.5 hover:bg-gray-100 ${r.status === "SUSPENDED" ? "text-success" : "text-ink-muted hover:text-danger"}`}
           >
@@ -169,6 +173,19 @@ export default function AdminTeamPage() {
       ) : (
         <DataTable columns={columns} rows={admins ?? []} loading={isLoading} rowKey={(r) => r.id} />
       )}
+
+      <ConfirmDialog
+        open={!!suspendTarget}
+        danger
+        title="Suspendre cet agent ?"
+        message={`${suspendTarget?.fullName ?? ""} sera déconnecté immédiatement de tous ses appareils et ne pourra plus se connecter jusqu'à sa réactivation.`}
+        confirmLabel="Suspendre"
+        loading={statusMutation.isPending}
+        onConfirm={() =>
+          suspendTarget && statusMutation.mutate({ id: suspendTarget.id, status: "SUSPENDED" }, { onSettled: () => setSuspendTarget(null) })
+        }
+        onClose={() => setSuspendTarget(null)}
+      />
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Ajouter un agent immobilier" width="max-w-xl">
         <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} className="space-y-4">

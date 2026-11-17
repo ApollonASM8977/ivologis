@@ -26,7 +26,7 @@ export class CreatePaymentDto {
 
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
+  @Min(1, { message: "Le montant doit être supérieur à zéro." })
   amount: number;
 
   @IsDateString()

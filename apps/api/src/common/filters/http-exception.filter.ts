@@ -22,12 +22,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const body =
       exception instanceof HttpException ? exception.getResponse() : null;
 
+    // Une erreur imprévue (base de données, bug) ne doit pas exposer son texte technique au navigateur.
+    if (!(exception instanceof HttpException)) {
+      // eslint-disable-next-line no-console
+      console.error(`[IVOLOGIS] ${request.method} ${request.url}`, exception);
+    }
     const message =
       body && typeof body === "object" && "message" in body
         ? (body as any).message
-        : exception instanceof Error
+        : exception instanceof HttpException
           ? exception.message
-          : "Erreur interne du serveur";
+          : "Une erreur inattendue est survenue. Réessayez dans un instant ; si le problème persiste, contactez l'agence.";
 
     response.status(status).json({
       statusCode: status,

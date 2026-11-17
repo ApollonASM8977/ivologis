@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 
 export class UpdateSettingsDto {
   @IsOptional()
@@ -63,6 +63,8 @@ export class UpdateSettingsDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
+  @Min(0, { message: "Le taux de commission ne peut pas être négatif." })
+  @Max(50, { message: "Le taux de commission ne peut pas dépasser 50 %." })
   commissionRate?: number;
 
   @IsOptional()

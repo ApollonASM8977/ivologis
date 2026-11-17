@@ -5,6 +5,7 @@ import { ValidationPipe } from "@nestjs/common";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { frenchValidationException } from "./common/validation/validation-messages";
 
 async function bootstrap() {
   if (!process.env.JWT_SECRET) {
@@ -31,6 +32,7 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
+      exceptionFactory: frenchValidationException,
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());

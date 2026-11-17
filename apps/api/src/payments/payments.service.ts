@@ -52,6 +52,10 @@ export class PaymentsService {
       });
       leaseId = activeLease?.id;
     }
+    // Une quittance de loyer suppose un bail : sans lui, le paiement serait rattaché à un locataire qui n'occupe pas le bien.
+    if (!leaseId) {
+      throw new BadRequestException("Aucun bail en cours entre ce locataire et ce bien : créez d'abord le contrat.");
+    }
 
     const status = dto.status ?? PaymentStatus.PAID;
 

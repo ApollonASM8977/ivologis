@@ -26,6 +26,9 @@ Sévérité : CRITIQUE > ÉLEVÉ > MOYEN > FAIBLE.
 
 | S-17 | FAIBLE | Les images non publiques (photos de maintenance, pièces jointes image des demandes locataires, p. ex. une CNI en JPG) sont servies comme les photos d'annonces : sans signature, protégées seulement par un UUID non devinable. | `storage.controller.ts` (`serve` ne signe que PDF/Word) | Signer aussi les images rattachées à une demande ou un dossier. | OUVERT |
 | S-18 | FAIBLE | `photos` d'une demande de maintenance acceptait n'importe quelle chaîne (lien externe de pistage affiché à l'agence). | `maintenance/dto/create-maintenance.dto.ts` | Uniquement `/api/files/<uuid>`, 5 max. | CORRIGÉ (audit espaces, M-05) |
+| S-19 | FAIBLE | `avatarUrl` du profil acceptait n'importe quel lien externe, affiché ensuite aux autres utilisateurs. | `users/dto/update-profile.dto.ts` | Uniquement `/api/files/<uuid>`. | CORRIGÉ |
+| S-20 | FAIBLE | Une erreur imprévue (base de données) renvoyait son message technique au navigateur. | `common/filters/http-exception.filter.ts` | Message neutre, détail journalisé côté serveur. | CORRIGÉ |
+| S-21 | MOYEN | Un super admin pouvait suspendre son propre compte (agence bloquée s'il est le seul) ; statut de compte non validé. | `users.controller.ts` | Refus sur soi-même, DTO validé. | CORRIGÉ |
 | S-16 | MOYEN | Un propriétaire ayant reçu la permission `properties.manage` pouvait publier une résidence « courte durée » dans le catalogue public sans aucune validation, et y intégrer n'importe quelle URL en iframe (`virtualTourUrl`, y compris `javascript:` ou une fausse page de connexion). | `properties.service.ts` (`update` appliquait le DTO tel quel), `catalog.service.ts` | Validation par l'agence + `https` obligatoire. | CORRIGÉ (P0-18). Note : un propriétaire inscrit seul n'a pas cette permission (création → 403). |
 
 ## Preuves par test (2026-11-17, API locale sur la branche Neon `audit-qa` = copie de la prod)

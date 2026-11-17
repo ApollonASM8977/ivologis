@@ -1,4 +1,5 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, HttpException, Injectable, NotFoundException } from "@nestjs/common";
+import { messagesFor } from "../common/validation/validation-messages";
 import * as bcrypt from "bcryptjs";
 import { AccountStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -40,14 +41,15 @@ export class TenantsService {
       const dto = plainToInstance(CreateTenantDto, raw as Record<string, unknown>);
       const problems = await validate(dto, { whitelist: true, forbidNonWhitelisted: true });
       if (problems.length) {
-        errors.push({ line, message: problems.flatMap((p) => Object.values(p.constraints ?? {})).join(" ") });
+        errors.push({ line, message: problems.flatMap(messagesFor).join(" ") });
         continue;
       }
       try {
         await this.create(dto);
         created += 1;
       } catch (error) {
-        errors.push({ line, message: error instanceof Error ? error.message : "Erreur inconnue" });
+        // Message métier en clair ; une erreur technique (base de données) reste générique.
+        errors.push({ line, message: error instanceof HttpException ? error.message : "Ligne non importée (donnée en double ou invalide)." });
       }
     }
     return { created, errors };

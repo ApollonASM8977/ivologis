@@ -12,7 +12,9 @@
 
 **Retour utilisateur du 2026-11-17 soir (important)** : la nouvelle identité de P1-06 a été **refusée** → design d'origine restauré (`d3e6adf`, décision D-10 : ne jamais changer couleurs/polices/accueil sans accord), animations et chargements ajoutés (`84c545f`), boîte « Demandes clients » + notifications (`669d3a6`, A-01). L'utilisateur juge le travail trop superficiel : **audit écran par écran des espaces en cours**, consigné dans `12_AUDIT_ESPACES.md`. Fait : espace locataire (L-01, L-02, M-01..05) et propriétaire (O-01..03), fiche maintenance admin (AD-01), fiche bien (PD-01, PD-03). Afficher le bloc « Demande interprétée (améliorée) » à chaque réponse (AGENTS.md).
 
-**Prochaine action exacte** : pousser et déployer (API puis web) pour que la prod quitte le design refusé ; puis audit admin en profondeur (bien → bail → paiement → quittance → relevé, import CSV, paramètres, équipe/permissions) dans `12_AUDIT_ESPACES.md`. Ensuite : décisions A-02/A-03, S-17, P1-07, P1-08, P1-14, performance (LCP).
+**Déployé** : `d339b1a` (espaces locataire/propriétaire) en prod le 2026-11-17 16:50 UTC, design d'origine vérifié en prod. Ensuite : audit admin en profondeur (chaîne bien → bail → paiement → quittance → relevé, équipe, paramètres, import CSV, messages en français partout) — voir `12_AUDIT_ESPACES.md`.
+
+**Prochaine action exacte** : parcourir à la main les écrans admin restants (création de bail dans l'interface, Paiements, Ventes, Courte durée, Statistiques) ; puis décisions A-02/A-03/AD-06, S-17, P1-07, P1-08, P1-14, performance (LCP).
 
 **Comptes de test sur `audit-qa`** : le mot de passe du propriétaire `kouadio.jean@ivologis.ci` a été réinitialisé sur la branche QA uniquement (valeur dans le scratchpad de session, `owner-qa-password.txt`) ; la prod n'est pas touchée.
 

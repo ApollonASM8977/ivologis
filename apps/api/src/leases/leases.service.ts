@@ -61,6 +61,9 @@ export class LeasesService {
 
     const violation = entryCostViolation(dto.type, Number(dto.rentAmount), Number(dto.deposit), Number(dto.advance));
     if (violation) throw new BadRequestException(violation);
+    if (new Date(dto.endDate) <= new Date(dto.startDate)) {
+      throw new BadRequestException("La date de fin du bail doit être après la date de début.");
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const lease = await tx.lease.create({
@@ -131,6 +134,16 @@ export class LeasesService {
 
   async renew(id: string, dto: RenewLeaseDto, actorId?: string) {
     const lease = await this.findOne(id);
+    // Un bail résilié ne se « ranime » pas : le bien a pu être reloué entre-temps (deux baux actifs sinon).
+    if (lease.status === LeaseStatus.TERMINATED) {
+      throw new BadRequestException("Ce bail a été résilié : créez un nouveau contrat.");
+    }
+    if (lease.property.currentTenantId && lease.property.currentTenantId !== lease.tenantId) {
+      throw new BadRequestException("Le bien est occupé par un autre locataire : renouvellement impossible.");
+    }
+    if (new Date(dto.newEndDate) <= lease.endDate) {
+      throw new BadRequestException("La nouvelle date de fin doit être après la date de fin actuelle.");
+    }
     const updated = await this.prisma.lease.update({
       where: { id },
       data: {
@@ -153,9 +166,14 @@ export class LeasesService {
 
   async terminate(id: string, actorId?: string) {
     const lease = await this.findOne(id);
+    // Sinon, résilier à nouveau un ancien bail libérerait un bien reloué depuis à un autre locataire.
+    if (lease.status === LeaseStatus.TERMINATED) {
+      throw new BadRequestException("Ce bail est déjà résilié.");
+    }
     const result = await this.prisma.$transaction(async (tx) => {
-      await tx.property.update({
-        where: { id: lease.propertyId },
+      // On ne libère le bien que s'il est encore occupé par CE locataire.
+      await tx.property.updateMany({
+        where: { id: lease.propertyId, currentTenantId: lease.tenantId },
         data: { status: PropertyStatus.VACANT, currentTenantId: null },
       });
       return tx.lease.update({
