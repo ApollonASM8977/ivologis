@@ -5,6 +5,9 @@ const { authenticator } = require("otplib");
 const API = process.env.API_URL ?? "http://localhost:3001";
 const BASE = `${API}/api`;
 const ADMIN_TOTP_SECRET = process.env.TEST_ADMIN_TOTP_SECRET;
+// Mots de passe hors dépôt : SEED_PASSWORD (comptes du seed) et TEST_ADMIN_PASSWORD (compte qa-admin).
+const SEED_PASSWORD = process.env.SEED_PASSWORD;
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
 let reachable = false;
 const ctx = {};
 
@@ -44,13 +47,16 @@ before(async () => {
   } catch {
     reachable = false;
   }
-  if (!reachable) return;
-  ctx.tenant = (await login("yao.patrick@ivologis.ci", "Locataire@2026")).token;
-  ctx.owner = (await login("marc.koffi@ivologis.ci", "Proprio@2026")).token;
-  if (ADMIN_TOTP_SECRET) {
-    const first = await login("qa-admin@ivologis.ci", "QaAdmin@2026");
+  if (!reachable || !SEED_PASSWORD) {
+    reachable = false;
+    return;
+  }
+  ctx.tenant = (await login("yao.patrick@ivologis.ci", SEED_PASSWORD)).token;
+  ctx.owner = (await login("marc.koffi@ivologis.ci", SEED_PASSWORD)).token;
+  if (ADMIN_TOTP_SECRET && ADMIN_PASSWORD) {
+    const first = await login("qa-admin@ivologis.ci", ADMIN_PASSWORD);
     ctx.admin = first.data?.requires2fa
-      ? (await login("qa-admin@ivologis.ci", "QaAdmin@2026", authenticator.generate(ADMIN_TOTP_SECRET))).token
+      ? (await login("qa-admin@ivologis.ci", ADMIN_PASSWORD, authenticator.generate(ADMIN_TOTP_SECRET))).token
       : first.token;
     const leases = await call("/leases?limit=50", { token: ctx.admin });
     ctx.leases = leases.data?.data ?? [];
@@ -58,7 +64,7 @@ before(async () => {
 });
 
 function requireApi(t) {
-  if (!reachable) t.skip(`API injoignable sur ${API} (définir API_URL et lancer l'API)`);
+  if (!reachable) t.skip(`API injoignable sur ${API} ou SEED_PASSWORD non défini (définir API_URL, SEED_PASSWORD et lancer l'API)`);
   return reachable;
 }
 
@@ -77,11 +83,11 @@ test("authentification : identifiants invalides et routes protégées", async (t
 
 test("administrateur : 2FA exigée, code correct requis", async (t) => {
   if (!requireApi(t)) return;
-  if (!ADMIN_TOTP_SECRET) return t.skip("TEST_ADMIN_TOTP_SECRET non défini");
-  const sans = await login("qa-admin@ivologis.ci", "QaAdmin@2026");
+  if (!ADMIN_TOTP_SECRET || !ADMIN_PASSWORD) return t.skip("TEST_ADMIN_TOTP_SECRET ou TEST_ADMIN_PASSWORD non défini");
+  const sans = await login("qa-admin@ivologis.ci", ADMIN_PASSWORD);
   assert.equal(sans.data?.requires2fa, true, "code demandé");
   assert.equal(sans.token, null, "aucun jeton sans code");
-  const faux = await call("/auth/login", { method: "POST", body: { identifier: "qa-admin@ivologis.ci", password: "QaAdmin@2026", code: "000000" } });
+  const faux = await call("/auth/login", { method: "POST", body: { identifier: "qa-admin@ivologis.ci", password: ADMIN_PASSWORD, code: "000000" } });
   assert.equal(faux.status, 401, "mauvais code refusé");
   assert.ok(ctx.admin, "connexion avec code valide");
 });
@@ -197,7 +203,7 @@ test("en-têtes et CORS", async (t) => {
 
 test("session : la déconnexion globale invalide les jetons existants", async (t) => {
   if (!requireApi(t)) return;
-  const token = (await login("koffi.serge@ivologis.ci", "Locataire@2026")).token;
+  const token = (await login("koffi.serge@ivologis.ci", SEED_PASSWORD)).token;
   if (!token) return t.skip("compte locataire de test indisponible");
   assert.equal((await call("/auth/me", { token })).status, 200);
   await call("/auth/logout-all", { method: "POST", token });

@@ -31,7 +31,7 @@ L'application mobile (locataire + propriétaire, React Native / Expo) est prévu
 | État global | Zustand (session utilisateur) |
 | Graphiques | Recharts v3 |
 | PDF | pdfkit (contrats, quittances générés côté serveur) |
-| Upload fichiers | Multer (stockage local `/uploads` en dev ; Cloudinary/S3 recommandé en prod) |
+| Upload fichiers | Multer en mémoire → table `stored_files` (PostgreSQL) ; stockage objet (R2/S3) prévu |
 
 ## 2. Prérequis
 
@@ -58,7 +58,7 @@ npm run build:shared
 
 ## 4. Variables d'environnement
 
-### `apps/api/.env` (déjà rempli avec une base Neon de développement)
+### `apps/api/.env` (à créer depuis `.env.example`, pointer sur une branche Neon de développement, jamais sur la production)
 
 ```
 DATABASE_URL=postgresql://...          # Connexion PostgreSQL
@@ -66,7 +66,6 @@ JWT_SECRET=...                         # Secret de signature des tokens
 JWT_EXPIRES_IN=7d
 PORT=3001
 CORS_ORIGIN=http://localhost:3000
-UPLOAD_DIR=./uploads
 ```
 
 Un exemple est fourni dans `apps/api/.env.example`.
@@ -82,9 +81,12 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ```bash
 cd apps/api
 npx prisma generate       # génère le client Prisma
-npx prisma migrate dev    # applique les migrations (déjà fait sur la base fournie)
-npx ts-node prisma/seed.ts  # injecte des données réalistes (voir comptes ci-dessous)
+npx prisma migrate deploy # applique les migrations
+SEED_PASSWORD="un-mot-de-passe-long" npx ts-node prisma/seed.ts  # données de démonstration (interdit en production)
 ```
+
+> Ne lancez jamais le seed sur la base de production : il efface et recrée des données. Travaillez sur une
+> branche Neon de développement.
 
 Le seed crée :
 - 1 compte **Super Admin** (l'entreprise IVOLOGIS)
@@ -94,16 +96,11 @@ Le seed crée :
 - 5 **biens** répartis à Cocody/Riviera, Marcory, Bingerville, Yopougon
 - 3 **contrats de bail actifs**, plusieurs **paiements** (payés / en attente), 2 **demandes de maintenance**
 
-### Comptes de test
+### Comptes de démonstration
 
-| Rôle | Identifiant | Mot de passe |
-|---|---|---|
-| Super Admin | `admin@ivologis.ci` | `Ivologis@2026` |
-| Agent immobilier | `agent@ivologis.ci` | `Agent@2026` |
-| Propriétaire | `kouadio.jean@ivologis.ci` | `Proprio@2026` |
-| Propriétaire | `fatou.diarra@ivologis.ci` | `Proprio@2026` |
-| Locataire | `yao.patrick@ivologis.ci` | `Locataire@2026` |
-| Locataire | `aicha.kone@ivologis.ci` | `Locataire@2026` |
+Tous les comptes créés par le seed utilisent le mot de passe fourni dans `SEED_PASSWORD` (jamais écrit
+dans le dépôt) : `admin@ivologis.ci` (Super Admin), `agent@ivologis.ci` (agent),
+`kouadio.jean@ivologis.ci` (propriétaire), `yao.patrick@ivologis.ci` (locataire).
 
 ## 6. Lancer le projet en local
 
@@ -139,8 +136,9 @@ comptes ci-dessus — vous serez redirigé vers le tableau de bord correspondant
 - **Contrats** : *Contrats* → *Nouveau contrat* (choisir un bien vacant) → le bien passe en
   statut "Loué" et un contrat PDF peut être généré/téléchargé.
 - **Paiements** : *Paiements* → *Enregistrer un paiement* → une quittance PDF est générée
-  automatiquement et téléchargeable. Côté locataire, *Payer maintenant* simule un paiement Mobile
-  Money instantané (aucune intégration réelle Orange/MTN/Wave pour l'instant, voir Roadmap).
+  automatiquement et téléchargeable. Côté locataire, *Déclarer un paiement* (moyen + référence de
+  transaction) crée un paiement **en attente** ; l'agence le confirme (quittance émise) ou le refuse.
+  Aucun encaissement en ligne n'est branché pour l'instant (voir Roadmap).
 - **Maintenance** : côté locataire, *Nouvelle demande* → côté Super Admin, changez le statut et
   assignez un technicien → le locataire reçoit une notification in-app.
 - **API seule** : la collection de routes est listée en section 9. Exemple :
@@ -148,7 +146,7 @@ comptes ci-dessus — vous serez redirigé vers le tableau de bord correspondant
 ```bash
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"identifier":"admin@ivologis.ci","password":"Ivologis@2026"}'
+  -d '{"identifier":"admin@ivologis.ci","password":"'"$SEED_PASSWORD"'"}'
 ```
 
 ## 8. Rôles et permissions
@@ -212,15 +210,14 @@ GET           /notifications/me   PATCH /notifications/:id/read
 
 ## 11. Déploiement (production)
 
-- **Web** : Vercel (ou tout hébergeur Next.js). Définir `NEXT_PUBLIC_API_URL` vers l'URL de l'API.
+- **Web** : Render (service `ivologis-web`). Définir `NEXT_PUBLIC_API_URL` vers l'URL de l'API.
 - **API** : Render / Railway / VPS. Définir toutes les variables de `apps/api/.env.example`,
   puis `npx prisma migrate deploy` avant le premier démarrage. Installer en production avec
   `npm ci --omit=dev` (exclut les outils de build comme `@nestjs/cli`).
-- **Base de données** : Neon (PostgreSQL serverless) — déjà utilisée en développement, prête pour
-  la production (changer simplement de branche/projet Neon si besoin d'isoler prod/dev).
-- **Stockage fichiers** : remplacer le stockage disque local (`UPLOAD_DIR`) par Cloudinary ou un
-  bucket S3-compatible avant la mise en production (le code d'upload est isolé dans
-  `PropertiesController` / `PdfService`, migration localisée).
+- **Base de données** : Neon (PostgreSQL serverless). La branche `main` est la production ; le
+  développement et les tests se font sur une branche dédiée.
+- **Stockage fichiers** : aujourd'hui en base (`stored_files`, isolé dans `StorageService`) ; passer
+  à un stockage objet S3-compatible avant d'accepter beaucoup de photos (limite Neon de 1 Go).
 
 ## 12. Roadmap
 

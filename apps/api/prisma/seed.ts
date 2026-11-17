@@ -17,7 +17,16 @@ const PERMISSIONS = [
 
 const hash = (pwd: string) => bcrypt.hash(pwd, 12);
 
+// Aucun mot de passe dans le dépôt : il est fourni à l'exécution et commun à tous les comptes de démonstration.
+const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "";
+
 async function main() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Le seed efface et recrée des données : il est interdit en production.");
+  }
+  if (SEED_PASSWORD.length < 12) {
+    throw new Error("Définissez SEED_PASSWORD (12 caractères minimum) avant de lancer le seed.");
+  }
   console.log("Seeding IVOLOGIS...");
 
   await prisma.companySettings.deleteMany();
@@ -45,7 +54,7 @@ async function main() {
       fullName: "Direction IVOLOGIS",
       email: "admin@ivologis.ci",
       phone: "+2250700000001",
-      passwordHash: await hash("Ivologis@2026"),
+      passwordHash: await hash(SEED_PASSWORD),
       role: UserRole.SUPER_ADMIN,
       status: AccountStatus.ACTIVE,
     },
@@ -59,7 +68,7 @@ async function main() {
       fullName: "Aya Traoré",
       email: "agent@ivologis.ci",
       phone: "+2250700000002",
-      passwordHash: await hash("Agent@2026"),
+      passwordHash: await hash(SEED_PASSWORD),
       role: UserRole.ADMIN_AGENT,
       status: AccountStatus.ACTIVE,
       permissions: {
@@ -91,9 +100,9 @@ async function main() {
     });
   }
 
-  const kouadio = await createOwner("Kouadio Jean", "kouadio.jean@ivologis.ci", "+2250700000003", "Proprio@2026");
-  const fatou = await createOwner("Fatou Diarra", "fatou.diarra@ivologis.ci", "+2250700000004", "Proprio@2026");
-  const marc = await createOwner("Marc Koffi", "marc.koffi@ivologis.ci", "+2250700000005", "Proprio@2026");
+  const kouadio = await createOwner("Kouadio Jean", "kouadio.jean@ivologis.ci", "+2250700000003", SEED_PASSWORD);
+  const fatou = await createOwner("Fatou Diarra", "fatou.diarra@ivologis.ci", "+2250700000004", SEED_PASSWORD);
+  const marc = await createOwner("Marc Koffi", "marc.koffi@ivologis.ci", "+2250700000005", SEED_PASSWORD);
 
   // --- Locataires ------------------------------------------------------------
   async function createTenant(fullName: string, email: string, phone: string, password: string, profession: string) {
@@ -116,10 +125,10 @@ async function main() {
     });
   }
 
-  const yao = await createTenant("Yao Patrick", "yao.patrick@ivologis.ci", "+2250700000006", "Locataire@2026", "Ingénieur");
-  const aicha = await createTenant("Aïcha Koné", "aicha.kone@ivologis.ci", "+2250700000007", "Locataire@2026", "Commerçante");
-  const bamba = await createTenant("Bamba Ibrahim", "bamba.ibrahim@ivologis.ci", "+2250700000008", "Locataire@2026", "Enseignant");
-  const koffi = await createTenant("Koffi Serge", "koffi.serge@ivologis.ci", "+2250700000009", "Locataire@2026", "Étudiant");
+  const yao = await createTenant("Yao Patrick", "yao.patrick@ivologis.ci", "+2250700000006", SEED_PASSWORD, "Ingénieur");
+  const aicha = await createTenant("Aïcha Koné", "aicha.kone@ivologis.ci", "+2250700000007", SEED_PASSWORD, "Commerçante");
+  const bamba = await createTenant("Bamba Ibrahim", "bamba.ibrahim@ivologis.ci", "+2250700000008", SEED_PASSWORD, "Enseignant");
+  const koffi = await createTenant("Koffi Serge", "koffi.serge@ivologis.ci", "+2250700000009", SEED_PASSWORD, "Étudiant");
 
   // --- Biens ------------------------------------------------------------------
   const villa = await prisma.property.create({
@@ -362,11 +371,11 @@ async function main() {
 
   console.log("Seed terminé.");
   console.log("----------------------------------------------------");
-  console.log("Comptes de test (mot de passe entre parenthèses) :");
-  console.log("Super Admin  : admin@ivologis.ci (Ivologis@2026)");
-  console.log("Agent        : agent@ivologis.ci (Agent@2026)");
-  console.log("Propriétaire : kouadio.jean@ivologis.ci (Proprio@2026)");
-  console.log("Locataire    : yao.patrick@ivologis.ci (Locataire@2026)");
+  console.log("Comptes de démonstration (mot de passe = SEED_PASSWORD) :");
+  console.log("Super Admin  : admin@ivologis.ci");
+  console.log("Agent        : agent@ivologis.ci");
+  console.log("Propriétaire : kouadio.jean@ivologis.ci");
+  console.log("Locataire    : yao.patrick@ivologis.ci");
   console.log("----------------------------------------------------");
 }
 
