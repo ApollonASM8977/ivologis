@@ -13,6 +13,9 @@ const securityHeaders = [
 
 const nextConfig = {
   transpilePackages: ["@ivologis/shared"],
+  // Métadonnées (titre, description, Open Graph) toujours dans <head>, pour tous les visiteurs et robots :
+  // sinon Next 15 les diffuse en différé dans <body> sur les pages dynamiques (catalogue, fiches) et le SEO les perd.
+  htmlLimitedBots: /.*/,
   images: {
     // Liste fermée : sinon l'optimiseur d'images sert de proxy gratuit vers n'importe quel site.
     remotePatterns: [

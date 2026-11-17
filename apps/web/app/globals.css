@@ -100,9 +100,18 @@ body {
 }
 
 /* Apparition au défilement, pilotée par le navigateur (Chrome, Edge, Safari récent) ; ailleurs le contenu est simplement affiché. */
+/* Mouvement seul (pas de transparence) : un texte semi-transparent pendant l'apparition fausse les contrôles de contraste. */
+@keyframes ivo-reveal-up {
+  from {
+    transform: translateY(28px) scale(0.98);
+  }
+  to {
+    transform: none;
+  }
+}
 @supports (animation-timeline: view()) {
   .ivo-reveal {
-    animation: ivo-fade-up linear both;
+    animation: ivo-reveal-up linear both;
     animation-timeline: view();
     animation-range: entry 0% entry 55%;
   }
@@ -130,11 +139,9 @@ body {
 @keyframes ivo-pop {
   from {
     transform: scale(0.4);
-    opacity: 0.01;
   }
   to {
     transform: none;
-    opacity: 1;
   }
 }
 @keyframes ivo-line {
@@ -385,4 +392,38 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 9999px;
+}
+
+/* Barre de progression d'une recherche en cours (catalogue). */
+@keyframes ivo-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.ivo-progress {
+  animation: ivo-progress 0.8s ease-in-out both;
+}
+
+/* Photo plein écran qui s'ouvre (galerie). */
+@keyframes ivo-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ivo-zoom-in {
+  animation: ivo-zoom-in 0.25s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ivo-zoom-in,
+  .ivo-progress {
+    animation: none;
+  }
 }

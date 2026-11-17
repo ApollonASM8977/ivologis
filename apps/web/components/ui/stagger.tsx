@@ -1,37 +1,13 @@
-"use client";
+import type { HTMLAttributes } from "react";
 
-import { motion, type HTMLMotionProps, type Variants } from "motion/react";
-
-const containerVariants: Variants = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.07, delayChildren: 0.1 },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
-};
-
-export function StaggerContainer({ className, children, ...props }: Omit<HTMLMotionProps<"div">, "children"> & { children?: React.ReactNode }) {
-  return (
-    <motion.div
-      className={className}
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      {...props}
-    >
-      {children}
-    </motion.div>
-  );
+/**
+ * Apparition en cascade des enfants, en CSS (`.stagger-children` de globals.css : montée décalée de 60 ms par élément).
+ * Auparavant en JavaScript avec une opacité de départ à 0 : le contenu restait invisible tant que le script n'avait pas tourné.
+ */
+export function StaggerContainer({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={`stagger-children ${className}`} {...props} />;
 }
 
-export function StaggerItem({ className, children, ...props }: Omit<HTMLMotionProps<"div">, "children"> & { children?: React.ReactNode }) {
-  return (
-    <motion.div className={className} variants={itemVariants} {...props}>
-      {children}
-    </motion.div>
-  );
+export function StaggerItem(props: HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} />;
 }

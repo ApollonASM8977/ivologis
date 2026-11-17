@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { animate } from "motion/react";
 
+/** Compteur animé (montant, nombre) ; requestAnimationFrame natif, sans bibliothèque. Respecte « réduire les animations ». */
 export function CountUp({
   value,
   format = (n: number) => Math.round(n).toLocaleString("fr-FR"),
@@ -15,12 +15,19 @@ export function CountUp({
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    const controls = animate(0, value, {
-      duration,
-      ease: "easeOut",
-      onUpdate: (v) => setDisplay(v),
-    });
-    return () => controls.stop();
+    if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplay(value);
+      return;
+    }
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / (duration * 1000));
+      setDisplay(value * (1 - Math.pow(1 - t, 3))); // ease-out cubique
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
   }, [value, duration]);
 
   return <span>{format(display)}</span>;

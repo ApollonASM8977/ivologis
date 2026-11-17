@@ -1,31 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FlaskConical, MessageCircle, Phone, ChevronLeft, ChevronRight, X, Expand } from "lucide-react";
 import { CardHeader } from "@/components/ui/card";
 import { usePublicCompany } from "@/lib/use-company";
 import { fileUrl } from "@/lib/api";
 
-/** Apparition douce d'une section quand elle entre à l'écran. */
-export function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
-  return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
+/** Apparition douce d'une section quand elle entre à l'écran (CSS piloté par le défilement, sans JavaScript). */
+export function Reveal({ children, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  return <div className={`ivo-reveal ${className}`}>{children}</div>;
 }
 
-/** Galerie : vignettes avec zoom au survol, plein écran avec flèches, clavier et glissement. */
+/** Galerie : vignettes avec zoom au survol, plein écran avec flèches, clavier et glissement au doigt (sans bibliothèque). */
 export function PhotoGallery({ images, alt }: { images?: { id: string; url: string }[]; alt: string }) {
   const [open, setOpen] = useState<number | null>(null);
+  const swipeStart = useRef<number | null>(null);
   const count = images?.length ?? 0;
   const go = useCallback((delta: number) => setOpen((i) => (i === null ? i : (i + delta + count) % count)), [count]);
 
@@ -45,78 +35,72 @@ export function PhotoGallery({ images, alt }: { images?: { id: string; url: stri
     <>
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {images!.map((img, i) => (
-          <motion.button
+          <button
             key={img.id}
             type="button"
             onClick={() => setOpen(i)}
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.06, duration: 0.35 }}
-            className={`group relative overflow-hidden rounded-lg bg-gray-100 ${i === 0 && count > 2 ? "col-span-2 row-span-2 h-56 sm:h-full" : "h-28"}`}
+            // Mouvement seul : la photo principale compte comme affichée dès le premier rendu (LCP).
+            style={{ animationDelay: `${i * 60}ms` }}
+            className={`ivo-rise ivo-lift group relative overflow-hidden rounded-lg bg-gray-100 ${i === 0 && count > 2 ? "col-span-2 row-span-2 h-56 sm:h-full" : "h-28"}`}
             aria-label={`Agrandir la photo ${i + 1} sur ${count}`}
           >
             <Image
               src={fileUrl(img.url) ?? ""}
               alt={`${alt} — photo ${i + 1}`}
               fill
+              priority={i === 0}
               sizes={i === 0 ? "(min-width: 640px) 50vw, 100vw" : "200px"}
               className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/25 group-hover:opacity-100">
               <Expand className="h-6 w-6 text-white" />
             </span>
-          </motion.button>
+          </button>
         ))}
       </div>
 
-      <AnimatePresence>
-        {open !== null && (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Photos du bien"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setOpen(null)}
+      {open !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photos du bien"
+          className="ivo-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setOpen(null)}
+        >
+          <button type="button" aria-label="Fermer" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setOpen(null)}>
+            <X className="h-6 w-6" />
+          </button>
+          {count > 1 && (
+            <>
+              <button type="button" aria-label="Photo précédente" className="absolute left-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(-1); }}>
+                <ChevronLeft className="h-7 w-7" />
+              </button>
+              <button type="button" aria-label="Photo suivante" className="absolute right-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(1); }}>
+                <ChevronRight className="h-7 w-7" />
+              </button>
+            </>
+          )}
+          <div
+            key={open}
+            className="ivo-zoom-in relative h-[75vh] w-full max-w-5xl touch-pan-y"
+            onClick={(e) => e.stopPropagation()}
+            // Glisser au doigt (ou à la souris) vers la gauche ou la droite pour changer de photo.
+            onPointerDown={(e) => (swipeStart.current = e.clientX)}
+            onPointerUp={(e) => {
+              if (swipeStart.current === null) return;
+              const dx = e.clientX - swipeStart.current;
+              swipeStart.current = null;
+              if (dx < -60) go(1);
+              if (dx > 60) go(-1);
+            }}
           >
-            <button type="button" aria-label="Fermer" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setOpen(null)}>
-              <X className="h-6 w-6" />
-            </button>
-            {count > 1 && (
-              <>
-                <button type="button" aria-label="Photo précédente" className="absolute left-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(-1); }}>
-                  <ChevronLeft className="h-7 w-7" />
-                </button>
-                <button type="button" aria-label="Photo suivante" className="absolute right-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(1); }}>
-                  <ChevronRight className="h-7 w-7" />
-                </button>
-              </>
-            )}
-            <motion.div
-              key={open}
-              className="relative h-[75vh] w-full max-w-5xl"
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              onDragEnd={(_e, info) => {
-                if (info.offset.x < -60) go(1);
-                if (info.offset.x > 60) go(-1);
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Image src={fileUrl(images![open].url) ?? ""} alt={`${alt} — photo ${open + 1}`} fill sizes="100vw" className="object-contain" />
-            </motion.div>
-            <p className="absolute bottom-4 text-sm text-white/80">
-              {open + 1} / {count}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <Image src={fileUrl(images![open].url) ?? ""} alt={`${alt} — photo ${open + 1}`} fill sizes="100vw" className="select-none object-contain" draggable={false} />
+          </div>
+          <p className="absolute bottom-4 text-sm text-white/80">
+            {open + 1} / {count}
+          </p>
+        </div>
+      )}
     </>
   );
 }
@@ -132,8 +116,12 @@ export function AgencyContact({ listingName, disabled }: { listingName: string; 
   const { data: company } = usePublicCompany();
   const whatsapp = company?.whatsappPhone;
   const phone = company?.phone;
+  // L'adresse de la page n'existe que dans le navigateur : la lire au rendu serveur la laissait vide dans le message.
+  // Hooks avant tout retour conditionnel (règle des hooks : sinon erreur React #310 quand les données arrivent).
+  const [pageUrl, setPageUrl] = useState("");
+  useEffect(() => setPageUrl(window.location.href), []);
   if (disabled || (!whatsapp && !phone)) return null;
-  const message = `Bonjour, je suis intéressé(e) par l'annonce « ${listingName} » : ${typeof window !== "undefined" ? window.location.href : ""}`;
+  const message = `Bonjour, je suis intéressé(e) par l'annonce « ${listingName} »${pageUrl ? ` : ${pageUrl}` : ""}`;
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {whatsapp && (
@@ -141,7 +129,7 @@ export function AgencyContact({ listingName, disabled }: { listingName: string; 
           href={`https://wa.me/${waNumber(whatsapp)}?text=${encodeURIComponent(message)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#1F8F4E] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#19773F]"
+          className="inline-flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800"
         >
           <MessageCircle className="h-4 w-4" /> Écrire à l&apos;agence sur WhatsApp
         </a>

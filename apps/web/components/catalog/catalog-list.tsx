@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
 import { MapPin, SlidersHorizontal, ShieldCheck, type LucideIcon } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,21 +50,14 @@ function ListingSkeletons() {
   return (
     <div role="status" aria-live="polite">
       <p className="mb-3 flex items-center gap-2 text-sm text-ink-muted">
-        <motion.span
-          className="h-2 w-2 rounded-full bg-primary"
-          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-          transition={{ duration: 1.2, repeat: Infinity }}
-        />
+        <span className="ivo-ping h-2 w-2 rounded-full bg-primary" />
         Chargement des annonces… {LOADING_HINT}
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <motion.div
+          <div
             key={i}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06 }}
-            className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+            className="ivo-fade-in overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
           >
             <Skeleton className="h-44 w-full rounded-none" />
             <div className="space-y-2.5 p-4">
@@ -74,7 +66,7 @@ function ListingSkeletons() {
               <Skeleton className="h-3 w-1/3" />
               <Skeleton className="h-5 w-2/5" />
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>
@@ -117,26 +109,15 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
     <div>
       <PageHeader title={title} subtitle={subtitle} />
 
-      <motion.form
+      <form
         key={qs}
         onSubmit={onSubmit}
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        className="relative mb-6 grid grid-cols-2 gap-3 overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:grid-cols-3 lg:grid-cols-6"
+        className="ivo-fade-in relative mb-6 grid grid-cols-2 gap-3 overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:grid-cols-3 lg:grid-cols-6"
       >
-        <AnimatePresence>
-          {isFetching && !isLoading && (
-            <motion.span
-              aria-hidden="true"
-              className="absolute inset-x-0 top-0 h-0.5 origin-left bg-gradient-to-r from-primary/40 via-primary to-primary/40"
-              initial={{ scaleX: 0, opacity: 1 }}
-              animate={{ scaleX: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </AnimatePresence>
+        {/* Barre de progression pendant la recherche (CSS). */}
+        {isFetching && !isLoading && (
+          <span aria-hidden="true" className="ivo-progress absolute inset-x-0 top-0 h-0.5 origin-left bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
+        )}
         <div className="col-span-2 sm:col-span-1">
           <Label htmlFor="f-zone">Commune / ville</Label>
           <Select id="f-zone" name="zone" defaultValue={current.zone ?? ""}>
@@ -213,7 +194,7 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
             </Button>
           </div>
         </div>
-      </motion.form>
+      </form>
 
       {isLoading ? (
         <ListingSkeletons />
@@ -261,13 +242,7 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
 function ListingCard({ p, href, price, icon: Icon }: { p: any; href: string; price: string; icon: LucideIcon }) {
   const cover = p.images?.find((img: any) => img.isCover) ?? p.images?.[0];
   return (
-    <motion.div
-      className="h-full"
-      whileHover={{ y: -6 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      tabIndex={-1}
-    >
+    <div className="ivo-lift h-full rounded-xl">
     <Link href={href} className="group block h-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl hover:shadow-primary/10">
       <div className="relative h-44 w-full overflow-hidden bg-gray-100">
         <div className="absolute left-2 top-2 z-10 flex flex-wrap gap-1.5">
@@ -306,6 +281,6 @@ function ListingCard({ p, href, price, icon: Icon }: { p: any; href: string; pri
         <p className="mt-1 text-lg font-bold text-primary">{price}</p>
       </div>
     </Link>
-    </motion.div>
+    </div>
   );
 }
