@@ -30,6 +30,7 @@ import { CatalogModule } from "./catalog/catalog.module";
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60_000, limit: 120 }],
+      errorMessage: "Trop de tentatives. Patientez une minute puis réessayez.",
     }),
     PrismaModule,
     AuditModule,
