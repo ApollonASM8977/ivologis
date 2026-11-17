@@ -7,21 +7,21 @@ export const metadata: Metadata = {
 };
 
 const CONTROLS = [
-  { icon: Lock, title: "Mots de passe chiffrés", text: "Les mots de passe ne sont jamais stockés en clair : ils sont hachés avec bcrypt (coût 12) avant enregistrement." },
-  { icon: KeyRound, title: "Connexion protégée", text: "Jeton de session signé (JWT). Après 5 tentatives de connexion en une minute, l'accès est temporairement refusé pour bloquer les attaques par force brute." },
+  { icon: Lock, title: "Mots de passe hachés", text: "Les mots de passe ne sont jamais stockés en clair : ils sont hachés avec bcrypt (coût 12) avant enregistrement." },
+  { icon: KeyRound, title: "Connexion protégée", text: "Jeton de session signé (JWT), sessions révocables, double authentification (application d'authentification) activable par chaque utilisateur. Après 5 tentatives de connexion en une minute, l'accès est temporairement refusé." },
+  { icon: Eye, title: "Comptes rattachés sur invitation", text: "Un compte en ligne n'est relié au dossier d'un locataire ou d'un propriétaire qu'avec un code d'invitation à usage unique remis par l'agence, jamais sur simple numéro de téléphone." },
   { icon: Eye, title: "Accès par rôle", text: "Quatre rôles distincts : super-administrateur, agent (permissions accordées une à une), propriétaire et locataire. Chaque route vérifie le rôle côté serveur." },
   { icon: Database, title: "Isolation des données", text: "Un propriétaire ne voit que ses biens, contrats et paiements ; un locataire ne voit que son logement, son bail et ses quittances. Les identifiants d'autrui sont refusés." },
   { icon: History, title: "Journal d'activité", text: "Les actions sensibles (création d'agent, changement de statut ou de permissions, renouvellement, résiliation, archivage) sont enregistrées avec l'auteur et la date." },
   { icon: FileCheck2, title: "Documents maîtrisés", text: "Photos et documents n'acceptent que les formats prévus, avec une taille limitée. Les contrats et quittances sont générés à partir des données enregistrées." },
   { icon: Server, title: "Transport et en-têtes", text: "Échanges en HTTPS, en-têtes de sécurité (Helmet) et accès aux interfaces de programmation limité au domaine officiel de l'application." },
-  { icon: ShieldAlert, title: "Réinitialisation sécurisée", text: "Le lien de réinitialisation du mot de passe expire au bout d'une heure et ne révèle jamais si un compte existe." },
+  { icon: ShieldAlert, title: "Réinitialisation sécurisée", text: "Le lien de réinitialisation du mot de passe expire au bout d'une heure, ne sert qu'une fois et ne révèle jamais si un compte existe." },
 ];
 
 const ROADMAP = [
-  "Double authentification (code à usage unique) pour les comptes administrateurs.",
-  "Expiration et révocation des sessions depuis l'espace administrateur.",
-  "Sauvegardes automatiques chiffrées et procédure de restauration documentée.",
-  "Envoi du lien de réinitialisation par email ou SMS, en remplacement du mode de test actuel.",
+  "Double authentification obligatoire pour les comptes de l'agence.",
+  "Export quotidien de la base vers un stockage chiffré, avec test de restauration mensuel.",
+  "Envoi du lien de réinitialisation par email ou SMS (aujourd'hui, la réinitialisation passe par l'agence).",
 ];
 
 export default function SecurityPage() {

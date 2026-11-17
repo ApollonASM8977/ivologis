@@ -28,7 +28,7 @@ import { LogoMarquee } from "@/components/marketing/logo-marquee";
 const FEATURES = [
   { icon: Building2, title: "Biens immobiliers", text: "Fiche complète : adresse précise, photos, étage, équipements, meublé, repère pour trouver le bien." },
   { icon: Users, title: "Locataires et baux", text: "Dossier locataire avec garant et revenus, baux d'habitation, commercial, professionnel ou terrain, prêts à signer." },
-  { icon: Wallet, title: "Loyers et paiements", text: "Suivi des loyers, retards, rappels automatiques, quittances PDF générées à chaque paiement." },
+  { icon: Wallet, title: "Loyers et paiements", text: "Suivi des loyers et des retards, relance des impayés, quittance PDF émise dès qu'un paiement est confirmé." },
   { icon: Wrench, title: "Maintenance", text: "Demandes signalées par les locataires, assignation à un technicien, coûts estimés et réels, fil de commentaires." },
   { icon: BarChart3, title: "Relevés propriétaires", text: "Synthèse des revenus, commission et dépenses, exportable en PDF ou CSV compatible Excel." },
   { icon: FileText, title: "Documents", text: "Contrats et quittances exportables en PDF et Word, avec les informations de votre agence." },
@@ -78,7 +78,7 @@ const TIERS = [
 const FAQ = [
   {
     q: "Mes données sont-elles protégées ?",
-    a: "Les mots de passe sont chiffrés, chaque propriétaire et chaque locataire n'accède qu'à ses propres données, et les actions sensibles sont tracées dans un journal. La double authentification est disponible. Le détail est sur la page Sécurité.",
+    a: "Les mots de passe sont stockés sous forme hachée, chaque propriétaire et chaque locataire n'accède qu'à ses propres données, et les actions sensibles sont tracées dans un journal. La double authentification est disponible. Le détail est sur la page Sécurité.",
   },
   {
     q: "Les locataires peuvent-ils payer leur loyer en ligne ?",
@@ -468,15 +468,6 @@ export default function HomePage() {
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   className={`flex h-full flex-col rounded-2xl bg-white p-7 ${t.highlight ? "ring-2 ring-primary shadow-xl shadow-primary/15" : "border border-gray-100 shadow-sm"}`}
                 >
-                  {t.highlight && (
-                    <motion.span
-                      animate={{ scale: [1, 1.04, 1] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                      className="mb-3 w-fit rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white"
-                    >
-                      Le plus choisi
-                    </motion.span>
-                  )}
                   <h3 className="text-xl font-bold text-ink">{t.name}</h3>
                   <p className="text-sm text-ink-muted">{t.size}</p>
                   <p className="mt-4 text-2xl font-extrabold text-primary-dark">Sur devis</p>
@@ -503,14 +494,14 @@ export default function HomePage() {
           <Reveal>
             <p className="text-sm font-semibold uppercase tracking-wider text-primary">Sécurité</p>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-primary-dark">Vos données restent à leur place.</h2>
-            <p className="mt-4 text-ink-muted">Accès par rôle, isolation stricte entre propriétaires et locataires, mots de passe chiffrés, double authentification et journal des actions sensibles.</p>
+            <p className="mt-4 text-ink-muted">Accès par rôle, isolation stricte entre propriétaires et locataires, mots de passe hachés, double authentification et journal des actions sensibles.</p>
             <Link href="/securite" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
               Lire la page sécurité →
             </Link>
           </Reveal>
           <Reveal delay={0.1} className="grid grid-cols-2 gap-4">
             {[
-              { icon: Lock, label: "Mots de passe chiffrés" },
+              { icon: Lock, label: "Mots de passe hachés" },
               { icon: KeyRound, label: "Double authentification" },
               { icon: Eye, label: "Accès par rôle" },
               { icon: History, label: "Journal d'activité" },

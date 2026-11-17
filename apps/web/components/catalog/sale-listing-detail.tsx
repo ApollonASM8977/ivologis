@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck, CheckCircle2, ShieldCheck, Scale } from "lucide-react";
+import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck, CheckCircle2, ShieldCheck, ShieldAlert, Scale } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { formatXOF, PROPERTY_TYPE_LABELS, LAND_TITLE_TYPE_LABELS } from "@ivologis/shared";
 import { useAuthStore } from "@/lib/auth-store";
@@ -132,15 +132,31 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
       <VirtualTourCard url={property.virtualTourUrl} />
 
       <Card className="mt-4">
-        <CardHeader title="Informations légales" />
-        <div className="flex items-start gap-2 text-sm text-ink-muted">
-          <Scale className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <p>
-            Les droits de mutation à l&apos;achat d&apos;un terrain ou d&apos;un bien en Côte d&apos;Ivoire s&apos;élèvent à 4% du prix de vente (taux réduits dans certains cas particuliers), à la
-            charge de l&apos;acheteur selon l&apos;usage. Chaque bien publié ici a été vérifié par notre agence (titre foncier, ACD ou document équivalent) avant mise en ligne ; les documents
-            complets (acte, mutation, preuve de paiement) sont transmis après rendez-vous, dans le cadre de l&apos;accompagnement de l&apos;agence.
-          </p>
-        </div>
+        <CardHeader title="Avant d'acheter" />
+        <ul className="space-y-2.5 text-sm text-ink-muted">
+          {property.landTitleVerified && !property.isDemo && (
+            <li className="flex items-start gap-2">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+              <span>
+                L&apos;agence a contrôlé le document foncier de ce bien ({LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS]}) avant publication. Les
+                pièces complètes vous sont présentées lors du rendez-vous.
+              </span>
+            </li>
+          )}
+          <li className="flex items-start gap-2">
+            <Scale className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <span>
+              Faites aussi vérifier le titre auprès de la Conservation foncière et passez par un notaire. Les frais d&apos;acquisition (enregistrement, notaire, géomètre) vous
+              seront chiffrés par le notaire.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <span>
+              Ne versez jamais d&apos;argent avant la visite et la vérification des documents. Tout paiement se fait auprès de l&apos;agence, contre reçu, jamais à un intermédiaire.
+            </span>
+          </li>
+        </ul>
       </Card>
 
       <Button className="mt-6" onClick={() => setModalOpen(true)} disabled={property.isDemo}>

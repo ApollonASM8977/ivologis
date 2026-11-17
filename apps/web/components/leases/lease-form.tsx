@@ -222,8 +222,8 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
               : depositExceeds
                 ? "La caution dépasse 2 mois de loyer"
                 : "L'avance dépasse 2 mois de loyer"}{" "}
-            ({formatXOF(depositCeiling)} max recommandé par poste). Au-delà de ce plafond, une taxe de 300% sur
-            l&apos;excédent peut s&apos;appliquer (Art. 1143 CGI) — à vérifier avec votre comptable.
+            ({formatXOF(depositCeiling)} maximum par poste). Le Code de la construction et de l&apos;habitat (loi n° 2019-576)
+            plafonne la caution et l&apos;avance à 2 mois de loyer chacune pour un bail d&apos;habitation.
           </p>
         </div>
       )}
