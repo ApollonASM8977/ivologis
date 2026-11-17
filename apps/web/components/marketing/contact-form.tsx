@@ -7,6 +7,7 @@ import { CheckCircle2 } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { HoneypotField } from "@/components/ui/honeypot";
 import { toast } from "sonner";
 
 interface ContactValues {
@@ -16,6 +17,7 @@ interface ContactValues {
   organization?: string;
   portfolioSize?: string;
   message: string;
+  website?: string;
 }
 
 export function ContactForm() {
@@ -61,8 +63,9 @@ export function ContactForm() {
           noValidate
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="grid gap-4 sm:grid-cols-2"
+          className="relative grid gap-4 sm:grid-cols-2"
         >
+          <HoneypotField registration={register("website")} />
           <div>
             <Label htmlFor="c-name">Nom complet</Label>
             <Input id="c-name" autoComplete="name" aria-invalid={!!errors.fullName} {...register("fullName", { required: "Votre nom est requis.", minLength: { value: 2, message: "Nom trop court." } })} />

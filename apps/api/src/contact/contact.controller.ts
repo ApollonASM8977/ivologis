@@ -15,6 +15,8 @@ export class ContactController {
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post()
   create(@Body() dto: CreateContactDto) {
+    // Champ piège rempli = robot : réponse de succès, rien n'est enregistré.
+    if (dto.website) return { ok: true };
     return this.contactService.create(dto);
   }
 

@@ -1,6 +1,8 @@
 import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Delete, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { Throttle } from "@nestjs/throttler";
 import { SaleOfferStatus, UserRole, VisitRequestStatus } from "@prisma/client";
+import { generateReference } from "../common/utils/reference.util";
 import { PERMISSION_KEYS } from "@ivologis/shared";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { OptionalJwtAuthGuard } from "../common/guards/optional-jwt-auth.guard";
@@ -95,8 +97,11 @@ export class SalesController {
 
   /** Public : accessible avec ou sans compte (visiteur du catalogue). */
   @Post("properties/:propertyId/visit-requests")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UseGuards(OptionalJwtAuthGuard)
   requestVisit(@Param("propertyId") propertyId: string, @Body() dto: CreateVisitRequestDto, @CurrentUser() user?: AuthenticatedUser) {
+    // Champ piège rempli = robot : réponse identique, rien n'est enregistré.
+    if (dto.website) return { reference: generateReference("RDV") };
     return this.salesService.createVisitRequest(propertyId, dto, user);
   }
 

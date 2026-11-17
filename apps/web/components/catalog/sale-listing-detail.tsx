@@ -16,6 +16,7 @@ import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
 import { LocationMap, VirtualTourCard, DemoNotice } from "@/components/catalog/property-extras";
+import { HoneypotField } from "@/components/ui/honeypot";
 
 interface VisitForm {
   preferredDate?: string;
@@ -23,6 +24,7 @@ interface VisitForm {
   guestName?: string;
   guestPhone?: string;
   guestEmail?: string;
+  website?: string;
 }
 
 export function SaleListingDetail({ id, basePath }: { id: string; basePath: string }) {
@@ -186,6 +188,7 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
         ) : (
           <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
             <p className="text-sm text-ink-muted">L&apos;agence vous recontactera pour confirmer une date de visite.</p>
+            <HoneypotField registration={register("website")} />
             {!user && (
               <>
                 <div>

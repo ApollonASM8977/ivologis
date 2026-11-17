@@ -25,4 +25,10 @@ export class CreateVisitRequestDto {
   @IsEmail()
   @MaxLength(180)
   guestEmail?: string;
+
+  /** Champ piège invisible pour les humains. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  website?: string;
 }

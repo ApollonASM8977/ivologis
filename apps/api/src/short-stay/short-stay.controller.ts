@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { UserRole } from "@prisma/client";
+import { generateReference } from "../common/utils/reference.util";
 import { PERMISSION_KEYS } from "@ivologis/shared";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { OptionalJwtAuthGuard } from "../common/guards/optional-jwt-auth.guard";
@@ -49,8 +51,11 @@ export class ShortStayController {
 
   /** Public : accessible avec ou sans compte (visiteur du catalogue). */
   @Post("properties/:propertyId/short-stay-bookings/request")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UseGuards(OptionalJwtAuthGuard)
   requestBooking(@Param("propertyId") propertyId: string, @Body() dto: RequestShortStayBookingDto, @CurrentUser() user?: AuthenticatedUser) {
+    // Champ piège rempli = robot : réponse identique, rien n'est enregistré.
+    if (dto.website) return { reference: generateReference("RES") };
     return this.shortStayService.requestBooking(propertyId, dto, user);
   }
 

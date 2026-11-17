@@ -27,4 +27,10 @@ export class RequestShortStayBookingDto {
   @IsString()
   @MaxLength(500)
   notes?: string;
+
+  /** Champ piège invisible pour les humains. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  website?: string;
 }

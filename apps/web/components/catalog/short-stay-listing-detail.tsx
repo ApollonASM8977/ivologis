@@ -16,6 +16,7 @@ import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
 import { LocationMap, VirtualTourCard, DemoNotice } from "@/components/catalog/property-extras";
+import { HoneypotField } from "@/components/ui/honeypot";
 
 interface RequestForm {
   checkIn: string;
@@ -24,6 +25,7 @@ interface RequestForm {
   guestPhone?: string;
   guestEmail?: string;
   notes?: string;
+  website?: string;
 }
 
 const WEEKDAYS = ["L", "M", "M", "J", "V", "S", "D"];
@@ -188,6 +190,7 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
             <p className="text-sm text-ink-muted">
               Vous recevrez une confirmation une fois la demande validée par l&apos;agence ou le propriétaire. Le paiement n&apos;est pas en ligne : les modalités vous seront communiquées à la confirmation.
             </p>
+            <HoneypotField registration={register("website")} />
             {!user && (
               <>
                 <div>

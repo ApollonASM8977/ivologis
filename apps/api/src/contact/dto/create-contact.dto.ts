@@ -27,4 +27,10 @@ export class CreateContactDto {
   @IsString()
   @Length(10, 2000)
   message: string;
+
+  /** Champ piège invisible pour les humains. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  website?: string;
 }
