@@ -21,6 +21,7 @@ const INTERNAL_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT];
 // disponible en configuration volontaire (/auth/2fa/setup + /auth/2fa/enable) mais n'est plus
 // imposée au login des comptes internes. Remettre à `true` une fois les tests terminés.
 const ENFORCE_MANDATORY_2FA = false;
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("ivologis-timing-equalizer", 12);
 
 export interface SessionMeta {
   userAgent?: string;
@@ -131,7 +132,9 @@ export class AuthService {
       where: { OR: [{ email: dto.identifier }, { phone: dto.identifier }] },
     });
 
-    if (!user) {
+    // Même coût bcrypt et même message que le compte existe ou non ; le statut n'est révélé qu'au détenteur du mot de passe.
+    const valid = await bcrypt.compare(dto.password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
+    if (!user || !valid) {
       throw new UnauthorizedException("Identifiants incorrects.");
     }
     if (user.status === AccountStatus.SUSPENDED) {
@@ -139,11 +142,6 @@ export class AuthService {
     }
     if (user.status === AccountStatus.PENDING) {
       throw new UnauthorizedException("Ce compte est en attente de validation.");
-    }
-
-    const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) {
-      throw new UnauthorizedException("Identifiants incorrects.");
     }
 
     if (ENFORCE_MANDATORY_2FA && INTERNAL_ROLES.includes(user.role) && !user.totpEnabled) {
