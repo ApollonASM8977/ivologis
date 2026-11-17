@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  MaxLength,
   Min,
   MinLength,
 } from "class-validator";
@@ -30,6 +31,12 @@ export class CreatePropertyDto {
 
   @IsString()
   commune: string;
+
+  /** Quartier (Riviera 3, Angré 8e Tranche, Zone 4…) : distinct de la commune. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  neighborhood?: string;
 
   @IsOptional()
   @IsString()

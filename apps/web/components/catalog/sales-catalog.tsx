@@ -8,7 +8,7 @@ import { api, fileUrl } from "@/lib/api";
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
-import { DemoBadge } from "@/components/catalog/property-extras";
+import { DemoBadge, locationLabel } from "@/components/catalog/property-extras";
 
 export function SalesCatalog({ basePath }: { basePath: string }) {
   const { data, isLoading } = useQuery<any[]>({
@@ -48,7 +48,7 @@ export function SalesCatalog({ basePath }: { basePath: string }) {
                   <div className="p-4">
                     <p className="font-semibold text-ink">{p.name}</p>
                     <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-muted">
-                      <MapPin className="h-3.5 w-3.5" /> {p.commune}
+                      <MapPin className="h-3.5 w-3.5" /> {locationLabel(p)}
                     </p>
                     <p className="mt-2 text-xs uppercase tracking-wide text-ink-muted">{PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS]}</p>
                     <p className="mt-1 text-lg font-bold text-primary">{formatXOF(Number(p.salePrice ?? 0))}</p>

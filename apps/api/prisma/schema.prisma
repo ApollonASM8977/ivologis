@@ -314,6 +314,7 @@ model Property {
   description    String?
   address        String
   commune        String
+  neighborhood   String?
   city           String         @default("Abidjan")
   country        String         @default("Côte d'Ivoire")
   latitude       Decimal?       @db.Decimal(10, 6)

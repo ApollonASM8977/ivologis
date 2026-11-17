@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
-import { PropertyType, PROPERTY_TYPE_LABELS, COMMUNES_ABIDJAN, PROPERTY_AMENITIES } from "@ivologis/shared";
+import { PropertyType, PROPERTY_TYPE_LABELS, COMMUNES_ABIDJAN, VILLES_CI, PROPERTY_AMENITIES } from "@ivologis/shared";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,9 @@ export interface PropertyFormValues {
   type: PropertyType;
   description?: string;
   address: string;
+  city?: string;
   commune: string;
+  neighborhood?: string;
   landmark?: string;
   rooms?: number;
   bedrooms?: number;
@@ -56,8 +58,9 @@ export function PropertyForm({
   onSubmit: (values: PropertyFormValues) => void;
   submitLabel?: string;
 }) {
-  const { register, handleSubmit, watch } = useForm<PropertyFormValues>({ defaultValues });
+  const { register, handleSubmit, watch } = useForm<PropertyFormValues>({ defaultValues: { city: "Abidjan", ...defaultValues } });
   const shortStayEnabled = watch("shortStayEnabled");
+  const city = watch("city");
   const role = useAuthStore((s) => s.user?.role);
   const isStaff = role === "SUPER_ADMIN" || role === "ADMIN_AGENT";
 
@@ -110,14 +113,32 @@ export function PropertyForm({
 
         <SectionTitle>Localisation précise</SectionTitle>
         <div>
-          <Label>Commune</Label>
-          <Select {...register("commune", { required: true })}>
-            {COMMUNES_ABIDJAN.map((c) => (
-              <option key={c} value={c}>
-                {c}
+          <Label>Ville</Label>
+          <Select {...register("city")}>
+            {VILLES_CI.map((v) => (
+              <option key={v} value={v}>
+                {v}
               </option>
             ))}
           </Select>
+        </div>
+        <div>
+          <Label>Commune</Label>
+          {city === "Abidjan" ? (
+            <Select {...register("commune", { required: true })}>
+              {COMMUNES_ABIDJAN.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <Input placeholder="Commune ou localité" {...register("commune", { required: true })} />
+          )}
+        </div>
+        <div>
+          <Label>Quartier</Label>
+          <Input placeholder="Ex : Riviera 3, Angré 8e Tranche, Zone 4" {...register("neighborhood")} />
         </div>
         <div>
           <Label>Repère / point de repère</Label>
@@ -125,7 +146,7 @@ export function PropertyForm({
         </div>
         <div className="col-span-2">
           <Label>Adresse complète</Label>
-          <Input placeholder="Rue, lot, îlot, quartier précis..." {...register("address", { required: true })} />
+          <Input placeholder="Rue, lot, îlot..." {...register("address", { required: true })} />
         </div>
         <div>
           <Label>Latitude (optionnel)</Label>

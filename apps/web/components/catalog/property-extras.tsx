@@ -3,6 +3,19 @@
 import { FlaskConical } from "lucide-react";
 import { CardHeader } from "@/components/ui/card";
 
+interface Located {
+  address?: string | null;
+  neighborhood?: string | null;
+  commune?: string | null;
+  city?: string | null;
+}
+
+/** « Quartier, Commune » (+ ville hors Abidjan), avec l'adresse en tête si demandée. */
+export function locationLabel(p: Located, withAddress = false) {
+  const city = p.city && p.city !== "Abidjan" && p.city !== p.commune ? p.city : null;
+  return [withAddress ? p.address : null, p.neighborhood, p.commune, city].filter(Boolean).join(", ");
+}
+
 export function DemoBadge() {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-900">

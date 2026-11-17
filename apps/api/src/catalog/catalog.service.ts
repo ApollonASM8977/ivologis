@@ -10,6 +10,7 @@ const PUBLIC_FIELDS = {
   description: true,
   address: true,
   commune: true,
+  neighborhood: true,
   city: true,
   latitude: true,
   longitude: true,

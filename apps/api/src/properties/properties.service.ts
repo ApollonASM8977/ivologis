@@ -37,6 +37,7 @@ export class PropertiesService {
         description: dto.description,
         address: dto.address,
         commune: dto.commune,
+        neighborhood: dto.neighborhood,
         city: dto.city ?? "Abidjan",
         latitude: dto.latitude,
         longitude: dto.longitude,

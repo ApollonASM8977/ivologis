@@ -1,8 +1,10 @@
 export const CURRENCY = "XOF";
 
+/** Les 13 communes du District autonome d'Abidjan (source : economie-ivoirienne.ci). Riviera, Angré, Zone 4… sont des quartiers. */
 export const COMMUNES_ABIDJAN = [
   "Abobo",
   "Adjamé",
+  "Anyama",
   "Attécoubé",
   "Bingerville",
   "Cocody",
@@ -10,16 +12,20 @@ export const COMMUNES_ABIDJAN = [
   "Marcory",
   "Plateau",
   "Port-Bouët",
-  "Riviera",
+  "Songon",
   "Treichville",
   "Yopougon",
 ];
 
 export const AUTRES_VILLES = [
-  "Bouaké",
-  "Daloa",
+  "Grand-Bassam",
+  "Assinie-Mafia",
+  "Jacqueville",
+  "Dabou",
   "Yamoussoukro",
+  "Bouaké",
   "San-Pédro",
+  "Daloa",
   "Korhogo",
   "Man",
   "Gagnoa",
