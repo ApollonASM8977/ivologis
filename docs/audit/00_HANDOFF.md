@@ -6,7 +6,9 @@
 
 **Migrations nouvelles** (appliquées sur `audit-qa` uniquement, s'appliqueront en prod au déploiement de l'API) : `20261117120000_invite_codes`, `20261117130000_demo_listings` (marque les 6 annonces Unsplash en démo), `20261117140000_property_neighborhood` (Riviera → Cocody/quartier, Assinie → ville Assinie-Mafia), `20261117150000_company_legal_identity`.
 
-**Prochaine action exacte** : P1 dans cet ordre : P1-03 (boutons WhatsApp/appel de l'agence sur les fiches, numéro = `whatsappPhone`/`phone` de `GET /settings/public`) → P1-05 (page « Comment on vérifie les annonces ») → P1-01 (location longue durée au catalogue) → P1-02 (filtres) → P1-04 (SEO SSR). Puis Phase 7 (design) et Phase 8 (QA).
+**Depuis** : P0-18 `dbab749` (validation des séjours par l'agence), P1-03 `b1b484c` (WhatsApp/appel agence), P1-05 `306e919` (page `/verification`), P1-01 `b65170d` (logements à louer + coût d'entrée). Migrations en plus : `20261117160000_short_stay_approval`, `20261117170000_rental_listing`.
+
+**Prochaine action exacte** : P1-02 (filtres du catalogue : commune, quartier, type, budget, pièces, meublé — côté API via query params sur `GET /catalog/*`, côté web filtres dans l'URL) → P1-04 (SEO : pages annonces rendues côté serveur + `generateMetadata` + schema.org + sitemap dynamique) → E-13 (masquer « Ajouter un bien » aux propriétaires sans `properties.manage`) → T-11 (messages d'erreur Nest en français). Puis Phase 7 (design) et Phase 8 (QA).
 
 **Environnement de test local** (ne jamais tester contre la prod) :
 - Branche Neon `audit-qa` (`br-shy-fog-b1hl85o4`), copie de la prod du 2026-11-17 + données de test. Chaîne de connexion : outil Neon `get_connection_string` (branch_id ci-dessus) ; un `qa.env` (DATABASE_URL, JWT_SECRET de test, PORT=3101, CORS_ORIGIN=http://localhost:3100) existe dans le scratchpad de session.
