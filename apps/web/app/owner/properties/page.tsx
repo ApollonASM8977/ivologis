@@ -85,6 +85,7 @@ export default function OwnerPropertiesPage() {
                 <motion.button
                   type="button"
                   whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => router.push(`/owner/properties/${p.id}`)}
                   className="group block w-full overflow-hidden rounded-2xl border border-gray-100 bg-white text-left shadow-sm transition-shadow hover:shadow-lg"
                 >

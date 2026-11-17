@@ -380,7 +380,7 @@ export function SaleCard({
                   {!v.user && <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-muted">invité</span>}
                 </p>
                 <p className="truncate text-xs text-ink-muted">
-                  {v.user?.phone ?? v.user?.email ?? v.guestPhone ?? v.guestEmail}
+                  {canManage ? v.user?.phone ?? v.user?.email ?? v.guestPhone ?? v.guestEmail : "Suivi par l'agence"}
                   {v.preferredDate && ` · souhaité le ${new Date(v.preferredDate).toLocaleDateString("fr-FR")}`}
                   {v.scheduledDate && ` · RDV fixé le ${new Date(v.scheduledDate).toLocaleDateString("fr-FR")}`}
                   {" · réf. "}{v.reference}
@@ -391,7 +391,7 @@ export function SaleCard({
                 <Badge color={VISIT_REQUEST_STATUS_COLORS[v.status as keyof typeof VISIT_REQUEST_STATUS_COLORS]}>
                   {VISIT_REQUEST_STATUS_LABELS[v.status as keyof typeof VISIT_REQUEST_STATUS_LABELS]}
                 </Badge>
-                {v.status === "EN_ATTENTE" && (
+                {canManage && v.status === "EN_ATTENTE" && (
                   <>
                     <button
                       type="button"

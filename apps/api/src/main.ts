@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { frenchValidationException } from "./common/validation/validation-messages";
+import { AgencyPrivacyInterceptor } from "./common/interceptors/agency-privacy.interceptor";
 
 async function bootstrap() {
   if (!process.env.JWT_SECRET) {
@@ -36,6 +37,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new AgencyPrivacyInterceptor());
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);

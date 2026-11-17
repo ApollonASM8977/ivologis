@@ -68,7 +68,7 @@ export default function TenantMaintenancePage() {
         <StaggerContainer className="space-y-3">
           {(data?.data ?? []).map((m: any) => (
             <StaggerItem key={m.id}>
-              <motion.div whileHover={{ y: -2 }}>
+              <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href={`/tenant/maintenance/${m.id}`}
                   className="group flex items-start justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"

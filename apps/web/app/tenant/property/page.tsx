@@ -4,7 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
-import { MapPin, Home, Layers, CalendarDays, Sofa, Navigation, X, ChevronLeft, ChevronRight, Check, User } from "lucide-react";
+import { MapPin, Home, Layers, CalendarDays, Sofa, Navigation, X, ChevronLeft, ChevronRight, Check, User, Phone } from "lucide-react";
+import { usePublicCompany } from "@/lib/use-company";
 import { api, fileUrl } from "@/lib/api";
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
@@ -29,6 +30,7 @@ function Fact({ icon: Icon, label, value }: { icon: typeof Home; label: string; 
 
 export default function TenantPropertyPage() {
   const [active, setActive] = useState<number | null>(null);
+  const { data: company } = usePublicCompany();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["properties", "me"],
@@ -146,20 +148,24 @@ export default function TenantPropertyPage() {
           </StaggerItem>
         )}
 
-        {property.owner && (
-          <StaggerItem>
-            <Card className="flex items-center gap-4">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <User className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-xs text-ink-muted">Propriétaire</p>
-                <p className="font-semibold text-ink">{property.owner.fullName}</p>
-                {property.owner.phone && <p className="text-sm text-ink-muted">{property.owner.phone}</p>}
-              </div>
-            </Card>
-          </StaggerItem>
-        )}
+        {/* Tout passe par l'agence : le locataire la contacte, jamais le propriétaire directement. */}
+        <StaggerItem>
+          <Card className="flex flex-wrap items-center gap-4">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <User className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-ink-muted">Votre interlocuteur</p>
+              <p className="font-semibold text-ink">{company?.companyName ?? "Votre agence"}</p>
+              <p className="text-sm text-ink-muted">Loyer, travaux, préavis : l&apos;agence gère tout pour le compte du propriétaire.</p>
+            </div>
+            {company?.phone && (
+              <a href={`tel:${company.phone}`} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
+                <Phone className="h-4 w-4" /> Appeler l&apos;agence
+              </a>
+            )}
+          </Card>
+        </StaggerItem>
       </StaggerContainer>
 
       <AnimatePresence>

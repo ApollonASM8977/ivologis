@@ -61,14 +61,14 @@ export class ShortStayController {
 
   @Patch("short-stay-bookings/:id/confirm")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   confirm(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.shortStayService.confirm(id, user, user.id);
   }
 
   @Patch("short-stay-bookings/:id/refuse")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   refuse(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.shortStayService.refuse(id, user, user.id);
   }

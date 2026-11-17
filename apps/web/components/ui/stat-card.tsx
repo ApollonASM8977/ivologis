@@ -48,6 +48,7 @@ export function StatCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -3, boxShadow: "0 12px 24px -12px rgba(11,95,255,0.18)" }}
+      whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.35 }}
       className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
     >

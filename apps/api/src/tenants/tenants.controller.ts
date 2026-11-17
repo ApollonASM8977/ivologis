@@ -21,6 +21,7 @@ import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { PaginationDto } from "../common/dto/pagination.dto";
 import { assertOwnsTenantResource } from "../common/utils/scope.util";
+import { hideTenantPrivate } from "../common/interceptors/agency-privacy.interceptor";
 import { TenantsService } from "./tenants.service";
 import { CreateTenantDto } from "./dto/create-tenant.dto";
 import { UpdateTenantDto } from "./dto/update-tenant.dto";
@@ -38,13 +39,15 @@ export class TenantsController {
 
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
-  findAll(@Query() pagination: PaginationDto, @CurrentUser() user: AuthenticatedUser) {
+  async findAll(@Query() pagination: PaginationDto, @CurrentUser() user: AuthenticatedUser) {
     // Un propriétaire voit toujours ses propres locataires (liste filtrée) ; la permission ne concerne que les agents.
     if (user.role === UserRole.ADMIN_AGENT && !user.permissions.includes(PERMISSION_KEYS.TENANTS_MANAGE)) {
       throw new ForbiddenException("Vous n'avez pas la permission requise pour cette action.");
     }
-    const ownerId = user.role === UserRole.OWNER ? user.ownerId! : undefined;
-    return this.tenantsService.findAll(pagination, ownerId);
+    if (user.role !== UserRole.OWNER) return this.tenantsService.findAll(pagination);
+    // Tout passe par l'agence : le propriétaire voit qui occupe son bien, pas comment le joindre.
+    const page = await this.tenantsService.findAll(pagination, user.ownerId!);
+    return { ...page, data: hideTenantPrivate(page.data) };
   }
 
   @Post()
@@ -72,6 +75,7 @@ export class TenantsController {
     if (user.role === UserRole.OWNER) {
       const allowed = await this.tenantsService.belongsToOwner(id, user.ownerId!);
       if (!allowed) throw new ForbiddenException("Vous n'avez pas accès à ce locataire.");
+      return hideTenantPrivate(await this.tenantsService.findOne(id));
     }
     return this.tenantsService.findOne(id);
   }

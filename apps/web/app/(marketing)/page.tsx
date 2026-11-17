@@ -141,19 +141,23 @@ function DashboardMockup() {
   const rotateX = useTransform(springY, [-0.5, 0.5], [6, -6]);
   const rotateY = useTransform(springX, [-0.5, 0.5], [-8, 8]);
 
-  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+  // Pointeur = souris ET doigt : sur téléphone la carte suit aussi le glissé (il n'y a pas de survol au doigt).
+  function onMove(e: React.PointerEvent<HTMLDivElement>) {
     const r = e.currentTarget.getBoundingClientRect();
     rx.set((e.clientX - r.left) / r.width - 0.5);
     ry.set((e.clientY - r.top) / r.height - 0.5);
   }
 
   return (
-    <div className="[perspective:1200px]" onMouseMove={onMove} onMouseLeave={() => { rx.set(0); ry.set(0); }}>
+    <div className="[perspective:1200px]" onPointerMove={onMove} onPointerLeave={() => { rx.set(0); ry.set(0); }}>
+      {/* Flottement continu : la carte vit même sans souris (téléphone, tablette). */}
+      <motion.div animate={{ y: [0, -10, 0], rotateZ: [0, -0.6, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         style={{ rotateX, rotateY }}
+        whileTap={{ scale: 0.98 }}
         className="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl shadow-primary/15"
         aria-hidden="true"
       >
@@ -186,8 +190,15 @@ function DashboardMockup() {
               initial={{ height: 0 }}
               animate={{ height: `${h}%` }}
               transition={{ duration: 0.7, delay: 0.5 + i * 0.07, ease: "easeOut" }}
-              className="flex-1 rounded-t-md bg-gradient-to-t from-primary to-primary/60"
-            />
+              className="flex-1"
+            >
+              {/* Monte une fois, puis « respire » comme un tableau de bord en direct. */}
+              <motion.div
+                animate={{ scaleY: [1, 0.8, 1] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 1.4 + i * 0.25 }}
+                className="h-full origin-bottom rounded-t-md bg-gradient-to-t from-primary to-primary/60"
+              />
+            </motion.div>
           ))}
         </div>
         <div className="mt-5 space-y-2">
@@ -199,11 +210,16 @@ function DashboardMockup() {
               transition={{ delay: 1 + i * 0.12 }}
               className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-xs text-ink-muted"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <motion.span
+                className="h-1.5 w-1.5 rounded-full bg-primary"
+                animate={{ scale: [1, 1.8, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.6 }}
+              />
               {t}
             </motion.div>
           ))}
         </div>
+      </motion.div>
       </motion.div>
     </div>
   );
@@ -465,6 +481,7 @@ export default function HomePage() {
               <Reveal key={t.name} delay={i * 0.08}>
                 <motion.div
                   whileHover={{ y: -6 }}
+                  whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   className={`flex h-full flex-col rounded-2xl bg-white p-7 ${t.highlight ? "ring-2 ring-primary shadow-xl shadow-primary/15" : "border border-gray-100 shadow-sm"}`}
                 >
@@ -509,6 +526,7 @@ export default function HomePage() {
               <motion.div
                 key={s.label}
                 whileHover={{ y: -4, boxShadow: "0 12px 30px -10px rgba(11,95,255,0.25)" }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.03 }}
                 className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-5"
               >

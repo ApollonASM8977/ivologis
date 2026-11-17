@@ -247,7 +247,7 @@ export function ShortStayCard({
                     Quittance
                   </DocumentLink>
                 )}
-                {b.status === "EN_ATTENTE" && (
+                {isStaff && b.status === "EN_ATTENTE" && (
                   <>
                     <button
                       type="button"

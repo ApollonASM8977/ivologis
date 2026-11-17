@@ -129,14 +129,14 @@ export class SalesController {
 
   @Patch("visit-requests/:id/confirm")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   confirmVisit(@Param("id") id: string, @Body() dto: ScheduleVisitDto, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.decideVisitRequest(id, VisitRequestStatus.CONFIRME, dto, user, user.id);
   }
 
   @Patch("visit-requests/:id/refuse")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   refuseVisit(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.decideVisitRequest(id, VisitRequestStatus.REFUSE, {}, user, user.id);
   }

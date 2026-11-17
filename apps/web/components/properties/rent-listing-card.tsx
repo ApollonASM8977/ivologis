@@ -72,7 +72,7 @@ export function RentListingCard({ property }: { property: any }) {
                   <div className="min-w-0">
                     <p className="truncate font-medium text-ink">{v.user?.fullName ?? v.guestName}</p>
                     <p className="truncate text-xs text-ink-muted">
-                      {v.user?.phone ?? v.guestPhone ?? v.guestEmail}
+                      {isStaff ? v.user?.phone ?? v.guestPhone ?? v.guestEmail : "Suivi par l'agence"}
                       {v.preferredDate && ` · souhaité le ${new Date(v.preferredDate).toLocaleDateString("fr-FR")}`} · réf. {v.reference}
                     </p>
                     {v.message && <p className="truncate text-xs text-ink-muted">« {v.message} »</p>}
@@ -81,9 +81,9 @@ export function RentListingCard({ property }: { property: any }) {
                     <Badge color={VISIT_REQUEST_STATUS_COLORS[v.status as keyof typeof VISIT_REQUEST_STATUS_COLORS]}>
                       {VISIT_REQUEST_STATUS_LABELS[v.status as keyof typeof VISIT_REQUEST_STATUS_LABELS]}
                     </Badge>
-                    {v.status === "EN_ATTENTE" && (
+                    {isStaff && v.status === "EN_ATTENTE" && (
                       <>
-                        <button type="button" title="Confirmer" className="rounded p-1 text-success hover:bg-success/10" onClick={() => decide.mutate({ id: v.id, accept: true })}>
+                        <button type="button" title="Confirmer" aria-label="Confirmer la visite" className="rounded p-1 text-success hover:bg-success/10" onClick={() => decide.mutate({ id: v.id, accept: true })}>
                           <Check className="h-4 w-4" />
                         </button>
                         <button type="button" title="Refuser" className="rounded p-1 text-danger hover:bg-danger/10" onClick={() => decide.mutate({ id: v.id, accept: false })}>

@@ -254,3 +254,24 @@ test("messages de validation : un champ absent est signalé « obligatoire » un
   const short = { property: "phone", value: "07", constraints: { minLength: "phone must be longer than or equal to 8 characters" } };
   assert.deepEqual(messagesFor(short), ["Le téléphone est trop court."]);
 });
+
+test("tout passe par l'agence : coordonnées de l'autre partie masquées selon le rôle", () => {
+  const { hideCounterpartContacts } = require("../dist/src/common/interceptors/agency-privacy.interceptor.js");
+  const forOwner = hideCounterpartContacts(
+    { data: [{ id: 1, guestPhone: "+225", guestEmail: "a@b.c", tenant: { fullName: "T", phone: "07", monthlyIncome: 1 }, owner: { phone: "05" }, amount: 10, date: new Date(0) }] },
+    "OWNER",
+  );
+  const row = forOwner.data[0];
+  assert.equal(row.guestPhone, undefined);
+  assert.equal(row.tenant.phone, undefined);
+  assert.equal(row.tenant.monthlyIncome, undefined);
+  assert.equal(row.tenant.fullName, "T");
+  assert.equal(row.owner.phone, "05");
+  assert.ok(row.date instanceof Date);
+  const forTenant = hideCounterpartContacts({ property: { owner: { fullName: "O", phone: "05", email: "o@x" } }, tenant: { phone: "07" } }, "TENANT");
+  assert.equal(forTenant.property.owner.phone, undefined);
+  assert.equal(forTenant.property.owner.email, undefined);
+  assert.equal(forTenant.tenant.phone, "07");
+  const forStaff = hideCounterpartContacts({ tenant: { phone: "07" } }, "SUPER_ADMIN");
+  assert.equal(forStaff.tenant.phone, "07");
+});
