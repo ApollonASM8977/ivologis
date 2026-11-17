@@ -48,8 +48,10 @@ export class AuthService {
     return passwordHash.slice(-16);
   }
 
+  // Les permissions (clés) servent au web à n'afficher que les actions autorisées ; l'API reste seule juge.
   private sanitizeUser(user: Record<string, any>) {
-    return publicUser(user);
+    const out = publicUser(user);
+    return Array.isArray(user.permissions) ? { ...out, permissions: user.permissions.map((p: any) => p.permission.key) } : out;
   }
 
   async register(dto: RegisterDto, meta?: SessionMeta) {
@@ -130,6 +132,7 @@ export class AuthService {
   async login(dto: LoginDto, meta?: SessionMeta) {
     const user = await this.prisma.user.findFirst({
       where: { OR: [{ email: dto.identifier }, { phone: dto.identifier }] },
+      include: { permissions: { include: { permission: true } } },
     });
 
     // Même coût bcrypt et même message que le compte existe ou non ; le statut n'est révélé qu'au détenteur du mot de passe.
@@ -349,7 +352,7 @@ export class AuthService {
   async me(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { owner: true, tenant: true },
+      include: { owner: true, tenant: true, permissions: { include: { permission: true } } },
     });
     if (!user) throw new UnauthorizedException();
     return this.sanitizeUser(user);

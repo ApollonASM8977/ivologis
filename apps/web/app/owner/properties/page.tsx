@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Building2, MapPin } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth-store";
 import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ export default function OwnerPropertiesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
+  // Sans la permission accordée par l'agence, l'API refuse la création : on ne propose pas un formulaire voué à l'échec.
+  const canCreate = useAuthStore((s) => !!s.user?.permissions?.includes("properties.manage"));
 
   const { data, isLoading } = useQuery({
     queryKey: ["properties", "mine"],
@@ -41,14 +44,26 @@ export default function OwnerPropertiesPage() {
         title="Mes biens"
         subtitle="Gérez vos biens immobiliers"
         action={
-          <Button size="sm" onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4" /> Ajouter un bien
-          </Button>
+          canCreate ? (
+            <Button size="sm" onClick={() => setModalOpen(true)}>
+              <Plus className="h-4 w-4" /> Ajouter un bien
+            </Button>
+          ) : undefined
         }
       />
 
+      {!canCreate && (
+        <p className="mb-4 rounded-lg bg-surface px-4 py-3 text-sm text-ink-muted">
+          Pour confier un nouveau bien à l&apos;agence (location, vente ou séjours), contactez-la : elle crée la fiche et vérifie les documents avant toute publication.
+        </p>
+      )}
+
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={Building2} title="Vous n'avez aucun bien" action={<Button onClick={() => setModalOpen(true)}>Ajouter un bien</Button>} />
+        <EmptyState
+          icon={Building2}
+          title="Vous n'avez aucun bien"
+          action={canCreate ? <Button onClick={() => setModalOpen(true)}>Ajouter un bien</Button> : undefined}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(data?.data ?? []).map((p: any) => (
