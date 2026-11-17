@@ -1,7 +1,45 @@
 "use client";
 
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, MessageCircle, Phone } from "lucide-react";
 import { CardHeader } from "@/components/ui/card";
+import { usePublicCompany } from "@/lib/use-company";
+
+/** Numéro international pour wa.me : les numéros ivoiriens à 10 chiffres reçoivent l'indicatif 225. */
+function waNumber(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length === 10 ? `225${digits}` : digits;
+}
+
+/** Contact en deux gestes vers l'agence (jamais vers le propriétaire). */
+export function AgencyContact({ listingName, disabled }: { listingName: string; disabled?: boolean }) {
+  const { data: company } = usePublicCompany();
+  const whatsapp = company?.whatsappPhone;
+  const phone = company?.phone;
+  if (disabled || (!whatsapp && !phone)) return null;
+  const message = `Bonjour, je suis intéressé(e) par l'annonce « ${listingName} » : ${typeof window !== "undefined" ? window.location.href : ""}`;
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {whatsapp && (
+        <a
+          href={`https://wa.me/${waNumber(whatsapp)}?text=${encodeURIComponent(message)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#1F8F4E] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#19773F]"
+        >
+          <MessageCircle className="h-4 w-4" /> Écrire à l&apos;agence sur WhatsApp
+        </a>
+      )}
+      {phone && (
+        <a
+          href={`tel:${phone.replace(/\s/g, "")}`}
+          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:border-primary/40 hover:text-primary"
+        >
+          <Phone className="h-4 w-4" /> Appeler l&apos;agence
+        </a>
+      )}
+    </div>
+  );
+}
 
 interface Located {
   address?: string | null;

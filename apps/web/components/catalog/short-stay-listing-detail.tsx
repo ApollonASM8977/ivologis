@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
-import { LocationMap, VirtualTourCard, DemoNotice, locationLabel } from "@/components/catalog/property-extras";
+import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
 
 interface RequestForm {
@@ -106,6 +106,8 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
         </div>
         <p className="text-2xl font-bold text-primary">{formatXOF(Number(property.shortStayNightlyRate ?? 0))}/nuit</p>
       </div>
+
+      <AgencyContact listingName={property.name} disabled={property.isDemo} />
 
       {property.description && (
         <Card className="mt-4">

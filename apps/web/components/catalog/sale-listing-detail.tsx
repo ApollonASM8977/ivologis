@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
-import { LocationMap, VirtualTourCard, DemoNotice, locationLabel } from "@/components/catalog/property-extras";
+import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
 
 interface VisitForm {
@@ -84,6 +84,8 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
           )}
         </div>
       </div>
+
+      <AgencyContact listingName={property.name} disabled={property.isDemo} />
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card>

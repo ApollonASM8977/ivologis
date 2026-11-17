@@ -34,7 +34,7 @@ Une tâche = un commit `type(ID): ...`. Chaque tâche se vérifie sur l'environn
 |---|---|---|---|---|
 | P1-01 | **Location longue durée** dans le catalogue public (biens vacants publiés) + coût d'entrée détaillé (1er loyer + avance + caution + ½ frais d'agence) + demande de visite (R-01) | M | TODO | Onglet « Louer » ; fiche avec récapitulatif chiffré en FCFA ; demande de visite invitée avec référence. |
 | P1-02 | Recherche et filtres catalogue (commune, quartier, type, budget, pièces, meublé), tri, pagination | M | TODO | Filtres dans l'URL (partageables), résultats < 1 s sur la base de test. |
-| P1-03 | Contact en 2 taps vers l'agence (WhatsApp prérempli avec la référence de l'annonce + appel) (R-07) | S | TODO | Boutons visibles sans défiler sur mobile ; numéro = paramètres agence ; jamais le propriétaire. |
+| P1-03 | Contact en 2 taps vers l'agence (WhatsApp prérempli avec la référence de l'annonce + appel) (R-07) | S | FAIT (2026-11-17) — numéro = Paramètres (`whatsappPhone`/`phone`), masqué sur les démos ; vérifié à 375 px | Boutons visibles sans défiler sur mobile ; numéro = paramètres agence ; jamais le propriétaire. |
 | P1-04 | SEO : pages annonces rendues côté serveur, `generateMetadata`, schema.org `RealEstateListing`, sitemap dynamique (P-01, R-11) | M | TODO | HTML initial contient titre, prix, commune ; sitemap liste les annonces publiées. |
 | P1-05 | Bloc anti-arnaque sur les annonces + page « Comment on vérifie les annonces » (R-06) | S | TODO | Présent sur chaque fiche ; page liée depuis le footer. |
 | P1-06 | Vitrine : double entrée claire « Trouver un bien » / « Confier ou gérer mes biens » ; premier écran mobile utile (P-05, E-10) | M | TODO | Recherche visible au premier écran 375 px. |
