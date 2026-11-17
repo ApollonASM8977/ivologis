@@ -34,9 +34,9 @@ const FEATURES = [
 ];
 
 const CATALOG_OFFERS = [
-  { icon: KeyRound, title: "Logements à louer", text: "Studios, appartements, villas au mois : loyer, avance et caution affichés, frais d'agence encadrés. Demandez une visite sans créer de compte." },
-  { icon: Tag, title: "Biens à vendre", text: "Terrains, villas, appartements et locaux, publiés après contrôle du document foncier. Demandez un rendez-vous de visite en un clic." },
-  { icon: CalendarRange, title: "Résidences meublées", text: "Réservez un séjour à la nuitée, façon Airbnb simplifié : choisissez vos dates, envoyez votre demande, le paiement se règle sur place ou avant l'arrivée." },
+  { href: "/catalogue/locations", icon: KeyRound, title: "Logements à louer", text: "Studios, appartements, villas au mois : loyer, avance et caution affichés, frais d'agence encadrés. Demandez une visite sans créer de compte." },
+  { href: "/catalogue/sales", icon: Tag, title: "Biens à vendre", text: "Terrains, villas, appartements et locaux, publiés après contrôle du document foncier. Demandez un rendez-vous de visite en un clic." },
+  { href: "/catalogue/short-stay", icon: CalendarRange, title: "Résidences meublées", text: "Réservez un séjour à la nuitée, façon Airbnb simplifié : choisissez vos dates, envoyez votre demande, le paiement se règle sur place ou avant l'arrivée." },
 ];
 
 const STEPS = [
@@ -305,7 +305,7 @@ export default function HomePage() {
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {CATALOG_OFFERS.map((o, i) => (
               <Reveal key={o.title} delay={i * 0.08}>
-                <Link href="/catalogue" className="group block h-full rounded-2xl border border-gray-100 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
+                <Link href={o.href} className="group block h-full rounded-2xl border border-gray-100 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                     <o.icon className="h-5 w-5" />
                   </span>
@@ -324,7 +324,7 @@ export default function HomePage() {
       <section aria-labelledby="paiements-titre" className="border-y border-gray-100 bg-white py-8">
         <div className="mx-auto max-w-6xl px-5">
           <p id="paiements-titre" className="mb-4 text-center text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            Moyens de paiement mobile money
+            Moyens de paiement acceptés par l&apos;agence
           </p>
           <LogoMarquee />
         </div>

@@ -1,8 +1,125 @@
 "use client";
 
-import { FlaskConical, MessageCircle, Phone } from "lucide-react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { FlaskConical, MessageCircle, Phone, ChevronLeft, ChevronRight, X, Expand } from "lucide-react";
 import { CardHeader } from "@/components/ui/card";
 import { usePublicCompany } from "@/lib/use-company";
+import { fileUrl } from "@/lib/api";
+
+/** Apparition douce d'une section quand elle entre à l'écran. */
+export function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/** Galerie : vignettes avec zoom au survol, plein écran avec flèches, clavier et glissement. */
+export function PhotoGallery({ images, alt }: { images?: { id: string; url: string }[]; alt: string }) {
+  const [open, setOpen] = useState<number | null>(null);
+  const count = images?.length ?? 0;
+  const go = useCallback((delta: number) => setOpen((i) => (i === null ? i : (i + delta + count) % count)), [count]);
+
+  useEffect(() => {
+    if (open === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(null);
+      if (e.key === "ArrowRight") go(1);
+      if (e.key === "ArrowLeft") go(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, go]);
+
+  if (!count) return null;
+  return (
+    <>
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {images!.map((img, i) => (
+          <motion.button
+            key={img.id}
+            type="button"
+            onClick={() => setOpen(i)}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.06, duration: 0.35 }}
+            className={`group relative overflow-hidden rounded-lg bg-gray-100 ${i === 0 && count > 2 ? "col-span-2 row-span-2 h-56 sm:h-full" : "h-28"}`}
+            aria-label={`Agrandir la photo ${i + 1} sur ${count}`}
+          >
+            <Image
+              src={fileUrl(img.url) ?? ""}
+              alt={`${alt} — photo ${i + 1}`}
+              fill
+              sizes={i === 0 ? "(min-width: 640px) 50vw, 100vw" : "200px"}
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/25 group-hover:opacity-100">
+              <Expand className="h-6 w-6 text-white" />
+            </span>
+          </motion.button>
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {open !== null && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Photos du bien"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setOpen(null)}
+          >
+            <button type="button" aria-label="Fermer" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setOpen(null)}>
+              <X className="h-6 w-6" />
+            </button>
+            {count > 1 && (
+              <>
+                <button type="button" aria-label="Photo précédente" className="absolute left-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(-1); }}>
+                  <ChevronLeft className="h-7 w-7" />
+                </button>
+                <button type="button" aria-label="Photo suivante" className="absolute right-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(1); }}>
+                  <ChevronRight className="h-7 w-7" />
+                </button>
+              </>
+            )}
+            <motion.div
+              key={open}
+              className="relative h-[75vh] w-full max-w-5xl"
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={(_e, info) => {
+                if (info.offset.x < -60) go(1);
+                if (info.offset.x > 60) go(-1);
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image src={fileUrl(images![open].url) ?? ""} alt={`${alt} — photo ${open + 1}`} fill sizes="100vw" className="object-contain" />
+            </motion.div>
+            <p className="absolute bottom-4 text-sm text-white/80">
+              {open + 1} / {count}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
 
 /** Numéro international pour wa.me : les numéros ivoiriens à 10 chiffres reçoivent l'indicatif 225. */
 function waNumber(phone: string) {

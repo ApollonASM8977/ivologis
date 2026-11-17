@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck, CheckCircle2, ShieldCheck, ShieldAlert, Scale } from "lucide-react";
-import { api, apiErrorMessage, fileUrl } from "@/lib/api";
+import { api, apiErrorMessage } from "@/lib/api";
 import { formatXOF, PROPERTY_TYPE_LABELS, LAND_TITLE_TYPE_LABELS } from "@ivologis/shared";
 import { useAuthStore } from "@/lib/auth-store";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -15,7 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
-import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel } from "@/components/catalog/property-extras";
+import { CountUp } from "@/components/dashboard/count-up";
+import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel, PhotoGallery } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
 
 interface VisitForm {
@@ -50,22 +50,14 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
   if (isLoading || !property) return <LoadingState hint="Premier chargement : jusqu'à une minute si le site était inactif." />;
 
   return (
-    <div>
+    <div className="stagger-children">
       <Link href={basePath} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" /> Retour au catalogue
       </Link>
 
       {property.isDemo && <DemoNotice />}
 
-      {!!property.images?.length && (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {property.images.map((img: any) => (
-            <div key={img.id} className="relative h-28 overflow-hidden rounded-lg bg-gray-100">
-              <Image src={fileUrl(img.url) ?? ""} alt={property.name} fill sizes="200px" className="object-cover" />
-            </div>
-          ))}
-        </div>
-      )}
+      <PhotoGallery images={property.images} alt={property.name} />
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -75,7 +67,9 @@ export function SaleListingDetail({ id, basePath }: { id: string; basePath: stri
           </p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-primary">{formatXOF(Number(property.salePrice ?? 0))}</p>
+          <p className="text-2xl font-bold text-primary">
+            <CountUp value={Number(property.salePrice ?? 0)} format={formatXOF} />
+          </p>
           {property.landTitleVerified && !property.isDemo && (
             <p className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-success">
               <ShieldCheck className="h-3.5 w-3.5" />

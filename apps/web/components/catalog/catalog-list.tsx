@@ -5,11 +5,15 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "motion/react";
 import { MapPin, SlidersHorizontal, ShieldCheck, type LucideIcon } from "lucide-react";
+import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CountUp } from "@/components/dashboard/count-up";
 import { api, fileUrl } from "@/lib/api";
 import { AUTRES_VILLES, COMMUNES_ABIDJAN, PROPERTY_TYPE_LABELS, PropertyType } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
-import { LoadingState, EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { DemoBadge, locationLabel } from "@/components/catalog/property-extras";
@@ -33,9 +37,44 @@ const LOADING_HINT = "Premier chargement : jusqu'à une minute si le site était
 export function CatalogList(props: CatalogListProps) {
   // useSearchParams impose une frontière Suspense pour le rendu statique de Next.js.
   return (
-    <Suspense fallback={<LoadingState hint={LOADING_HINT} />}>
+    <Suspense fallback={<ListingSkeletons />}>
       <CatalogListInner {...props} />
     </Suspense>
+  );
+}
+
+/** Squelettes de cartes animés : la grille garde sa forme pendant le chargement (et le réveil du serveur). */
+function ListingSkeletons() {
+  return (
+    <div role="status" aria-live="polite">
+      <p className="mb-3 flex items-center gap-2 text-sm text-ink-muted">
+        <motion.span
+          className="h-2 w-2 rounded-full bg-primary"
+          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+          transition={{ duration: 1.2, repeat: Infinity }}
+        />
+        Chargement des annonces… {LOADING_HINT}
+      </p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06 }}
+            className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+          >
+            <Skeleton className="h-44 w-full rounded-none" />
+            <div className="space-y-2.5 p-4">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+              <Skeleton className="h-5 w-2/5" />
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -73,7 +112,26 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
     <div>
       <PageHeader title={title} subtitle={subtitle} />
 
-      <form key={qs} onSubmit={onSubmit} className="mb-6 grid grid-cols-2 gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:grid-cols-3 lg:grid-cols-6">
+      <motion.form
+        key={qs}
+        onSubmit={onSubmit}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="relative mb-6 grid grid-cols-2 gap-3 overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:grid-cols-3 lg:grid-cols-6"
+      >
+        <AnimatePresence>
+          {isFetching && !isLoading && (
+            <motion.span
+              aria-hidden="true"
+              className="absolute inset-x-0 top-0 h-0.5 origin-left bg-gradient-to-r from-primary/40 via-primary to-primary/40"
+              initial={{ scaleX: 0, opacity: 1 }}
+              animate={{ scaleX: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+            />
+          )}
+        </AnimatePresence>
         <div className="col-span-2 sm:col-span-1">
           <Label htmlFor="f-zone">Commune / ville</Label>
           <Select id="f-zone" name="zone" defaultValue={current.zone ?? ""}>
@@ -145,15 +203,15 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
                 Effacer
               </Button>
             )}
-            <Button type="submit">
+            <Button type="submit" loading={isFetching && !isLoading}>
               <SlidersHorizontal className="h-4 w-4" /> Filtrer
             </Button>
           </div>
         </div>
-      </form>
+      </motion.form>
 
       {isLoading ? (
-        <LoadingState hint={LOADING_HINT} />
+        <ListingSkeletons />
       ) : !data?.data.length ? (
         <EmptyState
           icon={Icon}
@@ -163,14 +221,19 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
       ) : (
         <>
           <p className="mb-3 text-sm text-ink-muted" aria-live="polite">
-            {data.total} annonce{data.total > 1 ? "s" : ""}
+            <span className="font-semibold text-ink">
+              <CountUp value={data.total} duration={0.6} />
+            </span>{" "}
+            annonce{data.total > 1 ? "s" : ""}
             {isFetching && " · mise à jour…"}
           </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StaggerContainer key={qs} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.data.map((p) => (
-              <ListingCard key={p.id} p={p} href={`${basePath}/${p.id}`} price={price(p)} icon={Icon} />
+              <StaggerItem key={p.id} className="h-full">
+                <ListingCard p={p} href={`${basePath}/${p.id}`} price={price(p)} icon={Icon} />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
           {pages > 1 && (
             <nav className="mt-6 flex items-center justify-center gap-3" aria-label="Pagination">
               <Button variant="secondary" disabled={page <= 1} onClick={() => apply({ ...current, page: String(page - 1) })}>
@@ -193,8 +256,15 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
 function ListingCard({ p, href, price, icon: Icon }: { p: any; href: string; price: string; icon: LucideIcon }) {
   const cover = p.images?.find((img: any) => img.isCover) ?? p.images?.[0];
   return (
-    <Link href={href} className="group block h-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="relative h-44 w-full bg-gray-100">
+    <motion.div
+      className="h-full"
+      whileHover={{ y: -6 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      tabIndex={-1}
+    >
+    <Link href={href} className="group block h-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl hover:shadow-primary/10">
+      <div className="relative h-44 w-full overflow-hidden bg-gray-100">
         <div className="absolute left-2 top-2 z-10 flex flex-wrap gap-1.5">
           {p.isDemo && <DemoBadge />}
           {p.landTitleVerified && !p.isDemo && (
@@ -205,7 +275,13 @@ function ListingCard({ p, href, price, icon: Icon }: { p: any; href: string; pri
           {p.furnished && <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-semibold text-ink">Meublé</span>}
         </div>
         {cover ? (
-          <Image src={fileUrl(cover.url) ?? ""} alt={p.name} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
+          <Image
+            src={fileUrl(cover.url) ?? ""}
+            alt={p.name}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-ink-muted">
             <Icon className="h-6 w-6" />
@@ -225,5 +301,6 @@ function ListingCard({ p, href, price, icon: Icon }: { p: any; href: string; pri
         <p className="mt-1 text-lg font-bold text-primary">{price}</p>
       </div>
     </Link>
+    </motion.div>
   );
 }

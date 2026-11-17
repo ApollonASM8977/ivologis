@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, CalendarCheck, CheckCircle2 } from "lucide-react";
-import { api, apiErrorMessage, fileUrl } from "@/lib/api";
+import { api, apiErrorMessage } from "@/lib/api";
 import { formatXOF } from "@ivologis/shared";
 import { useAuthStore } from "@/lib/auth-store";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -15,7 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
-import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel } from "@/components/catalog/property-extras";
+import { CountUp } from "@/components/dashboard/count-up";
+import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel, PhotoGallery } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
 
 interface RequestForm {
@@ -80,22 +80,14 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
   }
 
   return (
-    <div>
+    <div className="stagger-children">
       <Link href={basePath} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" /> Retour au catalogue
       </Link>
 
       {property.isDemo && <DemoNotice />}
 
-      {!!property.images?.length && (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {property.images.map((img: any) => (
-            <div key={img.id} className="relative h-28 overflow-hidden rounded-lg bg-gray-100">
-              <Image src={fileUrl(img.url) ?? ""} alt={property.name} fill sizes="200px" className="object-cover" />
-            </div>
-          ))}
-        </div>
-      )}
+      <PhotoGallery images={property.images} alt={property.name} />
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -104,7 +96,9 @@ export function ShortStayListingDetail({ id, basePath }: { id: string; basePath:
             <MapPin className="h-4 w-4" /> {locationLabel(property, true)}
           </p>
         </div>
-        <p className="text-2xl font-bold text-primary">{formatXOF(Number(property.shortStayNightlyRate ?? 0))}/nuit</p>
+        <p className="text-2xl font-bold text-primary">
+          <CountUp value={Number(property.shortStayNightlyRate ?? 0)} format={formatXOF} />/nuit
+        </p>
       </div>
 
       <AgencyContact listingName={property.name} disabled={property.isDemo} />
