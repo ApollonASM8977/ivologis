@@ -26,11 +26,31 @@ npm run build:web
 | Bail | Habitation avec 3 mois de caution → 400 explicite | OK (P0-13) |
 | Paramètres | Ancien envoi (objet complet) → 400 (bug E-12 confirmé) ; nouvel envoi → 200 ; `/settings/public` sans auth | OK (P0-15) |
 | Build | `next build` production | OK |
+| Validation séjours (P0-18) | Création/auto-validation par un propriétaire → non publiée ; `javascript:` → 400 ; validation admin → publiée ; modification propriétaire → retirée | OK |
+| Location (P1-01) | Publication agence → catalogue (25 champs publics) → demande de visite invitée → reçue côté agence ; coût d'entrée 420 000 FCFA affiché à 375 px | OK |
+| Filtres (P1-02) | zone, budget, type, tri, pagination, meublé, quartier ; paramètre inconnu → 400 ; filtre via l'URL à 375 px | OK |
+| SEO (P1-04) | Titre/description/canonical/JSON-LD dans le HTML serveur ; démo en `noindex` sans JSON-LD ; sitemap = pages fixes + annonces non démo | OK |
+| Design (P1-06) | Polices Manrope/Fraunces réellement appliquées ; couleurs lagune/latérite ; recherche d'accueil → `/catalogue/locations?zone=Yopougon` | OK |
+| Messages (T-11) | 401 « Connexion requise. », 403 « Cette action n'est pas autorisée pour votre profil. », 429 « Trop de tentatives… » | OK |
+| Propriétaire (E-13) | Permissions renvoyées à la connexion ; bouton « Ajouter un bien » masqué sans `properties.manage` | OK (code + API ; écran non revu visuellement) |
+| Build final | `next build` (2026-11-17 15:55) | OK |
+| Tests unitaires API | 20/20 | OK |
+
+## Lighthouse mobile sur la prod (2026-11-17, Lighthouse 12, simulation 4G lente)
+| Page | Performance | Accessibilité | Bonnes pratiques | SEO | LCP |
+|---|---|---|---|---|---|
+| Accueil | 73 | 97 | 100 | 100 | 4,3 s |
+| Liste « Logements à louer » | 70 | 96 | 100 | 100 | 4,2 s |
+| Fiche location (démo) | 63 | 96 | 100 | 91 | 5,4 s |
+Constats et suites :
+- Accessibilité : `aria-hidden-focus` venait de l'icône du logo rendue focusable par `whileTap` (Motion) → corrigé (`tabIndex={-1}`), à re-mesurer.
+- SEO 91 sur la fiche : description absente pendant l'audit car l'API redémarrait après le déploiement (repli prévu sur un titre générique) ; revérifié ensuite : titre + description présents. C'est la limite du plan gratuit Render.
+- Performance (LCP 4-5 s) : le contenu des annonces est chargé côté client après le JS (~200 Ko). Pistes : rendre la liste et la fiche côté serveur avec les données déjà lues pour le SEO, alléger Motion sur la vitrine, plan Render payant (pas de réveil). À traiter en P1 « performance ».
 
 ## À vérifier après déploiement en prod
-- [ ] Migrations appliquées (`isDemo`, `neighborhood`, identité légale, codes d'invitation)
-- [ ] IP réelle affichée dans Profil → Sessions (S-07)
-- [ ] Les 6 annonces fictives affichent « Démo »
+- [x] Migrations appliquées (6 migrations du 2026-11-17, vérifié par SQL en lecture)
+- [ ] IP réelle affichée dans Profil → Sessions (S-07) — à faire par l'utilisateur connecté
+- [x] Les 6 annonces fictives affichent « Démo » (catalogue prod : `isDemo=true`)
 - [ ] Connexion impossible avec les anciens mots de passe publiés (après rotation par l'utilisateur)
 
 ## Parcours par rôle (Phase 8)

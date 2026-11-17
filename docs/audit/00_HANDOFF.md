@@ -8,7 +8,9 @@
 
 **Depuis** : P0-18 `dbab749` (validation des séjours par l'agence), P1-03 `b1b484c` (WhatsApp/appel agence), P1-05 `306e919` (page `/verification`), P1-01 `b65170d` (logements à louer + coût d'entrée). Migrations en plus : `20261117160000_short_stay_approval`, `20261117170000_rental_listing`.
 
-**Prochaine action exacte** : P1-02 (filtres du catalogue : commune, quartier, type, budget, pièces, meublé — côté API via query params sur `GET /catalog/*`, côté web filtres dans l'URL) → P1-04 (SEO : pages annonces rendues côté serveur + `generateMetadata` + schema.org + sitemap dynamique) → E-13 (masquer « Ajouter un bien » aux propriétaires sans `properties.manage`) → T-11 (messages d'erreur Nest en français). Puis Phase 7 (design) et Phase 8 (QA).
+**Session du 2026-11-17 après-midi** : P1-02 `b18843c` (filtres/tri/pagination), P1-04 `2972c65` (SEO), P1-06 `954b3fa` (nouvelle identité + recherche d'accueil, design system v1 dans `06`), T-11 `9d3791c`, E-13 `f0e79d6`. Build prod OK, 20/20 tests. Poussé et déployé (`dep-dbu7ig6c6qcc73fckkqg` API, `dep-dbu7ig8jo6nc738e0fb0` web).
+
+**Prochaine action exacte** : terminer la Phase 8 → Lighthouse mobile sur la prod (accueil, catalogue, fiche) et consigner les scores dans `08_QA_CHECKLIST.md` ; parcours complets par rôle sur la prod avec les comptes de test (décision D-06). Ensuite : suite design (galerie plein écran, sections B2B selon E-10), T-11 (messages de validation des DTO), P1-07 (suivi public d'une demande), P1-08 (types/équipements ivoiriens), P1-14 (tests web + lint en CI).
 
 **Environnement de test local** (ne jamais tester contre la prod) :
 - Branche Neon `audit-qa` (`br-shy-fog-b1hl85o4`), copie de la prod du 2026-11-17 + données de test. Chaîne de connexion : outil Neon `get_connection_string` (branch_id ci-dessus) ; un `qa.env` (DATABASE_URL, JWT_SECRET de test, PORT=3101, CORS_ORIGIN=http://localhost:3100) existe dans le scratchpad de session.
