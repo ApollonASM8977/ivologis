@@ -55,7 +55,7 @@ export interface LeaseFormValues {
 const HABITATION_TYPES = [LeaseType.HABITATION_NUE, LeaseType.HABITATION_MEUBLEE];
 
 export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: (v: LeaseFormValues) => void }) {
-  const { register, handleSubmit, watch, setValue } = useForm<LeaseFormFields>({
+  const { register, handleSubmit, watch, setValue, getValues, formState } = useForm<LeaseFormFields>({
     defaultValues: { type: LeaseType.HABITATION_NUE },
   });
 
@@ -193,12 +193,21 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Date de début</Label>
-          <Input type="date" {...register("startDate", { required: true })} />
+          <Label htmlFor="lf-start">Date de début</Label>
+          <Input id="lf-start" type="date" {...register("startDate", { required: true })} />
         </div>
         <div>
-          <Label>Date de fin</Label>
-          <Input type="date" {...register("endDate", { required: true })} />
+          <Label htmlFor="lf-end">Date de fin</Label>
+          <Input
+            id="lf-end"
+            type="date"
+            min={watch("startDate") || undefined}
+            {...register("endDate", {
+              required: true,
+              validate: (end) => !getValues("startDate") || end > getValues("startDate") || "La fin doit être après le début.",
+            })}
+          />
+          {formState.errors.endDate?.message && <p className="mt-1 text-xs text-danger">{formState.errors.endDate.message}</p>}
         </div>
         <div>
           <Label>Loyer (FCFA)</Label>
