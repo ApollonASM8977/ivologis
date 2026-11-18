@@ -24,6 +24,7 @@ export function Audience() {
   const lang = useLang();
   const m = siteMessages[lang].consent;
   const [choice, setChoice] = useState<string | null | undefined>(undefined);
+  const [interacted, setInteracted] = useState(false);
   const first = useRef(true);
 
   useEffect(() => {
@@ -32,6 +33,12 @@ export function Audience() {
     } catch {
       setChoice("ok"); // stockage bloqué : pas de bandeau qui reviendrait à chaque page
     }
+    // Bandeau affiché au premier geste (défilement, toucher, clavier) : affiché dès le chargement, il devenait
+    // l'élément principal mesuré (LCP) des pages au contenu court et retardait leur score de ~0,5 s.
+    const show = () => setInteracted(true);
+    const events = ["scroll", "pointerdown", "keydown", "touchstart"] as const;
+    events.forEach((e) => window.addEventListener(e, show, { once: true, passive: true }));
+    return () => events.forEach((e) => window.removeEventListener(e, show));
   }, []);
 
   useEffect(() => {
@@ -54,7 +61,7 @@ export function Audience() {
     return () => clearTimeout(id);
   }, [path, lang, choice]);
 
-  if (choice !== null) return null;
+  if (choice !== null || !interacted) return null;
   const decide = (value: "ok" | "refused") => {
     try {
       localStorage.setItem(KEY, value);
