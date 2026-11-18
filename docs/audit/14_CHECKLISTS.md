@@ -15,7 +15,7 @@ Chaque point est vérifié et prouvé (commande, test, sortie). ✅ fait et prou
 | 7 | sitemap.xml / robots.txt | ✅ | Pages publiques uniquement ; espaces et API interdits aux robots. |
 | 8 | Textes alternatifs | ✅ | Robot `site-audit.cjs` : 0 image sans `alt` sur 47 pages × 4 rôles. |
 | 9 | Images compressées | ✅ | Affichage : `next/image` (WebP/AVIF, tailles adaptées). Envoi : réduites à 2000 px, WebP, **métadonnées GPS retirées**, faux fichiers rejetés (test unitaire). |
-| 10 | Vitesse | 🟡 | Linux, mobile, médiane de 5 : accueil 98, locations 96, ventes/courte durée 95, fiche 94-96. Le plan gratuit Render endort le site (~50 s au premier visiteur) : instance payante recommandée. |
+| 10 | Vitesse | 🟡 | Linux, mobile, médiane de 5 (version du dépôt, après bandeau et mesure d'audience) : accueil 97, connexion 96, CGU 98, locations 95, ventes 94, fiche 94. Le bandeau n'apparaît qu'au premier geste (sinon il devenait l'élément LCP). Prochain levier pour le catalogue : filtres traités par le serveur sans React Query. Le plan gratuit Render endort le site (~50 s au premier visiteur) : instance payante recommandée. |
 | 11 | Contrastes | ✅ | Lighthouse accessibilité 100 sur les pages publiques. |
 | 12 | Mobile | ✅ | Robot à 390 px : aucun défilement horizontal sur aucune page des 4 rôles. |
 | 13 | Page 404 personnalisée | ✅ | `app/[lang]/not-found.tsx`, bilingue (langue du cookie), maison animée, retour accueil/catalogue. |
