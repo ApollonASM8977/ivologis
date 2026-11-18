@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException, OnApplicationBootstrap, OnModuleDestroy } from "@nestjs/common";
 import { randomUUID } from "crypto";
-import { InspectionType, LeaseStatus, PropertyStatus } from "@prisma/client";
+import { InspectionType, Lease, LeaseStatus, PropertyStatus } from "@prisma/client";
+import { NotificationsService } from "../notifications/notifications.service";
 import { entryCostViolation } from "../common/utils/lease-rules";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
@@ -19,6 +20,18 @@ import { RentRevisionDto } from "./dto/revision.dto";
 
 const CONDITION_RANK: Record<string, number> = { NEUF: 0, BON: 1, USAGE: 2, DEGRADE: 3, MAUVAIS: 4 };
 const DAY_MS = 24 * 60 * 60 * 1000;
+/** Paliers d'alerte avant la fin d'un bail, du plus proche au plus lointain. */
+const EXPIRY_THRESHOLDS = [30, 60, 90];
+
+function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setUTCMonth(next.getUTCMonth() + months);
+  return next;
+}
+
+function frDate(date: Date) {
+  return date.toLocaleDateString("fr-FR", { dateStyle: "long", timeZone: "UTC" });
+}
 
 interface InspectionRoom {
   name: string;
@@ -39,7 +52,10 @@ function generateContractNumber() {
 }
 
 @Injectable()
-export class LeasesService {
+export class LeasesService implements OnApplicationBootstrap, OnModuleDestroy {
+  private readonly logger = new Logger(LeasesService.name);
+  private expiryTimers: NodeJS.Timeout[] = [];
+
   constructor(
     private prisma: PrismaService,
     private pdfService: PdfService,
@@ -47,6 +63,7 @@ export class LeasesService {
     private audit: AuditService,
     private storage: StorageService,
     private settings: SettingsService,
+    private notifications: NotificationsService,
   ) {}
 
   async create(dto: CreateLeaseDto) {
@@ -150,6 +167,9 @@ export class LeasesService {
         endDate: new Date(dto.newEndDate),
         rentAmount: dto.newRentAmount ?? lease.rentAmount,
         status: LeaseStatus.ACTIVE,
+        // Nouvelle période : nouvelles alertes et nouvelle décision d'échéance.
+        autoRenewMonths: null,
+        expiryNoticeDays: null,
       },
     });
 
@@ -357,11 +377,177 @@ export class LeasesService {
     return this.prisma.lease.update({ where: { id }, data: { documentUrl } });
   }
 
-  /** À exécuter périodiquement pour marquer les contrats arrivés à échéance. */
-  async expireOutdatedLeases() {
-    return this.prisma.lease.updateMany({
-      where: { status: LeaseStatus.ACTIVE, endDate: { lt: new Date() } },
-      data: { status: LeaseStatus.EXPIRED },
+  onApplicationBootstrap() {
+    if (process.env.NODE_ENV === "test") return;
+    const run = () => this.processExpiries().catch((e) => this.logger.error(`Échéances des baux : ${e?.message ?? e}`));
+    // Le plan gratuit endort le serveur : chaque réveil rattrape les échéances, puis un passage toutes les 6 h.
+    this.expiryTimers = [setTimeout(run, 30_000), setInterval(run, 6 * 60 * 60 * 1000)];
+    this.expiryTimers.forEach((t) => t.unref());
+  }
+
+  onModuleDestroy() {
+    this.expiryTimers.forEach((t) => clearTimeout(t));
+  }
+
+  async dueExpiries(days = 90) {
+    return this.prisma.lease.findMany({
+      where: { status: LeaseStatus.ACTIVE, endDate: { lte: new Date(Date.now() + days * DAY_MS) } },
+      orderBy: { endDate: "asc" },
+      take: 50,
+      select: {
+        id: true,
+        contractNumber: true,
+        endDate: true,
+        autoRenewMonths: true,
+        property: { select: { name: true } },
+        tenant: { select: { fullName: true } },
+      },
     });
   }
+
+  /** Décision de l'agence pour l'échéance (AD-06) ; appliquée tout de suite si la date est déjà passée. */
+  async setExpiryDecision(id: string, months: number | null, actorId?: string) {
+    const lease = await this.findOne(id);
+    if (lease.status !== LeaseStatus.ACTIVE) {
+      throw new BadRequestException("Seul un bail actif peut recevoir une décision d'échéance.");
+    }
+    const updated = await this.prisma.lease.update({ where: { id }, data: { autoRenewMonths: months } });
+    await this.audit.log({
+      userId: actorId,
+      action: "LEASE_EXPIRY_DECISION",
+      entityType: "Lease",
+      entityId: id,
+      metadata: { contractNumber: lease.contractNumber, autoRenewMonths: months },
+    });
+    if (months !== null && lease.owner.userId) {
+      await this.notifications.notify({
+        userId: lease.owner.userId,
+        type: "LEASE_EXPIRY",
+        title: "Échéance du bail : décision de l'agence",
+        message: `Pour le bail de « ${lease.property.name} » (fin le ${frDate(lease.endDate)}), l'agence a prévu ${months === 0 ? "de ne pas le reconduire" : `une reconduction tacite de ${months} mois`}.`,
+      });
+    }
+    if (lease.endDate <= new Date()) {
+      await this.handleExpiry({ ...lease, autoRenewMonths: months }, new Date());
+      return this.findOne(id);
+    }
+    return updated;
+  }
+
+  /** Alertes à 90, 60 et 30 jours, puis, le jour venu, application de la décision de l'agence. */
+  async processExpiries(now = new Date()) {
+    const leases = await this.prisma.lease.findMany({
+      where: { status: LeaseStatus.ACTIVE, endDate: { lte: new Date(now.getTime() + EXPIRY_THRESHOLDS[2] * DAY_MS) } },
+      include: {
+        property: { select: { name: true } },
+        tenant: { select: { fullName: true, userId: true } },
+        owner: { select: { userId: true } },
+      },
+    });
+    for (const lease of leases) await this.handleExpiry(lease, now);
+  }
+
+  private async handleExpiry(lease: ExpiringLease, now: Date) {
+    const daysLeft = Math.ceil((lease.endDate.getTime() - now.getTime()) / DAY_MS);
+    const label = `${lease.contractNumber} (${lease.property.name}, ${lease.tenant.fullName})`;
+    const end = frDate(lease.endDate);
+    const toParties = async (title: string, ownerMessage: string, tenantMessage: string) => {
+      if (lease.owner.userId) await this.notifications.notify({ userId: lease.owner.userId, type: "LEASE_EXPIRY", title, message: ownerMessage });
+      if (lease.tenant.userId) await this.notifications.notify({ userId: lease.tenant.userId, type: "LEASE_EXPIRY", title, message: tenantMessage });
+    };
+
+    if (daysLeft > 0) {
+      const threshold = EXPIRY_THRESHOLDS.find((t) => daysLeft <= t);
+      if (!threshold) return;
+      // Réserver le palier avant d'envoyer : deux passages simultanés n'alertent qu'une fois.
+      const claimed = await this.prisma.lease.updateMany({
+        where: { id: lease.id, OR: [{ expiryNoticeDays: null }, { expiryNoticeDays: { gt: threshold } }] },
+        data: { expiryNoticeDays: threshold },
+      });
+      if (!claimed.count) return;
+      await this.notifications.notifyStaff({
+        type: "LEASE_EXPIRY",
+        title: `Bail à échéance dans ${daysLeft} jour${daysLeft > 1 ? "s" : ""}`,
+        message: `Le bail ${label} se termine le ${end} : ${plannedOutcome(lease.autoRenewMonths)}. Renouvelez, résiliez ou choisissez la reconduction tacite depuis la fiche du contrat.`,
+      });
+      if (lease.expiryNoticeDays === null && lease.owner.userId) {
+        await this.notifications.notify({
+          userId: lease.owner.userId,
+          type: "LEASE_EXPIRY",
+          title: "Bail bientôt à échéance",
+          message: `Le bail de « ${lease.property.name} » se termine le ${end}. L'agence vous contactera pour la suite.`,
+        });
+      }
+      return;
+    }
+
+    if (lease.autoRenewMonths && lease.autoRenewMonths > 0) {
+      let newEnd = addMonths(lease.endDate, lease.autoRenewMonths);
+      while (newEnd <= now) newEnd = addMonths(newEnd, lease.autoRenewMonths);
+      // La condition sur l'ancienne date empêche une double reconduction si deux passages se croisent.
+      const renewed = await this.prisma.lease.updateMany({
+        where: { id: lease.id, status: LeaseStatus.ACTIVE, endDate: lease.endDate },
+        data: { endDate: newEnd, expiryNoticeDays: null },
+      });
+      if (!renewed.count) return;
+      await this.audit.log({
+        action: "TACIT_RENEWAL",
+        entityType: "Lease",
+        entityId: lease.id,
+        metadata: { contractNumber: lease.contractNumber, previousEndDate: lease.endDate, newEndDate: newEnd, months: lease.autoRenewMonths },
+      });
+      const until = frDate(newEnd);
+      await this.notifications.notifyStaff({ type: "LEASE_EXPIRY", title: "Bail reconduit tacitement", message: `Le bail ${label} est reconduit jusqu'au ${until}.` });
+      await toParties(
+        "Bail reconduit",
+        `Le bail de « ${lease.property.name} » est reconduit tacitement jusqu'au ${until}, aux mêmes conditions.`,
+        `Votre bail pour « ${lease.property.name} » est reconduit tacitement jusqu'au ${until}, aux mêmes conditions.`,
+      );
+      return;
+    }
+
+    if (lease.autoRenewMonths === 0) {
+      const expired = await this.prisma.lease.updateMany({
+        where: { id: lease.id, status: LeaseStatus.ACTIVE },
+        data: { status: LeaseStatus.EXPIRED, expiryNoticeDays: 0 },
+      });
+      if (!expired.count) return;
+      await this.audit.log({ action: "LEASE_EXPIRED", entityType: "Lease", entityId: lease.id, metadata: { contractNumber: lease.contractNumber } });
+      await this.notifications.notifyStaff({
+        type: "LEASE_EXPIRY",
+        title: "Bail échu, non reconduit",
+        message: `Le bail ${label} est arrivé à échéance le ${end} : faites l'état des lieux de sortie, la restitution du dépôt de garantie puis la résiliation.`,
+      });
+      await toParties(
+        "Fin du bail",
+        `Le bail de « ${lease.property.name} » est arrivé à échéance le ${end} et n'est pas reconduit. L'agence organise la sortie du locataire.`,
+        `Votre bail pour « ${lease.property.name} » est arrivé à échéance le ${end} et n'est pas reconduit. L'agence vous contacte pour l'état des lieux de sortie.`,
+      );
+      return;
+    }
+
+    // Sans décision, le bail reste actif : le locataire occupe toujours le bien et ses loyers doivent pouvoir être encaissés.
+    const claimed = await this.prisma.lease.updateMany({
+      where: { id: lease.id, OR: [{ expiryNoticeDays: null }, { expiryNoticeDays: { gt: 0 } }] },
+      data: { expiryNoticeDays: 0 },
+    });
+    if (!claimed.count) return;
+    await this.notifications.notifyStaff({
+      type: "LEASE_EXPIRY",
+      title: "Bail échu : décision à prendre",
+      message: `Le bail ${label} est arrivé à échéance le ${end} sans décision. Il reste actif tant que le locataire occupe le bien : renouvelez-le, résiliez-le ou choisissez la reconduction tacite.`,
+    });
+  }
+}
+
+type ExpiringLease = Lease & {
+  property: { name: string };
+  tenant: { fullName: string; userId: string | null };
+  owner: { userId: string | null };
+};
+
+function plannedOutcome(months: number | null) {
+  if (months === null) return "aucune décision n'est encore prise";
+  if (months === 0) return "il ne sera pas reconduit";
+  return `il sera reconduit tacitement pour ${months} mois`;
 }

@@ -275,3 +275,39 @@ test("tout passe par l'agence : coordonnées de l'autre partie masquées selon l
   const forStaff = hideCounterpartContacts({ tenant: { phone: "07" } }, "SUPER_ADMIN");
   assert.equal(forStaff.tenant.phone, "07");
 });
+
+test("échéance des baux (AD-06) : alertes 90/60/30 jours, reconduction tacite, non-reconduction, échu sans décision", async () => {
+  const { LeasesService } = require("../dist/src/leases/leases.service.js");
+  const DAY = 24 * 60 * 60 * 1000;
+  const now = new Date("2026-11-18T00:00:00Z");
+  const calls = { updates: [], staff: [], notify: [], audit: [] };
+  const prisma = { lease: { updateMany: async (args) => (calls.updates.push(args), { count: 1 }) } };
+  const notifications = { notifyStaff: async (n) => calls.staff.push(n), notify: async (n) => calls.notify.push(n) };
+  const audit = { log: async (e) => calls.audit.push(e) };
+  const service = new LeasesService(prisma, null, null, audit, null, null, notifications);
+  const lease = (days, autoRenewMonths, expiryNoticeDays = null) => ({
+    id: "L1", contractNumber: "BAIL-1", status: "ACTIVE", endDate: new Date(now.getTime() + days * DAY), autoRenewMonths, expiryNoticeDays,
+    property: { name: "Villa" }, tenant: { fullName: "Yao", userId: "u-t" }, owner: { userId: "u-o" },
+  });
+
+  await service.handleExpiry(lease(45, null), now);
+  assert.equal(calls.updates[0].data.expiryNoticeDays, 60);
+  assert.match(calls.staff[0].message, /aucune décision/);
+  assert.equal(calls.notify[0].userId, "u-o", "le propriétaire est prévenu à la première alerte");
+
+  Object.values(calls).forEach((a) => (a.length = 0));
+  await service.handleExpiry(lease(-1, 12), now);
+  assert.equal(calls.updates[0].data.endDate.toISOString().slice(0, 10), "2027-11-17");
+  assert.equal(calls.audit[0].action, "TACIT_RENEWAL");
+  assert.deepEqual(calls.notify.map((n) => n.userId), ["u-o", "u-t"]);
+
+  Object.values(calls).forEach((a) => (a.length = 0));
+  await service.handleExpiry(lease(-1, 0), now);
+  assert.equal(calls.updates[0].data.status, "EXPIRED");
+
+  Object.values(calls).forEach((a) => (a.length = 0));
+  await service.handleExpiry(lease(-3, null), now);
+  assert.equal(calls.updates[0].data.status, undefined, "sans décision le bail reste actif");
+  assert.equal(calls.updates[0].data.expiryNoticeDays, 0);
+  assert.match(calls.staff[0].title, /décision à prendre/);
+});

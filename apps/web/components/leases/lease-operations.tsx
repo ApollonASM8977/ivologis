@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CountUp } from "@/components/dashboard/count-up";
+import { LeaseExpiryCard } from "@/components/leases/lease-expiry";
 
 export const CONDITIONS: Record<string, string> = {
   NEUF: "Neuf",
@@ -312,7 +313,8 @@ function RevisionCard({ lease }: { lease: any }) {
       api.post(`/leases/${lease.id}/revision`, { newRent: Number(values.newRent), effectiveDate: values.effectiveDate }),
     onSuccess: () => {
       toast.success("Loyer révisé.");
-      queryClient.invalidateQueries({ queryKey: ["leases", lease.id] });
+      // La fiche est en cache sous ["leases", "detail", id] : l'ancienne clé ne la rafraîchissait pas.
+      queryClient.invalidateQueries({ queryKey: ["leases"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -356,6 +358,7 @@ export function LeaseOperations({ lease }: { lease: any }) {
   return (
     <div className="mt-4 space-y-4">
       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-muted"><Wallet className="h-3.5 w-3.5" /> Exploitation du bail</p>
+      <LeaseExpiryCard lease={lease} />
       <InspectionsCard leaseId={lease.id} />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <DepositCard lease={lease} />

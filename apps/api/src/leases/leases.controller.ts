@@ -17,6 +17,7 @@ import { UpdateLeaseDto } from "./dto/update-lease.dto";
 import { CreateInspectionDto } from "./dto/create-inspection.dto";
 import { DepositSettlementDto } from "./dto/deposit-settlement.dto";
 import { RentRevisionDto } from "./dto/revision.dto";
+import { ExpiryDecisionDto } from "./dto/expiry-decision.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { BadRequestException, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { imageUploadOptions } from "../common/image-upload/image-upload.options";
@@ -89,6 +90,19 @@ export class LeasesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   dueRevisions() {
     return this.leasesService.dueRevisions();
+  }
+
+  @Get("expiries/due")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  dueExpiries() {
+    return this.leasesService.dueExpiries();
+  }
+
+  @Patch(":id/expiry-decision")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.LEASES_MANAGE)
+  setExpiryDecision(@Param("id") id: string, @Body() dto: ExpiryDecisionDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.leasesService.setExpiryDecision(id, dto.autoRenewMonths ?? null, user.id);
   }
 
   @Get(":id/inspections")

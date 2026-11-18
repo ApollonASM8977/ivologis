@@ -1,6 +1,7 @@
 "use client";
 
 import { RevisionsDueCard } from "@/components/leases/revisions-due-card";
+import { ExpiriesDueCard } from "@/components/leases/lease-expiry";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -96,7 +97,10 @@ export default function AdminDashboardPage() {
           </div>
         </>
       )}
-      <div className="mt-4"><RevisionsDueCard /></div>
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <ExpiriesDueCard />
+        <RevisionsDueCard />
+      </div>
     </div>
   );
 }
