@@ -7,7 +7,7 @@ on:
     inputs:
       urls:
         description: "Pages à mesurer (séparées par des espaces)"
-        default: "https://ivologis-web.onrender.com/ https://ivologis-web.onrender.com/catalogue/locations https://ivologis-web.onrender.com/securite https://ivologis-web.onrender.com/login"
+        default: "https://ivologis-web.onrender.com/ https://ivologis-web.onrender.com/catalogue/locations https://ivologis-web.onrender.com/catalogue/locations/da2bc257-c550-46f6-b3d5-1d25d56a90b2 https://ivologis-web.onrender.com/securite https://ivologis-web.onrender.com/login"
       runs:
         description: "Passages par page"
         default: "5"
@@ -31,9 +31,13 @@ jobs:
         run: npm install -g lighthouse@12
 
       # Le plan gratuit endort le serveur : sans réveil, le premier passage mesurerait le démarrage (jusqu'à une minute).
-      - name: Réveiller le serveur
+      # Le site ET l'API (service séparé, qui dort aussi) : sinon le catalogue mesure le réveil de l'API.
+      - name: Réveiller le site et l'API
         run: |
+          curl -s -o /dev/null -m 120 -w "API %{http_code} %{time_total}s\n" https://ivologis-api.onrender.com/api/settings/public || true
           for u in $URLS; do curl -s -o /dev/null -m 120 -w "$u %{http_code} %{time_total}s\n" "$u" || true; done
+          sleep 5
+          for u in $URLS; do curl -s -o /dev/null -m 60 -w "$u %{http_code} %{time_total}s\n" "$u" || true; done
 
       - name: Mesurer
         run: |
