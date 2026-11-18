@@ -1,0 +1,81 @@
+name: Lighthouse (production)
+
+# Mesure de référence sur une machine Linux neutre (proche de PageSpeed Insights), lancée à la main :
+# Actions → « Lighthouse (production) » → Run workflow. Médiane de N passages mobiles par page.
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: "Pages à mesurer (séparées par des espaces)"
+        default: "https://ivologis-web.onrender.com/ https://ivologis-web.onrender.com/catalogue/locations https://ivologis-web.onrender.com/securite https://ivologis-web.onrender.com/login"
+      runs:
+        description: "Passages par page"
+        default: "5"
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      URLS: ${{ inputs.urls }}
+      RUNS: ${{ inputs.runs }}
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Installer Lighthouse
+        run: npm install -g lighthouse@12
+
+      # Le plan gratuit endort le serveur : sans réveil, le premier passage mesurerait le démarrage (jusqu'à une minute).
+      - name: Réveiller le serveur
+        run: |
+          for u in $URLS; do curl -s -o /dev/null -m 120 -w "$u %{http_code} %{time_total}s\n" "$u" || true; done
+
+      - name: Mesurer
+        run: |
+          mkdir -p rapports
+          i=0
+          for u in $URLS; do
+            i=$((i+1))
+            for n in $(seq 1 "$RUNS"); do
+              lighthouse "$u" --quiet --chrome-flags="--headless=new --no-sandbox" \
+                --only-categories=performance,accessibility,best-practices,seo \
+                --output=json --output-path="rapports/page$i-$n.json" || true
+            done
+          done
+
+      - name: Résumé
+        run: |
+          node -e '
+          const fs = require("fs");
+          const files = fs.readdirSync("rapports").filter((f) => f.endsWith(".json"));
+          const byPage = {};
+          for (const f of files) {
+            const r = JSON.parse(fs.readFileSync("rapports/" + f, "utf8"));
+            if (!r.categories?.performance?.score && r.categories?.performance?.score !== 0) continue;
+            (byPage[r.finalDisplayedUrl] ??= []).push(r);
+          }
+          const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
+          const pct = (r, k) => Math.round(r.categories[k].score * 100);
+          let out = "| Page | Perf (médiane) | Passages | A11y | BP | SEO | LCP | TBT | CLS | Indice machine |\n|---|---|---|---|---|---|---|---|---|---|\n";
+          for (const [url, runs] of Object.entries(byPage)) {
+            const p = runs.map((r) => pct(r, "performance"));
+            const lcp = med(runs.map((r) => r.audits["largest-contentful-paint"].numericValue / 1000)).toFixed(2);
+            const tbt = Math.round(med(runs.map((r) => r.audits["total-blocking-time"].numericValue)));
+            const cls = med(runs.map((r) => r.audits["cumulative-layout-shift"].numericValue)).toFixed(3);
+            const bench = Math.round(med(runs.map((r) => r.environment.benchmarkIndex)));
+            out += `| ${url} | **${med(p)}** | ${p.join(", ")} | ${pct(runs[0], "accessibility")} | ${pct(runs[0], "best-practices")} | ${pct(runs[0], "seo")} | ${lcp} s | ${tbt} ms | ${cls} | ${bench} |\n`;
+          }
+          console.log(out);
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out);
+          '
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rapports-lighthouse
+          path: rapports
+          retention-days: 14
