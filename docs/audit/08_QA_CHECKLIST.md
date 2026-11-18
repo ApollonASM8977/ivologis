@@ -47,6 +47,23 @@ Constats et suites :
 - SEO 91 sur la fiche : description absente pendant l'audit car l'API redémarrait après le déploiement (repli prévu sur un titre générique) ; revérifié ensuite : titre + description présents. C'est la limite du plan gratuit Render.
 - Performance (LCP 4-5 s) : le contenu des annonces est chargé côté client après le JS (~200 Ko). Pistes : rendre la liste et la fiche côté serveur avec les données déjà lues pour le SEO, alléger Motion sur la vitrine, plan Render payant (pas de réveil). À traiter en P1 « performance ».
 
+## Lighthouse « ordinateur » (2026-11-18, run Actions `44336732776`, cible `build` = `main` à `017048a`)
+Lighthouse 12.8.2, preset desktop (écran 1350×940, RTT 40 ms, 10 Mbit/s, CPU ×1), machine Linux de GitHub (indice ≈ 2 470), médiane de 3 passages par page. Mesuré **avant** le lot sécurité (`1c9f6bc`). Rapports JSON conservés dans `_RESSOURCES/outils-session/lighthouse/44336732776/` (l'artefact GitHub expire le 2026-12-02) ; résumé : `node lh-summary.cjs <dossier>`.
+
+| Page | Perf | Passages | A11y | BP | SEO | FCP | LCP | TBT | CLS |
+|---|---|---|---|---|---|---|---|---|---|
+| `/` | **100** | 99, 100, 100 | 100 | 96 | 100 | 0,26 s | 0,58 s | 0 ms | 0,000 |
+| `/catalogue/locations` | **100** | 100, 100, 100 | 100 | 96 | 100 | 0,22 s | 0,58 s | 0 ms | 0,000 |
+| `/catalogue/sales` | **100** | 100, 100, 100 | 100 | 96 | 100 | 0,22 s | 0,62 s | 0 ms | 0,000 |
+| `/catalogue/locations/da2bc257…` | **100** | 100, 100, 100 | 100 | 96 | 66 | 0,22 s | 0,62 s | 0 ms | 0,001 |
+| `/login` | **100** | 100, 100, 100 | 100 | 96 | 100 | 0,21 s | 0,60 s | 0 ms | 0,005 |
+| `/securite` | **100** | 100, 100, 100 | 100 | 96 | 100 | 0,26 s | 0,54 s | 0 ms | 0,000 |
+
+- Performance 100 sur les 6 pages ; aucune piste d'optimisation au-delà de 50 ms.
+- Bonnes pratiques 96 partout = **artefact de la cible `build`** : le site servi sur `http://localhost:3000` appelle l'API de production, dont le CORS n'autorise que le site en ligne → `POST /api/analytics/pageview` (et `GET /api/settings/public` sur la fiche) bloqués, erreurs console. N'existe pas en production (origine autorisée). Pour un 100 en cible `build`, il faudrait une API de test qui autorise `localhost:3000`.
+- SEO 66 sur la fiche `da2bc257…` = **voulu** : c'est une annonce de démonstration → `noindex, nofollow` (`apps/web/lib/listing-seo.tsx:106`). Pour mesurer le SEO d'une fiche, passer une annonce réelle dans l'entrée `paths`.
+- Mobile (référence `14_CHECKLISTS.md` n° 10, médiane de 5) : accueil 97, connexion 96, CGU 98, locations 95, ventes 94, fiche 94 → l'objectif ≥ 96 reste à atteindre sur locations, ventes et fiche. L'ordinateur n'est pas le facteur limitant ; le mobile (CPU ×4, 4G lente) l'est.
+
 ## Contrôle CSP du lot sécurité (2026-11-18 soir, mini-PC, build de production local)
 Contexte : branche `security/prelaunch` (lot non commité : CSP en production, `poweredByHeader: false`, case CGU, overrides npm). API locale :3101 sur Neon `audit-qa` (point d'accès `ep-curly-star-b1su9i1h`, réveillé par l'API au démarrage, vérifié avec l'outil Neon ; la prod n'est pas touchée) ; web `next start` :3100 construit avec `NEXT_PUBLIC_API_URL=http://localhost:3101`.
 Méthode : Chrome 157 piloté par `puppeteer-core@24.43.1` ; écouteur `securitypolicyviolation` injecté avant tout script de chaque page ; défilement complet (cadres chargés à la demande) ; erreurs console et JS relevées. Sessions admin / propriétaire / locataire par les jetons de test de `outils-session` (re-signés pour 1 h avec le `JWT_SECRET` de test) : `GET /auth/me` = 200 pour les trois.
