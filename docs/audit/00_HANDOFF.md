@@ -14,6 +14,13 @@
 
 **Déployé** : `d339b1a` (espaces locataire/propriétaire) en prod le 2026-11-17 16:50 UTC, design d'origine vérifié en prod. Ensuite : audit admin en profondeur (chaîne bien → bail → paiement → quittance → relevé, équipe, paramètres, import CSV, messages en français partout) — voir `12_AUDIT_ESPACES.md`.
 
+**Bilingue TERMINÉ le 2026-11-18 (`39b6813`, `497610a`)** : tout le site et l'API sont en FR/EN, sélecteur visible (en-tête public + barre des espaces).
+- Web : composants clients → `t("Texte français")` de `lib/t-<zone>.ts` (zones : catalog, spaces, auth, ui ; dictionnaires `messages/en/<zone>.ts`, clé = texte français exact, `{0}` = valeurs). Composants serveur → objets `Messages` typés (`messages/*.ts`) ou `translator(lang, dict)`. **Ne jamais appeler `t` au niveau du module** : traduire à l'affichage (`t(item.label)`). Dates/montants : `locale()` et `money()` de `lib/t.ts`.
+- **Garde-fou** : `npm run check:i18n --workspace=apps/web` (dans la CI) échoue si un texte affiché n'a pas sa traduction ou n'est pas dans `t()`. Exception volontaire : commentaire `// i18n-ok` sur la ligne ou celle du dessus.
+- API : `src/common/i18n/` (`translateText`, `tr`, `runWithLang`, langue via `Accept-Language` envoyé par `lib/api.ts`). Erreurs traduites dans `HttpExceptionFilter` ; notifications **stockées en français et traduites à la lecture** ; documents (contrat avec mention « la version française prévaut », quittance dans la langue du locataire via `User.language`, relevés, CSV) via `tr()`. Nouveau message d'API → l'ajouter à `src/common/i18n/en.ts` (avec `{0}` pour les parties variables).
+- Migration `20261118120000_user_language`. Tests : robot de parcours 64 pages × 2 langues (scratchpad `lang-crawl.cjs`, `LANG_UI=en|fr`), `api-en-check.mjs`, `pdf-en-check.mjs`, 25 tests unitaires, 41/41 sécurité.
+- Reste en français volontairement : contenus saisis (descriptions, adresses), image de partage (robots sans cookie), anciennes notifications d'un format antérieur.
+
 **Session du 2026-11-18 (D-13, D-14, D-15)** — poussé sur GitHub, **PAS ENCORE DÉPLOYÉ** (le déclenchement Render a été bloqué par la politique de sécurité : à faire par l'utilisateur ou avec son accord explicite ; API d'abord, elle applique la migration `20261118090000_lease_expiry`, puis web) :
 - ✅ AD-06 échéance des baux (`9f4e045`) : voir `12_AUDIT_ESPACES.md` et D-13. Test unitaire + 7 contrôles d'API sur `audit-qa` (script scratchpad `ad06.mjs`).
 - ✅ Perf : React Query + notifications retirés de l'accueil/pages légales (`Providers` seulement dans `(auth)`, `catalogue`, espaces, et le formulaire de contact chargé à l'approche) ; `instrumentation.ts` réveille l'API au démarrage du site puis la garde éveillée.
