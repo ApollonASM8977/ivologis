@@ -357,3 +357,31 @@ test("photos : réduites, converties en WebP, sans métadonnées GPS, et rejet d
   assert.equal(meta.exif, undefined, "les métadonnées (GPS) doivent disparaître");
   await assert.rejects(() => optimizeImage(Buffer.from("<script>pas une image</script>")), /illisible/);
 });
+
+test("annonces en anglais : saisie de l'agence prioritaire, sinon traduction automatique, sinon version périmée effacée", async () => {
+  const { PropertiesService } = require("../dist/src/properties/properties.service.js");
+  const updates = [];
+  const prisma = { property: { update: async (a) => (updates.push(a.data), {}) } };
+  let calls = 0;
+  const translation = { enabled: true, toEnglish: async (texts) => (calls++, texts.map((t) => `EN:${t}`)) };
+  const service = new PropertiesService(prisma, null, null, translation);
+  const p = { id: "P1", description: "Belle villa" };
+
+  let r = await service.syncEnglish(p, { name: "Villa Riviera", description: "Belle villa" });
+  assert.deepEqual(updates.pop(), { nameEn: "EN:Villa Riviera", descriptionEn: "EN:Belle villa" });
+  assert.equal(r.nameEn, "EN:Villa Riviera");
+
+  // L'agence a saisi l'anglais : rien n'est traduit.
+  calls = 0;
+  await service.syncEnglish(p, { name: "Villa", nameEn: "Riviera villa", description: "x", descriptionEn: "y" });
+  assert.equal(calls, 0);
+
+  // Service indisponible : l'anglais devenu faux est effacé (le site affiche alors le français).
+  service.translation = { enabled: true, toEnglish: async () => null };
+  await service.syncEnglish(p, { name: "Nouveau nom" });
+  assert.deepEqual(updates.pop(), { nameEn: null });
+
+  // Description vidée : version anglaise vidée aussi.
+  await service.syncEnglish({ id: "P1", description: null }, { description: "" });
+  assert.deepEqual(updates.pop(), { descriptionEn: null });
+});

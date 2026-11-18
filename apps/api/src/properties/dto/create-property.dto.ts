@@ -27,6 +27,17 @@ export class CreatePropertyDto {
   @IsString()
   description?: string;
 
+  /** Version anglaise saisie par l'agence ; sinon traduite automatiquement (DeepL) à partir du français. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  nameEn?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  descriptionEn?: string;
+
   @IsString()
   address: string;
 

@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { DemoBadge, locationLabel } from "@/components/catalog/property-extras";
 import { t as tr } from "@/lib/t-catalog";
+import { pick } from "@/lib/t";
 
 export type CatalogKind = "sales" | "rentals" | "short-stay";
 
@@ -261,7 +262,7 @@ function ListingCard({ p, href, price, icon: Icon, priority }: { p: any; href: s
         {cover ? (
           <Image
             src={fileUrl(cover.url) ?? ""}
-            alt={p.name}
+            alt={pick(p.name, p.nameEn)}
             fill
             // La photo de la première annonce est l'élément principal de la page (LCP) : chargée tout de suite, en priorité.
             priority={priority}
@@ -275,7 +276,7 @@ function ListingCard({ p, href, price, icon: Icon, priority }: { p: any; href: s
         )}
       </div>
       <div className="p-4">
-        <p className="font-semibold text-ink group-hover:text-primary">{p.name}</p>
+        <p className="font-semibold text-ink group-hover:text-primary">{pick(p.name, p.nameEn)}</p>
         <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-muted">
           <MapPin className="h-3.5 w-3.5 shrink-0" /> {locationLabel(p)}
         </p>

@@ -18,7 +18,7 @@ import { CountUp } from "@/components/dashboard/count-up";
 import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel, PhotoGallery } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
 import { t } from "@/lib/t-catalog";
-import { money } from "@/lib/t";
+import { money, pick } from "@/lib/t";
 
 interface VisitForm {
   preferredDate?: string;
@@ -60,11 +60,11 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
 
       {property.isDemo && <DemoNotice />}
 
-      <PhotoGallery images={property.images} alt={property.name} />
+      <PhotoGallery images={property.images} alt={pick(property.name, property.nameEn)} />
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-ink">{property.name}</h1>
+          <h1 className="text-xl font-semibold text-ink">{pick(property.name, property.nameEn)}</h1>
           <p className="mt-1 flex items-center gap-1 text-sm text-ink-muted">
             <MapPin className="h-4 w-4" /> {locationLabel(property, true)}
           </p>
@@ -82,7 +82,7 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
         </div>
       </div>
 
-      <AgencyContact listingName={property.name} disabled={property.isDemo} />
+      <AgencyContact listingName={pick(property.name, property.nameEn)} disabled={property.isDemo} />
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card>
@@ -112,7 +112,7 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
       {property.description && (
         <Card className="mt-4">
           <CardHeader title={t("Description")} />
-          <p className="text-sm leading-relaxed text-ink-muted">{property.description}</p>
+          <p className="text-sm leading-relaxed text-ink-muted">{pick(property.description, property.descriptionEn)}</p>
         </Card>
       )}
 
@@ -122,7 +122,7 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
           <div className="flex flex-wrap gap-2">
             {property.amenities.map((a: string) => (
               <span key={a} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                {a}
+                {t(a)}
               </span>
             ))}
           </div>

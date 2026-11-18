@@ -312,8 +312,11 @@ model Tenant {
 model Property {
   id             String         @id @default(uuid())
   name           String
+  /// Version anglaise du nom et de la description (traduction automatique DeepL, corrigeable par l'agence).
+  nameEn         String?
   type           PropertyType
   description    String?
+  descriptionEn  String?
   address        String
   commune        String
   neighborhood   String?

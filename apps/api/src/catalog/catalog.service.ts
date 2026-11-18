@@ -7,8 +7,10 @@ import { CatalogFilterDto } from "./dto/catalog-filter.dto";
 const PUBLIC_FIELDS = {
   id: true,
   name: true,
+  nameEn: true,
   type: true,
   description: true,
+  descriptionEn: true,
   address: true,
   commune: true,
   neighborhood: true,

@@ -20,6 +20,7 @@ import { ReportsModule } from "./reports/reports.module";
 import { SettingsModule } from "./settings/settings.module";
 import { ContactModule } from "./contact/contact.module";
 import { AnalyticsModule } from "./analytics/analytics.module";
+import { TranslationModule } from "./common/translation/translation.service";
 import { SearchModule } from "./search/search.module";
 import { TenantRequestsModule } from "./tenant-requests/tenant-requests.module";
 import { ShortStayModule } from "./short-stay/short-stay.module";
@@ -51,6 +52,7 @@ import { CatalogModule } from "./catalog/catalog.module";
     SettingsModule,
     ContactModule,
     AnalyticsModule,
+    TranslationModule,
     SearchModule,
     TenantRequestsModule,
     ShortStayModule,

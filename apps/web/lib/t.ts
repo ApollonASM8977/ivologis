@@ -39,3 +39,8 @@ export function locale() {
 export function money(amount: number | string | null | undefined) {
   return formatMoney(amount, currentLang());
 }
+
+/** Contenu saisi par l'agence (nom, description d'annonce) : version anglaise si elle existe, sinon le français. */
+export function pick(fr: string | null | undefined, en: string | null | undefined) {
+  return currentLang() === "en" && en ? en : (fr ?? "");
+}

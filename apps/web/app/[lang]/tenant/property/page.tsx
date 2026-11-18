@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 import { t } from "@/lib/t-spaces";
-import { money } from "@/lib/t";
+import { money, pick } from "@/lib/t";
 
 function Fact({ icon: Icon, label, value }: { icon: typeof Home; label: string; value: React.ReactNode }) {
   return (
@@ -62,7 +62,7 @@ export default function TenantPropertyPage() {
 
   return (
     <div>
-      <PageHeader title={t("Mon logement")} subtitle={property.name} />
+      <PageHeader title={t("Mon logement")} subtitle={pick(property.name, property.nameEn)} />
 
       <StaggerContainer className="space-y-4">
         {images.length > 0 && (
@@ -76,7 +76,7 @@ export default function TenantPropertyPage() {
                   className="relative col-span-2 row-span-2 min-h-[14rem] overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary"
                   aria-label={t("Agrandir la photo de couverture")}
                 >
-                  <Image src={fileUrl(cover.url) ?? ""} alt={property.name} fill sizes="(min-width: 768px) 50vw, 66vw" priority className="object-cover transition-transform duration-700 hover:scale-105" />
+                  <Image src={fileUrl(cover.url) ?? ""} alt={pick(property.name, property.nameEn)} fill sizes="(min-width: 768px) 50vw, 66vw" priority className="object-cover transition-transform duration-700 hover:scale-105" />
                 </motion.button>
               )}
               {images
@@ -105,7 +105,7 @@ export default function TenantPropertyPage() {
           <Card>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-ink">{property.name}</h2>
+                <h2 className="text-xl font-bold text-ink">{pick(property.name, property.nameEn)}</h2>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
                   <MapPin className="h-4 w-4" /> {property.address}, {property.commune}
                 </p>
@@ -125,7 +125,7 @@ export default function TenantPropertyPage() {
               <Fact icon={Sofa} label={t("Meublé")} value={property.furnished ? t("Oui") : t("Non")} />
             </div>
 
-            {property.description && <p className="mt-5 text-sm leading-relaxed text-ink-muted">{property.description}</p>}
+            {property.description && <p className="mt-5 text-sm leading-relaxed text-ink-muted">{pick(property.description, property.descriptionEn)}</p>}
           </Card>
         </StaggerItem>
 
@@ -142,7 +142,7 @@ export default function TenantPropertyPage() {
                     transition={{ delay: 0.05 * i }}
                     className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success"
                   >
-                    <Check className="h-3.5 w-3.5" /> {a}
+                    <Check className="h-3.5 w-3.5" /> {t(a)}
                   </motion.li>
                 ))}
               </ul>
@@ -193,7 +193,7 @@ export default function TenantPropertyPage() {
             <motion.img
               key={images[active].id}
               src={fileUrl(images[active].url)}
-              alt={property.name}
+              alt={pick(property.name, property.nameEn)}
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}

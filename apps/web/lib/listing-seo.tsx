@@ -88,11 +88,14 @@ export function listingPath(kind: ListingKind, id: string) {
 export function listingMetadata(kind: ListingKind, p: any, lang: Lang): Metadata {
   const tr = translator(lang, LABELS_EN);
   const type = tr(PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS] ?? "Bien");
-  const title = `${p.name} — ${priceText(kind, p, lang)}`;
+  // Contenu de l'annonce dans la langue de la page (version anglaise si elle existe).
+  const name = lang === "en" && p.nameEn ? p.nameEn : p.name;
+  const text = lang === "en" && p.descriptionEn ? p.descriptionEn : p.description;
+  const title = `${name} — ${priceText(kind, p, lang)}`;
   const rooms = p.rooms ? (lang === "en" ? `, ${p.rooms} rooms` : `, ${p.rooms} pièces`) : "";
   const where = lang === "en" ? "in" : "à";
   const summary = `${type} ${DEAL[lang][kind]} ${where} ${place(p)}${rooms}${p.surfaceM2 ? `, ${Number(p.surfaceM2)} m²` : ""}${lang === "en" ? ":" : " :"} ${priceText(kind, p, lang)}.`;
-  const description = (p.description ? `${summary} ${p.description}` : summary).slice(0, 160);
+  const description = (text ? `${summary} ${text}` : summary).slice(0, 160);
   const cover = p.images?.find((i: any) => i.isCover) ?? p.images?.[0];
   const url = `${siteUrl}${listingPath(kind, p.id)}`;
   return {

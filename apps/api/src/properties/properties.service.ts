@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException, OnApplicationBootstrap } from "@nestjs/common";
 import { PropertyStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { toSkipTake } from "../common/dto/pagination.dto";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { AuditService } from "../audit/audit.service";
 import { StorageService } from "../storage/storage.service";
+import { TranslationService } from "../common/translation/translation.service";
 import { CreatePropertyDto } from "./dto/create-property.dto";
 import { UpdatePropertyDto } from "./dto/update-property.dto";
 import { PropertyFilterDto } from "./dto/property-filter.dto";
@@ -12,11 +13,14 @@ import { PropertyFilterDto } from "./dto/property-filter.dto";
 const isStaff = (user: AuthenticatedUser) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN_AGENT;
 
 @Injectable()
-export class PropertiesService {
+export class PropertiesService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(PropertiesService.name);
+
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
     private storage: StorageService,
+    private translation: TranslationService,
   ) {}
 
   async create(dto: CreatePropertyDto, user: AuthenticatedUser) {
@@ -32,11 +36,13 @@ export class PropertiesService {
     const owner = await this.prisma.owner.findUnique({ where: { id: ownerId } });
     if (!owner) throw new NotFoundException("Propriétaire introuvable.");
 
-    return this.prisma.property.create({
+    const created = await this.prisma.property.create({
       data: {
         name: dto.name,
+        nameEn: dto.nameEn,
         type: dto.type,
         description: dto.description,
+        descriptionEn: dto.descriptionEn,
         address: dto.address,
         commune: dto.commune,
         neighborhood: dto.neighborhood,
@@ -64,6 +70,7 @@ export class PropertiesService {
         ownerId,
       },
     });
+    return this.syncEnglish(created, dto);
   }
 
   async findAll(filter: PropertyFilterDto, user: AuthenticatedUser) {
@@ -132,7 +139,47 @@ export class PropertiesService {
     const moderation = isStaff(user)
       ? { isDemo, rentListed, shortStayApproved: shortStayApproved ?? (rest.shortStayEnabled === true ? true : undefined) }
       : { shortStayApproved: false, rentListed: false };
-    return this.prisma.property.update({ where: { id }, data: { ...rest, ...moderation } });
+    const updated = await this.prisma.property.update({ where: { id }, data: { ...rest, ...moderation } });
+    return this.syncEnglish(updated, dto);
+  }
+
+  /** Rattrapage : annonces sans version anglaise traduites au démarrage (quand la traduction automatique est configurée). */
+  onApplicationBootstrap() {
+    if (!this.translation.enabled || process.env.NODE_ENV === "test") return;
+    setTimeout(async () => {
+      try {
+        const missing = await this.prisma.property.findMany({ where: { nameEn: null }, select: { id: true, name: true, description: true }, take: 25 });
+        for (const p of missing) await this.syncEnglish(p, { name: p.name, description: p.description });
+        if (missing.length) this.logger.log(`${missing.length} annonce(s) traduite(s) en anglais.`);
+      } catch (e) {
+        this.logger.warn(`Traduction des annonces existantes : ${(e as Error).message}`);
+      }
+    }, 45_000).unref();
+  }
+
+  /**
+   * Version anglaise (D-14) : ce que l'agence saisit prime ; sinon, un nom ou une description française modifiée est
+   * traduite automatiquement. Si la traduction est indisponible, l'ancienne version anglaise est effacée plutôt que
+   * de rester décalée (le site retombe alors sur le français).
+   */
+  private async syncEnglish<T extends { id: string; description: string | null }>(
+    property: T,
+    dto: { name?: string; description?: string | null; nameEn?: string; descriptionEn?: string },
+  ): Promise<T> {
+    const fields: ("name" | "description")[] = [];
+    const data: { nameEn?: string | null; descriptionEn?: string | null } = {};
+    if (dto.name !== undefined && dto.nameEn === undefined) fields.push("name");
+    if (dto.description !== undefined && dto.descriptionEn === undefined) {
+      if (dto.description) fields.push("description");
+      else data.descriptionEn = null;
+    }
+    if (fields.length) {
+      const english = await this.translation.toEnglish(fields.map((f) => (f === "name" ? dto.name! : dto.description!)));
+      fields.forEach((f, i) => (data[f === "name" ? "nameEn" : "descriptionEn"] = english?.[i] ?? null));
+    }
+    if (!Object.keys(data).length) return property;
+    await this.prisma.property.update({ where: { id: property.id }, data });
+    return { ...property, ...data };
   }
 
   async archive(id: string, actorId?: string) {

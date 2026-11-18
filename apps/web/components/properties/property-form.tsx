@@ -14,6 +14,8 @@ export interface PropertyFormValues {
   name: string;
   type: PropertyType;
   description?: string;
+  nameEn?: string;
+  descriptionEn?: string;
   address: string;
   city?: string;
   commune: string;
@@ -60,7 +62,12 @@ export function PropertyForm({
   onSubmit: (values: PropertyFormValues) => void;
   submitLabel?: string;
 }) {
-  const { register, handleSubmit, watch } = useForm<PropertyFormValues>({ defaultValues: { city: "Abidjan", ...defaultValues } });
+  const { register, handleSubmit, watch, formState: { dirtyFields } } = useForm<PropertyFormValues>({ defaultValues: { city: "Abidjan", ...defaultValues } });
+  // Version anglaise envoyée seulement si l'agence l'a modifiée : sinon l'API la retraduit quand le français change.
+  const submit = (values: PropertyFormValues) => {
+    const { nameEn, descriptionEn, ...rest } = values;
+    onSubmit({ ...rest, ...(dirtyFields.nameEn ? { nameEn } : {}), ...(dirtyFields.descriptionEn ? { descriptionEn } : {}) });
+  };
   const shortStayEnabled = watch("shortStayEnabled");
   const city = watch("city");
   const role = useAuthStore((s) => s.user?.role);
@@ -73,7 +80,7 @@ export function PropertyForm({
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit, invalidForm)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit, invalidForm)} className="space-y-4">
       {showOwnerField && (
         <div>
           <Label>{tr("Propriétaire")}</Label>
@@ -111,6 +118,19 @@ export function PropertyForm({
         <div className="col-span-2">
           <Label>{tr("Description")}</Label>
           <Textarea rows={2} placeholder={tr("Points forts, ambiance du quartier...")} {...register("description")} />
+        </div>
+
+        <SectionTitle>{tr("Version anglaise de l'annonce")}</SectionTitle>
+        <p className="col-span-2 -mt-2 text-xs text-ink-muted">
+          {tr("Traduite automatiquement à l'enregistrement quand la traduction est activée ; vous pouvez la corriger ici.")}
+        </p>
+        <div className="col-span-2">
+          <Label htmlFor="pf-name-en">{tr("Nom en anglais")}</Label>
+          <Input id="pf-name-en" lang="en" placeholder="Ex : Riviera 3 villa" {...register("nameEn")} />
+        </div>
+        <div className="col-span-2">
+          <Label htmlFor="pf-desc-en">{tr("Description en anglais")}</Label>
+          <Textarea id="pf-desc-en" lang="en" rows={2} {...register("descriptionEn")} />
         </div>
 
         <SectionTitle>{tr("Localisation précise")}</SectionTitle>
@@ -192,7 +212,7 @@ export function PropertyForm({
           {PROPERTY_AMENITIES.map((a) => (
             <label key={a} className="flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" value={a} className="h-4 w-4 rounded border-gray-300" {...register("amenities")} />
-              {a}
+              {tr(a)}
             </label>
           ))}
         </div>
