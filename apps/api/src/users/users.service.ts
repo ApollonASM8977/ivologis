@@ -117,7 +117,8 @@ export class UsersService {
   }
 
   async updateProfile(id: string, dto: UpdateProfileDto) {
-    return this.prisma.user.update({ where: { id }, data: dto });
+    // Jamais le hachage du mot de passe ni le secret de double authentification dans la réponse.
+    return publicUser(await this.prisma.user.update({ where: { id }, data: dto }));
   }
 
   async updateAvatar(id: string, url: string) {
