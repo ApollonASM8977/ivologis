@@ -115,6 +115,7 @@ export const EN: Record<string, string> = {
   "Cette session a été fermée. Reconnectez-vous.": "This session has been closed. Sign in again.",
   "Champ non autorisé : {0}.": "Field not allowed: {0}.",
   "Chemin de fichier invalide.": "Invalid file path.",
+  "Chemin invalide.": "Invalid path.",
   "Code d'invitation invalide, déjà utilisé ou expiré. Demandez un nouveau code à votre agence.": "Invalid, already used or expired invitation code. Ask your agency for a new code.",
   "Code de vérification invalide.": "Invalid verification code.",
   "Code invalide.": "Invalid code.",

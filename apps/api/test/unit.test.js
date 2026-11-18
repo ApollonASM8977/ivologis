@@ -331,3 +331,13 @@ test("bilingue de l'API : messages exacts, gabarits imbriqués, dates et montant
   assert.equal(runWithLang("en", () => tr("QUITTANCE DE LOYER")), "RENT RECEIPT");
   assert.equal(runWithLang("fr", () => tr("Émise le {0}", "1 mai")), "Émise le 1 mai");
 });
+
+test("mesure d'audience : chemins anonymisés (identifiants, paramètres) et site d'origine réduit au domaine", () => {
+  const { normalizePath, referrerHost } = require("../dist/src/analytics/analytics.service.js");
+  assert.equal(normalizePath("/catalogue/locations/da2bc257-c550-46f6-b3d5-1d25d56a90b2?ref=wa#photos"), "/catalogue/locations/:id");
+  assert.equal(normalizePath("/admin/leases/"), "/admin/leases");
+  assert.equal(normalizePath("/?utm_source=x"), "/");
+  assert.equal(referrerHost("https://www.google.com/search?q=villa"), "google.com");
+  assert.equal(referrerHost("https://ivologis-web.onrender.com/catalogue", ["ivologis-web.onrender.com"]), null);
+  assert.equal(referrerHost("pas une adresse"), null);
+});

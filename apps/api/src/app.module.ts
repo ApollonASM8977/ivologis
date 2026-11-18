@@ -19,6 +19,7 @@ import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { ReportsModule } from "./reports/reports.module";
 import { SettingsModule } from "./settings/settings.module";
 import { ContactModule } from "./contact/contact.module";
+import { AnalyticsModule } from "./analytics/analytics.module";
 import { SearchModule } from "./search/search.module";
 import { TenantRequestsModule } from "./tenant-requests/tenant-requests.module";
 import { ShortStayModule } from "./short-stay/short-stay.module";
@@ -49,6 +50,7 @@ import { CatalogModule } from "./catalog/catalog.module";
     ReportsModule,
     SettingsModule,
     ContactModule,
+    AnalyticsModule,
     SearchModule,
     TenantRequestsModule,
     ShortStayModule,

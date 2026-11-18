@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "../globals.css";
 import { PwaRegister } from "@/components/pwa-register";
+import { Audience } from "@/components/audience";
 import { siteUrl } from "@/lib/site";
 import { LANGS, toLang } from "@/lib/i18n";
 import { LangProvider } from "@/lib/i18n-client";
@@ -41,7 +42,10 @@ export default async function RootLayout({ children, params }: { children: React
     <html lang={lang}>
       <body className={`${inter.variable} font-sans antialiased`}>
         {/* Pas de Providers ici : l'accueil et les pages légales s'en passent (≈ 50 ko de JavaScript en moins en 3G). */}
-        <LangProvider lang={lang}>{children}</LangProvider>
+        <LangProvider lang={lang}>
+          {children}
+          <Audience />
+        </LangProvider>
         <PwaRegister />
       </body>
     </html>

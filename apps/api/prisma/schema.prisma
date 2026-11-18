@@ -857,3 +857,20 @@ model Session {
   @@index([userId])
   @@map("sessions")
 }
+
+// ---------------------------------------------------------------------------
+// Mesure d'audience interne (anonyme, sans cookie ni adresse IP)
+// ---------------------------------------------------------------------------
+
+/// Une page vue : chemin (identifiants remplacés par :id), langue, type d'appareil, site d'origine. Rien qui identifie la personne.
+model PageView {
+  id           String   @id @default(uuid())
+  path         String
+  lang         String
+  device       String
+  referrerHost String?
+  createdAt    DateTime @default(now())
+
+  @@map("page_views")
+  @@index([createdAt])
+}

@@ -12,6 +12,13 @@ const fr = {
   },
   skipToContent: "Aller au contenu",
   language: { label: "Langue", fr: "Français", en: "English", switchTo: "Passer en anglais" },
+  consent: {
+    label: "Cookies et mesure d'audience",
+    text: "Ce site n'utilise que des cookies techniques (connexion, langue) et une mesure d'audience anonyme, sans cookie.",
+    more: "En savoir plus",
+    accept: "D'accord",
+    refuse: "Refuser la mesure",
+  },
 };
 
 export const siteMessages: Messages<typeof fr> = {
@@ -27,5 +34,12 @@ export const siteMessages: Messages<typeof fr> = {
     },
     skipToContent: "Skip to content",
     language: { label: "Language", fr: "Français", en: "English", switchTo: "Passer en français" },
+    consent: {
+      label: "Cookies and audience measurement",
+      text: "This site only uses technical cookies (sign-in, language) and anonymous audience measurement, without cookies.",
+      more: "Learn more",
+      accept: "OK",
+      refuse: "Refuse measurement",
+    },
   },
 };

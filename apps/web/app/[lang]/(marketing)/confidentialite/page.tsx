@@ -58,8 +58,11 @@ function Body({ lang }: { lang: Lang }) {
         <P>Data is hosted in Germany (European Union) by Render and Neon, the agency&apos;s technical providers.</P>
         <H2>Cookies and local storage</H2>
         <P>
-          The site uses no advertising and no audience measurement tools. Only technical items are stored: the session token and role of the signed-in user
-          (cookies, removed when signing out), the chosen language (cookie, kept for one year), and session information in the browser&apos;s local storage.
+          The site uses no advertising. Only technical items are stored: the session token and role of the signed-in user (cookies, removed when signing out),
+          the chosen language (cookie, kept for one year), session information and your choice about audience measurement in the browser&apos;s local storage.
+          Audience measurement is internal and anonymous: for each public page viewed, only the page address (without identifiers), the language, the type of
+          device and the referring website are counted — no cookie, no IP address, no identifier. You can refuse it from the banner, and it is disabled when your
+          browser sends “Do Not Track”.
         </P>
         <H2>Retention period</H2>
         <P>
@@ -113,9 +116,11 @@ function Body({ lang }: { lang: Lang }) {
       <P>Les données sont hébergées en Allemagne (Union européenne) par Render et Neon, prestataires techniques de l&apos;agence.</P>
       <H2>Cookies et stockage local</H2>
       <P>
-        Le site n&apos;utilise ni publicité ni outil de mesure d&apos;audience. Seuls des éléments techniques sont déposés : le jeton de session et le rôle de
-        l&apos;utilisateur connecté (cookies, supprimés à la déconnexion), la langue choisie (cookie, conservé un an), et les informations de session dans le
-        stockage local du navigateur.
+        Le site n&apos;utilise aucune publicité. Seuls des éléments techniques sont déposés : le jeton de session et le rôle de l&apos;utilisateur connecté
+        (cookies, supprimés à la déconnexion), la langue choisie (cookie, conservé un an), les informations de session et votre choix concernant la mesure
+        d&apos;audience dans le stockage local du navigateur. La mesure d&apos;audience est interne et anonyme : pour chaque page publique consultée, seuls
+        l&apos;adresse de la page (sans identifiant), la langue, le type d&apos;appareil et le site d&apos;origine sont comptés — ni cookie, ni adresse IP, ni
+        identifiant. Vous pouvez la refuser depuis le bandeau ; elle est désactivée si votre navigateur envoie « Ne pas suivre ».
       </P>
       <H2>Durée de conservation</H2>
       <P>
