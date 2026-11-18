@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
 import { PwaRegister } from "@/components/pwa-register";
 import { siteUrl } from "@/lib/site";
 
@@ -35,7 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+        {/* Pas de Providers ici : l'accueil et les pages légales s'en passent (≈ 50 ko de JavaScript en moins en 3G). */}
+        {children}
         <PwaRegister />
       </body>
     </html>

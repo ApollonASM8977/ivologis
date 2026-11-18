@@ -1,5 +1,6 @@
 "use client";
 
+import { Providers } from "../providers";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { CommandPalette } from "@/components/command-palette";
 import { ADMIN_NAV } from "@/components/layout/nav-config";
@@ -16,9 +17,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       : ADMIN_NAV.filter((item) => !SUPER_ADMIN_ONLY_HREFS.includes(item.href));
 
   return (
-    <DashboardShell navItems={navItems}>
-      {children}
-      <CommandPalette />
-    </DashboardShell>
+    <Providers>
+      <DashboardShell navItems={navItems}>
+        {children}
+        <CommandPalette />
+      </DashboardShell>
+    </Providers>
   );
 }

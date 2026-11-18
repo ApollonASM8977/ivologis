@@ -3,10 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 
-const ContactForm = dynamic(() => import("@/components/marketing/contact-form").then((m) => m.ContactForm), {
-  ssr: false,
-  loading: () => <FormSkeleton />,
-});
+// React Query et les notifications arrivent avec le formulaire : l'accueil ne les charge pas au démarrage.
+const ContactForm = dynamic(
+  () =>
+    Promise.all([import("@/components/marketing/contact-form"), import("@/app/providers")]).then(([form, providers]) => {
+      const Island = () => (
+        <providers.Providers>
+          <form.ContactForm />
+        </providers.Providers>
+      );
+      return Island;
+    }),
+  { ssr: false, loading: () => <FormSkeleton /> },
+);
 
 function FormSkeleton() {
   return (
