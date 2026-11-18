@@ -12,7 +12,7 @@ const SHARED = path.resolve(ROOT, "../../packages/shared/src");
 
 // Textes rangés dans des objets `Messages` typés (fr/en) : vérifiés par le compilateur, pas ici.
 // L'image de partage reste en français : les robots des réseaux sociaux n'envoient pas de cookie de langue.
-const TYPED = [/^messages\//, /^app\/(global-error|manifest|opengraph-image|icon|apple-icon)\./, /^app\/\[lang\]\/(not-found|offline\/page)\.tsx$/, /^components\/marketing\//, /^app\/\[lang\]\/\(marketing\)\/(page|layout|securite|verification|mentions-legales|confidentialite|conditions-generales)\b/, /^app\/\[lang\]\/layout\.tsx$/, /^components\/(language-switcher|audience)\.tsx$/, /^lib\//, /^scripts\//];
+const TYPED = [/^messages\//, /^app\/(global-error|manifest|opengraph-image|icon|apple-icon)\./, /^app\/\[lang\]\/(not-found|offline\/page)\.tsx$/, /^components\/(marketing|preview)\//, /^app\/\[lang\]\/\(marketing\)\/(page|layout|securite|verification|mentions-legales|confidentialite|conditions-generales|apercu-animations)\b/, /^app\/\[lang\]\/layout\.tsx$/, /^components\/(language-switcher|audience)\.tsx$/, /^lib\//, /^scripts\//];
 const ACCENT = /[àâäçéèêëîïôöùûüÿœæÀÂÇÉÈÊËÎÏÔÙÛÜŒ«»’…]/;
 
 function isFrench(s, relaxed) {

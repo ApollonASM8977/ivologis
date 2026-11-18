@@ -1,0 +1,44 @@
+/* Magic UI — Shimmer Button (keyframes d'origine, Tailwind 4 → CSS). */
+.shimmer {
+  --spread: 90deg;
+  --shimmer-color: #ffffff;
+  --speed: 3s;
+}
+.sparkBox {
+  container-type: size;
+}
+.spark {
+  animation: shimmer-slide var(--speed) ease-in-out infinite alternate;
+}
+.sparkBefore {
+  width: auto;
+  background: conic-gradient(from calc(270deg - (var(--spread) * 0.5)), transparent 0, var(--shimmer-color) var(--spread), transparent var(--spread));
+  animation: spin-around calc(var(--speed) * 2) infinite linear;
+}
+@keyframes shimmer-slide {
+  to {
+    transform: translate(calc(100cqw - 100%), 0);
+  }
+}
+@keyframes spin-around {
+  0% {
+    transform: translateZ(0) rotate(0);
+  }
+  15%,
+  35% {
+    transform: translateZ(0) rotate(90deg);
+  }
+  65%,
+  85% {
+    transform: translateZ(0) rotate(270deg);
+  }
+  100% {
+    transform: translateZ(0) rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spark,
+  .sparkBefore {
+    animation: none;
+  }
+}
