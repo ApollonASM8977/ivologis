@@ -1,13 +1,18 @@
-name: Lighthouse (production)
+name: Lighthouse
 
 # Mesure de référence sur une machine Linux neutre (proche de PageSpeed Insights), lancée à la main :
-# Actions → « Lighthouse (production) » → Run workflow. Médiane de N passages mobiles par page.
+# Actions → « Lighthouse » → Run workflow. Médiane de N passages mobiles par page.
+#  - cible « production » : le site en ligne ;
+#  - cible « build » : la version du dépôt, construite et servie sur la machine de test (avant tout déploiement).
 on:
   workflow_dispatch:
     inputs:
-      urls:
-        description: "Pages à mesurer (séparées par des espaces)"
-        default: "https://ivologis-web.onrender.com/ https://ivologis-web.onrender.com/catalogue/locations https://ivologis-web.onrender.com/catalogue/locations/da2bc257-c550-46f6-b3d5-1d25d56a90b2 https://ivologis-web.onrender.com/securite https://ivologis-web.onrender.com/login"
+      target:
+        description: "production ou build"
+        default: "production"
+      paths:
+        description: "Pages à mesurer (chemins séparés par des espaces)"
+        default: "/ /catalogue/locations /catalogue/locations/da2bc257-c550-46f6-b3d5-1d25d56a90b2 /securite /login"
       runs:
         description: "Passages par page"
         default: "5"
@@ -18,35 +23,56 @@ permissions:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     env:
-      URLS: ${{ inputs.urls }}
+      TARGET: ${{ inputs.target }}
+      PATHS: ${{ inputs.paths }}
       RUNS: ${{ inputs.runs }}
+      PROD_WEB: https://ivologis-web.onrender.com
+      PROD_API: https://ivologis-api.onrender.com
     steps:
+      - uses: actions/checkout@v4
+        if: inputs.target == 'build'
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: ${{ inputs.target == 'build' && 'npm' || '' }}
 
       - name: Installer Lighthouse
         run: npm install -g lighthouse@12
 
-      # Le plan gratuit endort le serveur : sans réveil, le premier passage mesurerait le démarrage (jusqu'à une minute).
       # Le site ET l'API (service séparé, qui dort aussi) : sinon le catalogue mesure le réveil de l'API.
-      - name: Réveiller le site et l'API
+      - name: Réveiller l'API (et le site en production)
         run: |
-          curl -s -o /dev/null -m 120 -w "API %{http_code} %{time_total}s\n" https://ivologis-api.onrender.com/api/settings/public || true
-          for u in $URLS; do curl -s -o /dev/null -m 120 -w "$u %{http_code} %{time_total}s\n" "$u" || true; done
-          sleep 5
-          for u in $URLS; do curl -s -o /dev/null -m 60 -w "$u %{http_code} %{time_total}s\n" "$u" || true; done
+          curl -s -o /dev/null -m 120 -w "API %{http_code} %{time_total}s\n" "$PROD_API/api/settings/public" || true
+          if [ "$TARGET" = "production" ]; then
+            for p in $PATHS; do curl -s -o /dev/null -m 120 -w "$p %{http_code} %{time_total}s\n" "$PROD_WEB$p" || true; done
+          fi
+
+      # Version du dépôt : lecture du catalogue sur l'API publique (lecture seule, comme n'importe quel visiteur).
+      - name: Construire et servir la version du dépôt
+        if: inputs.target == 'build'
+        env:
+          NEXT_PUBLIC_API_URL: https://ivologis-api.onrender.com
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: |
+          npm ci
+          npm run build:shared
+          npm run build:web
+          (cd apps/web && npx next start -p 3000 > ../../next.log 2>&1 &)
+          for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:3000/ && break; sleep 2; done
+          for p in $PATHS; do curl -s -o /dev/null -w "$p %{http_code} %{time_total}s\n" "http://localhost:3000$p" || true; done
 
       - name: Mesurer
         run: |
+          BASE="$PROD_WEB"; [ "$TARGET" = "build" ] && BASE="http://localhost:3000"
           mkdir -p rapports
           i=0
-          for u in $URLS; do
+          for p in $PATHS; do
             i=$((i+1))
             for n in $(seq 1 "$RUNS"); do
-              lighthouse "$u" --quiet --chrome-flags="--headless=new --no-sandbox" \
+              lighthouse "$BASE$p" --quiet --chrome-flags="--headless=new --no-sandbox" \
                 --only-categories=performance,accessibility,best-practices,seo \
                 --output=json --output-path="rapports/page$i-$n.json" || true
             done
@@ -60,12 +86,12 @@ jobs:
           const byPage = {};
           for (const f of files) {
             const r = JSON.parse(fs.readFileSync("rapports/" + f, "utf8"));
-            if (!r.categories?.performance?.score && r.categories?.performance?.score !== 0) continue;
+            if (typeof r.categories?.performance?.score !== "number") continue;
             (byPage[r.finalDisplayedUrl] ??= []).push(r);
           }
           const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
           const pct = (r, k) => Math.round(r.categories[k].score * 100);
-          let out = "| Page | Perf (médiane) | Passages | A11y | BP | SEO | LCP | TBT | CLS | Indice machine |\n|---|---|---|---|---|---|---|---|---|---|\n";
+          let out = `Cible : ${process.env.TARGET}\n\n| Page | Perf (médiane) | Passages | A11y | BP | SEO | LCP | TBT | CLS | Indice machine |\n|---|---|---|---|---|---|---|---|---|---|\n`;
           for (const [url, runs] of Object.entries(byPage)) {
             const p = runs.map((r) => pct(r, "performance"));
             const lcp = med(runs.map((r) => r.audits["largest-contentful-paint"].numericValue / 1000)).toFixed(2);
