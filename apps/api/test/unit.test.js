@@ -341,3 +341,19 @@ test("mesure d'audience : chemins anonymisés (identifiants, paramètres) et sit
   assert.equal(referrerHost("https://ivologis-web.onrender.com/catalogue", ["ivologis-web.onrender.com"]), null);
   assert.equal(referrerHost("pas une adresse"), null);
 });
+
+test("photos : réduites, converties en WebP, sans métadonnées GPS, et rejet d'un faux fichier image", async () => {
+  const sharp = require("sharp");
+  const { optimizeImage } = require("../dist/src/storage/storage.service.js");
+  // Photo 4000×3000 avec métadonnées EXIF (dont une position GPS simulée).
+  const big = await sharp({ create: { width: 4000, height: 3000, channels: 3, background: { r: 200, g: 120, b: 40 } } })
+    .jpeg({ quality: 95 })
+    .withExif({ IFD0: { Copyright: "test" }, IFD3: { GPSLatitude: "5/1 19/1 0/1", GPSLatitudeRef: "N" } })
+    .toBuffer();
+  const out = await optimizeImage(big);
+  const meta = await sharp(out).metadata();
+  assert.equal(meta.format, "webp");
+  assert.ok(meta.width <= 2000 && meta.height <= 2000, `taille ${meta.width}×${meta.height}`);
+  assert.equal(meta.exif, undefined, "les métadonnées (GPS) doivent disparaître");
+  await assert.rejects(() => optimizeImage(Buffer.from("<script>pas une image</script>")), /illisible/);
+});

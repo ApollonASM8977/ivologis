@@ -1,9 +1,28 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import sharp from "sharp";
 import { UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 
 const FILE_URL_PREFIX = "/api/files/";
+const COMPRESSIBLE = /^image\/(jpeg|png|webp)$/;
+
+/**
+ * Photos envoyées depuis un téléphone (souvent 3 à 8 Mo) : redressées, réduites à 2000 px au plus, en WebP qualité 80
+ * (en général 10 à 20 fois plus léger), et SANS métadonnées (la position GPS de la prise de vue disparaît).
+ * Le décodage vérifie aussi que le fichier est vraiment une image (pas seulement son extension).
+ */
+export async function optimizeImage(buffer: Buffer): Promise<Buffer> {
+  try {
+    return await sharp(buffer, { failOn: "error" })
+      .rotate()
+      .resize({ width: 2000, height: 2000, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+  } catch {
+    throw new BadRequestException("Image illisible ou corrompue.");
+  }
+}
 
 @Injectable()
 export class StorageService {
@@ -54,6 +73,9 @@ export class StorageService {
   }
 
   async save(params: { buffer: Buffer; filename: string; mimeType: string }): Promise<string> {
+    if (COMPRESSIBLE.test(params.mimeType)) {
+      params = { buffer: await optimizeImage(params.buffer), filename: params.filename.replace(/\.[^.]+$/, "") + ".webp", mimeType: "image/webp" };
+    }
     const file = await this.prisma.storedFile.create({
       data: {
         filename: params.filename,

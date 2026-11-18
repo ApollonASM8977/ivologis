@@ -189,6 +189,7 @@ export const EN: Record<string, string> = {
   "Il a été convenu et arrêté ce qui suit :": "It has been agreed as follows:",
   "il ne sera pas reconduit": "it will not be renewed",
   "il sera reconduit tacitement pour {0} mois": "it will be tacitly renewed for {0} months",
+  "Image illisible ou corrompue.": "Unreadable or corrupted image.",
   "Immeuble": "Building",
   "Importez entre 1 et 200 locataires à la fois.": "Import between 1 and 200 tenants at a time.",
   "intervenant : {0}": "technician: {0}",
