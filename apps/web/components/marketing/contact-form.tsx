@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { HoneypotField } from "@/components/ui/honeypot";
 import { toast } from "sonner";
+import { useLang } from "@/lib/i18n-client";
+import { contactMessages } from "@/messages/contact";
 
 interface ContactValues {
   fullName: string;
@@ -23,6 +25,7 @@ export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactValues>();
+  const m = contactMessages[useLang()];
 
   async function onSubmit(values: ContactValues) {
     setLoading(true);
@@ -46,10 +49,10 @@ export function ContactForm() {
           role="status"
         >
           <CheckCircle2 className="h-12 w-12 text-success" />
-          <p className="text-lg font-semibold text-ink">Merci, votre demande est bien reçue.</p>
-          <p className="text-sm text-ink-muted">Notre équipe revient vers vous sous 48 heures ouvrées.</p>
+          <p className="text-lg font-semibold text-ink">{m.sentTitle}</p>
+          <p className="text-sm text-ink-muted">{m.sentText}</p>
           <button type="button" onClick={() => setSent(false)} className="mt-2 text-sm font-medium text-primary hover:underline">
-            Envoyer une autre demande
+            {m.sendAnother}
           </button>
         </div>
       ) : (
@@ -61,40 +64,40 @@ export function ContactForm() {
         >
           <HoneypotField registration={register("website")} />
           <div>
-            <Label htmlFor="c-name">Nom complet</Label>
-            <Input id="c-name" autoComplete="name" aria-invalid={!!errors.fullName} {...register("fullName", { required: "Votre nom est requis.", minLength: { value: 2, message: "Nom trop court." } })} />
+            <Label htmlFor="c-name">{m.fullName}</Label>
+            <Input id="c-name" autoComplete="name" aria-invalid={!!errors.fullName} {...register("fullName", { required: m.fullNameRequired, minLength: { value: 2, message: m.fullNameShort } })} />
             {errors.fullName && <p role="alert" className="mt-1 text-xs text-danger">{errors.fullName.message}</p>}
           </div>
           <div>
-            <Label htmlFor="c-email">Email professionnel</Label>
-            <Input id="c-email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register("email", { required: "Votre email est requis.", pattern: { value: /^\S+@\S+\.\S+$/, message: "Email invalide." } })} />
+            <Label htmlFor="c-email">{m.email}</Label>
+            <Input id="c-email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register("email", { required: m.emailRequired, pattern: { value: /^\S+@\S+\.\S+$/, message: m.emailInvalid } })} />
             {errors.email && <p role="alert" className="mt-1 text-xs text-danger">{errors.email.message}</p>}
           </div>
           <div>
-            <Label htmlFor="c-phone">Téléphone (optionnel)</Label>
+            <Label htmlFor="c-phone">{m.phone}</Label>
             <Input id="c-phone" type="tel" autoComplete="tel" placeholder="+225 07 00 00 00 00" {...register("phone")} />
           </div>
           <div>
-            <Label htmlFor="c-org">Agence ou structure (optionnel)</Label>
+            <Label htmlFor="c-org">{m.organization}</Label>
             <Input id="c-org" autoComplete="organization" {...register("organization")} />
           </div>
           <div className="sm:col-span-2">
-            <Label htmlFor="c-size">Nombre de biens gérés</Label>
+            <Label htmlFor="c-size">{m.size}</Label>
             <Select id="c-size" defaultValue="" {...register("portfolioSize")}>
-              <option value="">Choisir</option>
-              <option value="1-10">1 à 10 biens</option>
-              <option value="11-50">11 à 50 biens</option>
-              <option value="50+">Plus de 50 biens</option>
+              <option value="">{m.choose}</option>
+              <option value="1-10">{m.sizes.small}</option>
+              <option value="11-50">{m.sizes.medium}</option>
+              <option value="50+">{m.sizes.large}</option>
             </Select>
           </div>
           <div className="sm:col-span-2">
-            <Label htmlFor="c-message">Votre besoin</Label>
-            <Textarea id="c-message" rows={4} aria-invalid={!!errors.message} {...register("message", { required: "Décrivez brièvement votre besoin.", minLength: { value: 10, message: "Au moins 10 caractères." } })} />
+            <Label htmlFor="c-message">{m.message}</Label>
+            <Textarea id="c-message" rows={4} aria-invalid={!!errors.message} {...register("message", { required: m.messageRequired, minLength: { value: 10, message: m.messageShort } })} />
             {errors.message && <p role="alert" className="mt-1 text-xs text-danger">{errors.message.message}</p>}
           </div>
           <div className="sm:col-span-2">
             <Button type="submit" className="w-full sm:w-auto" loading={loading}>
-              Envoyer ma demande
+              {m.submit}
             </Button>
           </div>
         </form>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { usePath } from "@/lib/i18n-client";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { MapPin, SlidersHorizontal, ShieldCheck, type LucideIcon } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
@@ -76,7 +77,7 @@ function ListingSkeletons() {
 function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTitle, priceLabel, price, showFurnished, initialData, initialQs }: CatalogListProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePath();
   const qs = searchParams.toString();
   const current = Object.fromEntries(searchParams.entries());
 

@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePath } from "@/lib/i18n-client";
 import clsx from "clsx";
 import { Building } from "lucide-react";
 import { motion } from "motion/react";
 import { NavItem } from "./nav-config";
 
 export function Sidebar({ items }: { items: NavItem[] }) {
-  const pathname = usePathname();
+  const pathname = usePath();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-gray-100 bg-white lg:flex">

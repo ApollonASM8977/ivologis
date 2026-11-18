@@ -8,7 +8,15 @@ import { Check, ChevronDown } from "lucide-react";
  * exécuté par le navigateur hors du fil JavaScript. Plus fluide sur les petits téléphones et en 3G.
  */
 
-export function DashboardMockup() {
+export interface MockupLabels {
+  overview: string;
+  upToDate: string;
+  kpis: string[];
+  rentValue: string;
+  events: string[];
+}
+
+export function DashboardMockup({ labels }: { labels: MockupLabels }) {
   const bars = [42, 58, 49, 71, 66, 84];
   const tilt = useRef<HTMLDivElement>(null);
 
@@ -33,14 +41,14 @@ export function DashboardMockup() {
             aria-hidden="true"
           >
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm font-semibold text-ink">Vue d&apos;ensemble</p>
-              <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-800">À jour</span>
+              <p className="text-sm font-semibold text-ink">{labels.overview}</p>
+              <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-800">{labels.upToDate}</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: "Biens", value: "24" },
-                { label: "Loyers encaissés", value: "9,4 M" },
-                { label: "Retards", value: "3" },
+                { label: labels.kpis[0], value: "24" },
+                { label: labels.kpis[1], value: labels.rentValue },
+                { label: labels.kpis[2], value: "3" },
               ].map((k, i) => (
                 <div key={k.label} className="ivo-rise rounded-xl bg-surface p-3" style={{ animationDelay: `${300 + i * 100}ms` }}>
                   <p className="text-[11px] text-ink-muted">{k.label}</p>
@@ -57,7 +65,7 @@ export function DashboardMockup() {
               ))}
             </div>
             <div className="mt-5 space-y-2">
-              {["Quittance émise · Villa Riviera 3", "Demande de maintenance · Plomberie", "Bail renouvelé · Studio Angré"].map((t, i) => (
+              {labels.events.map((t, i) => (
                 <div
                   key={t}
                   className="ivo-slide-in flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-xs text-ink-muted"
@@ -83,12 +91,12 @@ interface Audience {
   items: string[];
 }
 
-export function AudienceTabs({ audiences }: { audiences: Audience[] }) {
+export function AudienceTabs({ audiences, label }: { audiences: Audience[]; label: string }) {
   const [index, setIndex] = useState(0);
   const active = audiences[index];
   return (
     <>
-      <div role="tablist" aria-label="Profils" className="mt-10 flex flex-wrap gap-2 border-b border-gray-200">
+      <div role="tablist" aria-label={label} className="mt-10 flex flex-wrap gap-2 border-b border-gray-200">
         {audiences.map((a, i) => (
           <button
             key={a.key}

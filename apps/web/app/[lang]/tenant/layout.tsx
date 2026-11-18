@@ -1,6 +1,6 @@
 "use client";
 
-import { Providers } from "../providers";
+import { Providers } from "@/app/providers";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { TENANT_NAV } from "@/components/layout/nav-config";
 

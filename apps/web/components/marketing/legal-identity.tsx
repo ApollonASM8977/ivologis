@@ -1,4 +1,37 @@
 import type { PublicCompany } from "@/lib/use-company";
+import type { Lang, Messages } from "@/lib/i18n";
+
+const fr = {
+  unavailable: "Les informations de l'éditeur sont momentanément indisponibles.",
+  legalName: "Raison sociale",
+  address: "Siège social",
+  rccm: "RCCM",
+  tax: "Numéro de compte contribuable",
+  license: "Agrément d'agent immobilier",
+  director: "Directeur de la publication",
+  contact: "Contact",
+  incomplete: "Certaines informations légales de l'éditeur sont en cours de publication.",
+  artci: "Numéro d'autorisation ARTCI",
+  artciPending: "Le numéro d'autorisation ARTCI sera publié ici dès sa délivrance.",
+  licenseShort: "Agrément",
+};
+const messages: Messages<typeof fr> = {
+  fr,
+  en: {
+    unavailable: "The publisher's details are temporarily unavailable.",
+    legalName: "Company name",
+    address: "Registered office",
+    rccm: "Trade register (RCCM)",
+    tax: "Taxpayer account number",
+    license: "Real estate agent licence",
+    director: "Publication director",
+    contact: "Contact",
+    incomplete: "Some of the publisher's legal details are being published.",
+    artci: "ARTCI authorisation number",
+    artciPending: "The ARTCI authorisation number will be published here as soon as it is issued.",
+    licenseShort: "Licence",
+  },
+};
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -15,50 +48,52 @@ async function getCompany(): Promise<PublicCompany | null> {
   }
 }
 
-function Line({ label, value }: { label: string; value?: string | null }) {
+function Line({ label, value, lang }: { label: string; value?: string | null; lang: Lang }) {
   if (!value) return null;
   return (
     <>
-      {label} : <span className="font-medium text-ink">{value}</span>
+      {label}{lang === "fr" ? " : " : ": "}<span className="font-medium text-ink">{value}</span>
       <br />
     </>
   );
 }
 
 /** Bloc « Éditeur » des mentions légales : seules les informations renseignées par l'agence sont affichées. */
-export async function LegalPublisher() {
+export async function LegalPublisher({ lang }: { lang: Lang }) {
+  const m = messages[lang];
   const c = await getCompany();
-  if (!c) return <p className="mt-2 text-ink-muted">Les informations de l&apos;éditeur sont momentanément indisponibles.</p>;
+  if (!c) return <p className="mt-2 text-ink-muted">{m.unavailable}</p>;
   const complete = c.legalName && c.rccmNumber && c.address && c.publicationDirector;
   return (
     <p className="mt-2 text-ink-muted">
-      <Line label="Raison sociale" value={c.legalName ?? c.companyName} />
-      <Line label="Siège social" value={c.address} />
-      <Line label="RCCM" value={c.rccmNumber} />
-      <Line label="Numéro de compte contribuable" value={c.taxNumber} />
-      <Line label="Agrément d'agent immobilier" value={c.agentLicenseNumber} />
-      <Line label="Directeur de la publication" value={c.publicationDirector} />
-      <Line label="Contact" value={[c.phone, c.email].filter(Boolean).join(" · ")} />
-      {!complete && <span className="text-xs">Certaines informations légales de l&apos;éditeur sont en cours de publication.</span>}
+      <Line lang={lang} label={m.legalName} value={c.legalName ?? c.companyName} />
+      <Line lang={lang} label={m.address} value={c.address} />
+      <Line lang={lang} label={m.rccm} value={c.rccmNumber} />
+      <Line lang={lang} label={m.tax} value={c.taxNumber} />
+      <Line lang={lang} label={m.license} value={c.agentLicenseNumber} />
+      <Line lang={lang} label={m.director} value={c.publicationDirector} />
+      <Line lang={lang} label={m.contact} value={[c.phone, c.email].filter(Boolean).join(" · ")} />
+      {!complete && <span className="text-xs">{m.incomplete}</span>}
     </p>
   );
 }
 
-export async function ArtciDeclaration() {
+export async function ArtciDeclaration({ lang }: { lang: Lang }) {
+  const m = messages[lang];
   const c = await getCompany();
   return c?.artciNumber ? (
     <>
-      Numéro d&apos;autorisation ARTCI : <span className="font-medium text-ink">{c.artciNumber}</span>.
+      {m.artci}{lang === "fr" ? " : " : ": "}<span className="font-medium text-ink">{c.artciNumber}</span>.
     </>
   ) : (
-    <>Le numéro d&apos;autorisation ARTCI sera publié ici dès sa délivrance.</>
+    <>{m.artciPending}</>
   );
 }
 
 /** Ligne d'identité sous le pied de page (affichée seulement si des numéros officiels sont renseignés). */
-export async function FooterLegalLine() {
+export async function FooterLegalLine({ lang }: { lang: Lang }) {
   const c = await getCompany();
-  const parts = [c?.rccmNumber && `RCCM ${c.rccmNumber}`, c?.agentLicenseNumber && `Agrément ${c.agentLicenseNumber}`].filter(Boolean);
+  const parts = [c?.rccmNumber && `RCCM ${c.rccmNumber}`, c?.agentLicenseNumber && `${messages[lang].licenseShort} ${c.agentLicenseNumber}`].filter(Boolean);
   if (!parts.length) return null;
   return <p className="mt-1">{[c?.legalName, ...parts].filter(Boolean).join(" · ")}</p>;
 }

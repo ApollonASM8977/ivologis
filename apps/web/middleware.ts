@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DEFAULT_LANG, LANG_COOKIE, isLang } from "@/lib/i18n";
 
 const ROLE_HOME: Record<string, string> = {
   SUPER_ADMIN: "/admin/dashboard",
@@ -8,65 +9,56 @@ const ROLE_HOME: Record<string, string> = {
 };
 
 const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
-const MARKETING_PATHS = ["/securite", "/mentions-legales", "/confidentialite"];
 
 function matches(pathname: string, paths: string[]) {
-  return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`) || pathname.startsWith(`${p}?`));
+  return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+/** Contrôle d'accès des espaces : renvoie une redirection, ou null si la page peut être servie. */
+function accessRedirect(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get("ivologis_token")?.value;
+  const role = request.cookies.get("ivologis_role")?.value ?? "";
+  const home = ROLE_HOME[role];
+  const to = (path: string) => NextResponse.redirect(new URL(path, request.url));
+
+  if (pathname === "/") return token && home ? to(home) : null;
+  if (matches(pathname, AUTH_PATHS)) return token && home ? to(home) : null;
+
+  const space = pathname.match(/^\/(admin|owner|tenant)(\/|$)/)?.[1];
+  if (!space) return null;
+  if (!token) return to("/login");
+  if (!home) return null;
+  if (space === "admin" && role !== "SUPER_ADMIN" && role !== "ADMIN_AGENT") return to(home);
+  if (space === "owner" && role !== "OWNER") return to(home);
+  if (space === "tenant" && role !== "TENANT") return to(home);
+  return null;
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get("ivologis_token")?.value;
-  const role = request.cookies.get("ivologis_role")?.value;
-  const isLoggedIn = !!token && !!role;
+  const { pathname, search } = request.nextUrl;
 
-  if (pathname === "/") {
-    return isLoggedIn && ROLE_HOME[role ?? ""]
-      ? NextResponse.redirect(new URL(ROLE_HOME[role ?? ""], request.url))
-      : NextResponse.next();
+  // Lien explicite /en/… ou ?lang=en : on mémorise la langue puis on revient à l'adresse habituelle.
+  const prefix = pathname.split("/")[1];
+  const queryLang = request.nextUrl.searchParams.get("lang");
+  if (isLang(prefix) || isLang(queryLang)) {
+    const url = request.nextUrl.clone();
+    if (isLang(prefix)) url.pathname = pathname.slice(prefix.length + 1) || "/";
+    url.searchParams.delete("lang");
+    const res = NextResponse.redirect(url);
+    res.cookies.set(LANG_COOKIE, isLang(prefix) ? prefix : (queryLang as string), { path: "/", maxAge: 31536000, sameSite: "lax" });
+    return res;
   }
 
-  if (matches(pathname, MARKETING_PATHS)) {
-    return NextResponse.next();
-  }
+  const redirect = accessRedirect(request);
+  if (redirect) return redirect;
 
-  const isAuthPage = matches(pathname, AUTH_PATHS);
-
-  if (!token && !isAuthPage) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (token && isAuthPage) {
-    return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
-  }
-
-  if (isLoggedIn) {
-    if (pathname.startsWith("/admin") && role !== "SUPER_ADMIN" && role !== "ADMIN_AGENT") {
-      return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
-    }
-    if (pathname.startsWith("/owner") && role !== "OWNER") {
-      return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
-    }
-    if (pathname.startsWith("/tenant") && role !== "TENANT") {
-      return NextResponse.redirect(new URL(ROLE_HOME[role ?? ""] ?? "/login", request.url));
-    }
-  }
-
-  return NextResponse.next();
+  const cookieLang = request.cookies.get(LANG_COOKIE)?.value;
+  const lang = isLang(cookieLang) ? cookieLang : DEFAULT_LANG;
+  return NextResponse.rewrite(new URL(`/${lang}${pathname === "/" ? "" : pathname}${search}`, request.url));
 }
 
 export const config = {
-  matcher: [
-    "/",
-    "/securite",
-    "/mentions-legales",
-    "/confidentialite",
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-    "/admin/:path*",
-    "/owner/:path*",
-    "/tenant/:path*",
-  ],
+  // Toutes les pages ; pas les fichiers (logos, sw.js…), ni les routes générées (icônes, manifeste, robots, plan du site).
+  matcher: ["/((?!_next/|api/|icon|apple-icon|opengraph-image|manifest.webmanifest|robots.txt|sitemap.xml|.*\\.[a-zA-Z0-9]+$).*)"],
 };

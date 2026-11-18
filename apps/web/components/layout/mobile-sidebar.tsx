@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePath } from "@/lib/i18n-client";
 import clsx from "clsx";
 import { Building, X } from "lucide-react";
 import { NavItem } from "./nav-config";
@@ -15,7 +15,7 @@ export function MobileSidebar({
   onClose: () => void;
   items: NavItem[];
 }) {
-  const pathname = usePathname();
+  const pathname = usePath();
   if (!open) return null;
 
   return (

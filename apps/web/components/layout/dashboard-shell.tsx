@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePath } from "@/lib/i18n-client";
 import { motion, AnimatePresence } from "motion/react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
@@ -13,7 +13,7 @@ export function DashboardShell({
   navItems: NavItem[];
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
+  const pathname = usePath();
 
   return (
     <div className="min-h-screen bg-surface">
