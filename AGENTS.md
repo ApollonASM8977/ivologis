@@ -3,6 +3,42 @@
 Dérivé de `_RESSOURCES/AGENTS-master.md` (version maître universelle), adapté au projet IVOLOGIS le 2026-11-17.
 En cas de conflit, l'ordre de priorité est : demande explicite de l'utilisateur > ce fichier > version maître.
 
+## ✅ CHECKLISTS OBLIGATOIRES — à appliquer en premier, sur ce projet et sur TOUT site web, application ou autre projet
+
+Avant toute mise en ligne (et à chaque reprise d'un projet), parcourir ces deux listes. Chaque point est **vérifié et prouvé** (commande, capture, sortie de test) et consigné dans les traces du projet ; un point non applicable est noté avec sa raison et son équivalent. Ne jamais déclarer « fini » avec un point ouvert sans le dire.
+
+**Règle préalable — dépôts et paquets externes** : avant d'utiliser un dépôt, un paquet, un composant copié-collé (ex. bibliothèques d'animation) ou un script trouvé en ligne, l'inspecter à la recherche de code malveillant : scripts d'installation (`postinstall`…), requêtes réseau cachées, code obfusqué ou minifié sans source, lecture des variables d'environnement ou des cookies, dépendances inconnues ou récentes, typosquattage. Noter la version ou le commit vérifié dans les traces.
+
+### Checklist 1 — Site web prêt à publier (tout site web et application)
+1. Politique de confidentialité publiée et à jour (données, finalités, cookies, durée, droits, contact).
+2. Conditions générales d'utilisation (et de vente s'il y a paiement) publiées.
+3. Aucune clé secrète dans le code envoyé au navigateur ni dans le dépôt (seules les variables publiques `NEXT_PUBLIC_*`, `VITE_*`… atteignent le client, et elles ne contiennent rien de secret).
+4. HTTPS forcé (redirection HTTP → HTTPS) et en-tête HSTS.
+5. Bandeau de consentement aux cookies dès qu'un cookie non essentiel est déposé (mesure d'audience, publicité, vidéos tierces) ; refuser aussi simple qu'accepter.
+6. Favicon et icônes d'application (onglet du navigateur, écran d'accueil du téléphone).
+7. `sitemap.xml` valide et à jour ; `robots.txt` cohérent (aucune page privée indexée).
+8. Texte alternatif sur chaque image porteuse de sens (`alt=""` pour les images décoratives).
+9. Images compressées, au bon format et à la bonne taille (WebP/AVIF, dimensions adaptées, chargement différé hors écran).
+10. Vitesse de chargement mesurée (Lighthouse mobile ≥ 96 sur une machine neutre ; réseaux lents pris en compte).
+11. Contrastes des couleurs conformes WCAG AA.
+12. Adapté au mobile (aucun défilement horizontal de 360 à 412 px, zones tactiles suffisantes).
+13. Page 404 personnalisée (dans chaque langue) et page d'erreur.
+14. Aucun lien cassé (vérifié par un robot de parcours).
+15. Validation de tous les formulaires côté navigateur ET côté serveur, avec des messages clairs.
+16. Protection anti-spam des formulaires publics (champ piège, limite de débit, captcha respectueux de la vie privée si besoin).
+17. Outil de mesure d'audience installé (de préférence sans cookie ; sinon soumis au consentement).
+18. Un seul appel à l'action principal, clair, par page.
+19. Site multilingue : chaque texte de l'interface ET chaque contenu créé (annonce, page…) existe dans toutes les langues, vérifié par un parcours automatique.
+
+### Checklist 2 — Sécurité avant de livrer (« 7 prompts before you ship a vibe coded app »)
+1. **Secrets** — List every env var in this project and which ones reach the browser. Move every secret behind a server route. Rotate anything that was ever committed.
+2. **Ownership** — List every API route and show where each one verifies the caller owns the resource ID it touches. Flag any route that trusts a userId from the request.
+3. **Database rules** — Show every public table with RLS disabled. Enable RLS on all of them and write policies scoped to auth.uid(). Prove it with a query as another user. *(Sans Supabase/RLS : montrer l'équivalent, c.-à-d. où chaque requête est restreinte au propriétaire, et le prouver de la même façon.)*
+4. **Mass assignment** — Validate every request body with a strict schema that rejects unknown fields. Show me the schema per route and the fields a user must never set.
+5. **Payments** — Show where every price and amount comes from. Prices must be looked up on the server by product ID. Show me the webhook handler verifying the Stripe signature. *(Autre prestataire : même exigence avec sa signature de webhook.)*
+6. **Rate limits** — Add rate limiting to login, signup, password reset and every route that calls a paid API. Show the limit per route and the response when it's exceeded.
+7. **Prove it** — Write a test where user A creates a record and user B tries to read, update and delete it. Every attempt must return 403 or 404. Run it and show me the output.
+
 ## 0. Avant toute chose (règle de continuité)
 Le quota peut s'arrêter à tout moment et un autre modèle reprendra.
 1. **Lire d'abord** `docs/audit/00_HANDOFF.md`, puis `docs/audit/04_BACKLOG.md`.
