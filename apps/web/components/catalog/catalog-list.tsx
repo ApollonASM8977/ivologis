@@ -38,7 +38,10 @@ interface CatalogListProps {
 const LOADING_HINT = "Premier chargement : jusqu'à une minute si le site était inactif.";
 
 export function CatalogList(props: CatalogListProps) {
-  // useSearchParams impose une frontière Suspense pour le rendu statique de Next.js.
+  // Catalogue public : page dynamique, les paramètres sont connus au rendu serveur, pas besoin de frontière.
+  // Avec elle, React envoie ce gros contenu en fin de page et diffère son affichage (~300 ms) : LCP plus tardif.
+  if (props.initialQs !== undefined) return <CatalogListInner {...props} />;
+  // Espaces (pages statiques) : useSearchParams impose une frontière Suspense.
   return (
     <Suspense fallback={<ListingSkeletons />}>
       <CatalogListInner {...props} />
