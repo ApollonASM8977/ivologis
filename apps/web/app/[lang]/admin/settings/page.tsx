@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
 import { PaymentMethodBadge } from "@/components/payment-method-badge";
+import { t } from "@/lib/t-spaces";
 
 interface SettingsForm {
   companyName: string;
@@ -55,7 +56,7 @@ export default function AdminSettingsPage() {
   const updateMutation = useMutation({
     mutationFn: (values: SettingsForm) => api.patch("/settings", toPayload(values)),
     onSuccess: () => {
-      toast.success("Paramètres mis à jour.");
+      toast.success(t("Paramètres mis à jour."));
       queryClient.invalidateQueries({ queryKey: ["settings"] });
       queryClient.invalidateQueries({ queryKey: ["company"] });
     },
@@ -66,34 +67,34 @@ export default function AdminSettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Paramètres" subtitle="Configuration générale de l'entreprise IVOLOGIS" />
+      <PageHeader title={t("Paramètres")} subtitle={t("Configuration générale de l'entreprise IVOLOGIS")} />
 
       <form onSubmit={handleSubmit((v) => updateMutation.mutate(v))} className="space-y-4">
         <Card>
-          <CardHeader title="Informations de l'entreprise" />
+          <CardHeader title={t("Informations de l'entreprise")} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <Label>Nom de l&apos;entreprise</Label>
+              <Label>{t("Nom de l'entreprise")}</Label>
               <Input {...register("companyName", { required: true })} />
             </div>
             <div>
-              <Label>Taux de commission (%)</Label>
+              <Label>{t("Taux de commission (%)")}</Label>
               <Input type="number" step="0.1" {...register("commissionRate", { valueAsNumber: true })} />
             </div>
             <div>
-              <Label>Email</Label>
+              <Label>{t("Email")}</Label>
               <Input type="email" {...register("email")} />
             </div>
             <div>
-              <Label>Téléphone</Label>
+              <Label>{t("Téléphone")}</Label>
               <Input {...register("phone")} />
             </div>
             <div>
-              <Label>WhatsApp de l&apos;agence</Label>
+              <Label>{t("WhatsApp de l'agence")}</Label>
               <Input placeholder="+225 07 ..." {...register("whatsappPhone")} />
             </div>
             <div>
-              <Label>Adresse du siège</Label>
+              <Label>{t("Adresse du siège")}</Label>
               <Input {...register("address")} />
             </div>
           </div>
@@ -101,39 +102,39 @@ export default function AdminSettingsPage() {
 
         <Card>
           <CardHeader
-            title="Identité légale"
-            subtitle="Affichée dans les mentions légales et le pied de page. Un champ vide n'apparaît nulle part."
+            title={t("Identité légale")}
+            subtitle={t("Affichée dans les mentions légales et le pied de page. Un champ vide n'apparaît nulle part.")}
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <Label>Raison sociale</Label>
-              <Input placeholder="Ex : IVOLOGIS SARL" {...register("legalName")} />
+              <Label>{t("Raison sociale")}</Label>
+              <Input placeholder={t("Ex : IVOLOGIS SARL")} {...register("legalName")} />
             </div>
             <div>
-              <Label>Directeur de la publication</Label>
+              <Label>{t("Directeur de la publication")}</Label>
               <Input {...register("publicationDirector")} />
             </div>
             <div>
-              <Label>N° RCCM</Label>
+              <Label>{t("N° RCCM")}</Label>
               <Input placeholder="CI-ABJ-..." {...register("rccmNumber")} />
             </div>
             <div>
-              <Label>N° de compte contribuable (NCC)</Label>
+              <Label>{t("N° de compte contribuable (NCC)")}</Label>
               <Input {...register("taxNumber")} />
             </div>
             <div>
-              <Label>N° d&apos;agrément d&apos;agent immobilier</Label>
+              <Label>{t("N° d'agrément d'agent immobilier")}</Label>
               <Input {...register("agentLicenseNumber")} />
             </div>
             <div>
-              <Label>N° d&apos;autorisation ARTCI (données personnelles)</Label>
+              <Label>{t("N° d'autorisation ARTCI (données personnelles)")}</Label>
               <Input {...register("artciNumber")} />
             </div>
           </div>
         </Card>
 
         <Card>
-          <CardHeader title="Moyens de paiement activés" subtitle="Visibles par les locataires lors du paiement" />
+          <CardHeader title={t("Moyens de paiement activés")} subtitle={t("Visibles par les locataires lors du paiement")} />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {Object.values(PaymentMethod).map((method) => (
               <label key={method} className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm hover:bg-gray-50">
@@ -145,7 +146,7 @@ export default function AdminSettingsPage() {
         </Card>
 
         <Button type="submit" loading={updateMutation.isPending}>
-          Enregistrer les modifications
+          {t("Enregistrer les modifications")}
         </Button>
       </form>
     </div>

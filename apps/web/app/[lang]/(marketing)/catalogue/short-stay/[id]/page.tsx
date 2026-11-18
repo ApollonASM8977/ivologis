@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { toLang } from "@/lib/i18n";
+import { catalogMeta } from "@/messages/catalog-meta";
 import { ShortStayListingDetail } from "@/components/catalog/short-stay-listing-detail";
 import { fetchListing, listingMetadata, ListingJsonLd } from "@/lib/listing-seo";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string; lang: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const p = await fetchListing("short-stay", (await params).id);
-  return p ? listingMetadata("short-stay", p) : { title: "Résidence meublée" };
+  const { id, lang } = await params;
+  const p = await fetchListing("short-stay", id);
+  return p ? listingMetadata("short-stay", p, toLang(lang)) : { title: catalogMeta[toLang(lang)].shortStay.fallback };
 }
 
 export default async function PublicCatalogShortStayDetailPage({ params }: Props) {

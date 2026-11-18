@@ -1,9 +1,11 @@
 "use client";
 
 import { KeyRound } from "lucide-react";
-import { formatXOF } from "@ivologis/shared";
+
 import { CatalogList } from "@/components/catalog/catalog-list";
 import type { CatalogPage } from "@/lib/listing-seo";
+import { t } from "@/lib/t-catalog";
+import { money } from "@/lib/t";
 
 export function RentalsCatalog({ basePath, initialData, initialQs }: { basePath: string; initialData?: CatalogPage | null; initialQs?: string }) {
   return (
@@ -12,12 +14,12 @@ export function RentalsCatalog({ basePath, initialData, initialQs }: { basePath:
       basePath={basePath}
       initialData={initialData}
       initialQs={initialQs}
-      title="Logements à louer"
-      subtitle="Location au mois : loyer, avance et caution affichés, frais d'agence encadrés"
+      title={t("Logements à louer")}
+      subtitle={t("Location au mois : loyer, avance et caution affichés, frais d'agence encadrés")}
       icon={KeyRound}
-      emptyTitle="Aucun logement à louer pour le moment"
-      priceLabel="Loyer"
-      price={(p) => `${formatXOF(Number(p.rentAmount))} / mois`}
+      emptyTitle={t("Aucun logement à louer pour le moment")}
+      priceLabel={t("Loyer")}
+      price={(p) => t("{0} / mois", money(Number(p.rentAmount)))}
       showFurnished
     />
   );

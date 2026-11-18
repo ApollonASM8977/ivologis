@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowLeft, Building2, User, UserRound, FileText, FileType, Calendar, Phone, Mail, MapPin, Wallet } from "lucide-react";
-import { formatXOF, LEASE_TYPE_LABELS, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { LEASE_TYPE_LABELS, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { DocumentLink } from "@/components/document-link";
 import { LeaseStatusBadge, PaymentStatusBadge } from "@/components/status-badges";
@@ -11,6 +11,8 @@ import { PaymentMethodBadge } from "@/components/payment-method-badge";
 import { CountUp } from "@/components/dashboard/count-up";
 import { ProgressRing } from "@/components/dashboard/progress-ring";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 const DETAIL_LABELS: Record<string, string> = {
   occupantsCount: "Nombre d'occupants",
@@ -33,8 +35,8 @@ const DETAIL_LABELS: Record<string, string> = {
 const DAY = 24 * 60 * 60 * 1000;
 
 function formatDetail(key: string, value: unknown) {
-  if (typeof value === "boolean") return value ? "Oui" : "Non";
-  if (key === "pasDePorte" && typeof value === "number") return formatXOF(value);
+  if (typeof value === "boolean") return value ? t("Oui") : t("Non");
+  if (key === "pasDePorte" && typeof value === "number") return money(value);
   return String(value);
 }
 
@@ -75,7 +77,7 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
   return (
     <div>
       <Link href={backHref} className="mb-4 inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Retour aux contrats
+        <ArrowLeft className="h-4 w-4" />{" "}{t("Retour aux contrats")}
       </Link>
 
       <StaggerContainer className="space-y-4">
@@ -90,7 +92,7 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
             <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="font-mono text-xs text-white/70">{lease.contractNumber}</p>
-                <h1 className="mt-1 text-2xl font-bold">{LEASE_TYPE_LABELS[lease.type as keyof typeof LEASE_TYPE_LABELS]}</h1>
+                <h1 className="mt-1 text-2xl font-bold">{t(LEASE_TYPE_LABELS[lease.type as keyof typeof LEASE_TYPE_LABELS])}</h1>
                 <p className="text-sm text-white/80">{lease.property?.name} · {lease.property?.commune}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <LeaseStatusBadge status={lease.status} />
@@ -100,12 +102,12 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
                 <ProgressRing value={elapsed} size={84} stroke={8} color="#ffffff">
                   <div className="text-center">
                     <p className="text-lg font-bold"><CountUp value={daysLeft} /></p>
-                    <p className="text-[10px] uppercase text-white/70">jours</p>
+                    <p className="text-[10px] uppercase text-white/70">{t("jours")}</p>
                   </div>
                 </ProgressRing>
                 <div className="text-sm text-white/80">
-                  <p>Durée : {months} mois</p>
-                  <p>{new Date(lease.startDate).toLocaleDateString("fr-FR")} → {new Date(lease.endDate).toLocaleDateString("fr-FR")}</p>
+                  <p>{t("Durée : {0} mois", months)}</p>
+                  <p>{new Date(lease.startDate).toLocaleDateString(locale())} → {new Date(lease.endDate).toLocaleDateString(locale())}</p>
                 </div>
               </div>
             </div>
@@ -115,13 +117,13 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
         <StaggerItem>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: "Loyer mensuel", value: Number(lease.rentAmount), format: (n: number) => formatXOF(n) },
-              { label: "Dépôt de garantie", value: Number(lease.deposit), format: (n: number) => formatXOF(n) },
-              { label: "Avance", value: Number(lease.advance), format: (n: number) => formatXOF(n) },
-              { label: "Total encaissé", value: paid, format: (n: number) => formatXOF(n) },
+              { label: t("Loyer mensuel"), value: Number(lease.rentAmount), format: (n: number) => money(n) },
+              { label: t("Dépôt de garantie"), value: Number(lease.deposit), format: (n: number) => money(n) },
+              { label: t("Avance"), value: Number(lease.advance), format: (n: number) => money(n) },
+              { label: t("Total encaissé"), value: paid, format: (n: number) => money(n) },
             ].map((k) => (
               <Card key={k.label}>
-                <p className="text-sm text-ink-muted">{k.label}</p>
+                <p className="text-sm text-ink-muted">{t(k.label)}</p>
                 <p className="mt-1 text-lg font-bold text-ink"><CountUp value={k.value} format={k.format} /></p>
               </Card>
             ))}
@@ -131,42 +133,42 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
         <StaggerItem>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Card>
-              <CardHeader title="Parties" />
+              <CardHeader title={t("Parties")} />
               <div className="space-y-3">
-                <Party icon={UserRound} title="Bailleur" name={lease.owner?.fullName ?? "-"} lines={[lease.owner?.phone, lease.owner?.email]} />
-                <Party icon={User} title="Locataire" name={lease.tenant?.fullName ?? "-"} lines={[lease.tenant?.phone, lease.tenant?.email]} />
+                <Party icon={UserRound} title={t("Bailleur")} name={lease.owner?.fullName ?? "-"} lines={[lease.owner?.phone, lease.owner?.email]} />
+                <Party icon={User} title={t("Locataire")} name={lease.tenant?.fullName ?? "-"} lines={[lease.tenant?.phone, lease.tenant?.email]} />
               </div>
             </Card>
 
             <Card className="lg:col-span-2">
-              <CardHeader title="Bien loué" subtitle={lease.property?.name} />
+              <CardHeader title={t("Bien loué")} subtitle={lease.property?.name} />
               <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <div className="flex items-start gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 text-ink-muted" />
                   <div>
-                    <p className="text-ink-muted">Adresse</p>
+                    <p className="text-ink-muted">{t("Adresse")}</p>
                     <p className="font-medium text-ink">{lease.property?.address}, {lease.property?.commune}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Building2 className="mt-0.5 h-4 w-4 text-ink-muted" />
                   <div>
-                    <p className="text-ink-muted">Nature du bien</p>
+                    <p className="text-ink-muted">{t("Nature du bien")}</p>
                     <p className="font-medium text-ink">{PROPERTY_TYPE_LABELS[lease.property?.type as keyof typeof PROPERTY_TYPE_LABELS] ?? "-"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Calendar className="mt-0.5 h-4 w-4 text-ink-muted" />
                   <div>
-                    <p className="text-ink-muted">Début du bail</p>
-                    <p className="font-medium text-ink">{new Date(lease.startDate).toLocaleDateString("fr-FR", { dateStyle: "long" })}</p>
+                    <p className="text-ink-muted">{t("Début du bail")}</p>
+                    <p className="font-medium text-ink">{new Date(lease.startDate).toLocaleDateString(locale(), { dateStyle: "long" })}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Calendar className="mt-0.5 h-4 w-4 text-ink-muted" />
                   <div>
-                    <p className="text-ink-muted">Fin du bail</p>
-                    <p className="font-medium text-ink">{new Date(lease.endDate).toLocaleDateString("fr-FR", { dateStyle: "long" })}</p>
+                    <p className="text-ink-muted">{t("Fin du bail")}</p>
+                    <p className="font-medium text-ink">{new Date(lease.endDate).toLocaleDateString(locale(), { dateStyle: "long" })}</p>
                   </div>
                 </div>
               </div>
@@ -176,7 +178,7 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
 
         <StaggerItem>
           <Card>
-            <CardHeader title="Conditions particulières" subtitle="Clauses propres à ce type de bail" />
+            <CardHeader title={t("Conditions particulières")} subtitle={t("Clauses propres à ce type de bail")} />
             {detailEntries.length ? (
               <dl className="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
                 {detailEntries.map(([key, value]) => (
@@ -187,11 +189,11 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
                 ))}
               </dl>
             ) : (
-              <p className="text-sm text-ink-muted">Aucune condition particulière renseignée.</p>
+              <p className="text-sm text-ink-muted">{t("Aucune condition particulière renseignée.")}</p>
             )}
             {lease.specialConditions && (
               <div className="mt-4 rounded-xl bg-surface p-4 text-sm leading-relaxed text-ink">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Clauses libres</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">{t("Clauses libres")}</p>
                 {lease.specialConditions}
               </div>
             )}
@@ -200,20 +202,20 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
 
         <StaggerItem>
           <Card>
-            <CardHeader title="Documents" subtitle="Téléchargements sécurisés, valables 10 minutes" />
+            <CardHeader title={t("Documents")} subtitle={t("Téléchargements sécurisés, valables 10 minutes")} />
             <div className="flex flex-wrap gap-3">
               {lease.documentUrl && (
                 <DocumentLink path={lease.documentUrl} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:border-primary/40 hover:text-primary">
-                  <FileText className="h-4 w-4" /> Contrat PDF
+                  <FileText className="h-4 w-4" />{" "}{t("Contrat PDF")}
                 </DocumentLink>
               )}
               {lease.wordUrl && (
                 <DocumentLink path={lease.wordUrl} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:border-primary/40 hover:text-primary">
-                  <FileType className="h-4 w-4" /> Contrat Word
+                  <FileType className="h-4 w-4" />{" "}{t("Contrat Word")}
                 </DocumentLink>
               )}
               {!lease.documentUrl && !lease.wordUrl && (
-                <p className="text-sm text-ink-muted">Aucun document généré pour ce contrat.</p>
+                <p className="text-sm text-ink-muted">{t("Aucun document généré pour ce contrat.")}</p>
               )}
             </div>
           </Card>
@@ -221,7 +223,7 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
 
         <StaggerItem>
           <Card>
-            <CardHeader title="Historique des paiements" subtitle={`${payments.length} opération(s)`} />
+            <CardHeader title={t("Historique des paiements")} subtitle={t("{0} opération(s)", payments.length)} />
             {payments.length ? (
               <ul className="divide-y divide-gray-100">
                 {payments.map((p: any, i: number) => (
@@ -235,9 +237,9 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
                     <div className="flex items-center gap-3">
                       <Wallet className="h-4 w-4 text-ink-muted" />
                       <div>
-                        <p className="font-semibold text-ink">{formatXOF(Number(p.amount))}</p>
+                        <p className="font-semibold text-ink">{money(Number(p.amount))}</p>
                         <p className="text-xs text-ink-muted">
-                          {new Date(p.paymentDate).toLocaleDateString("fr-FR", { dateStyle: "medium" })} · période {new Date(p.periodMonth).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+                          {t("{0} · période {1}", new Date(p.paymentDate).toLocaleDateString(locale(), { dateStyle: "medium" }), new Date(p.periodMonth).toLocaleDateString(locale(), { month: "long", year: "numeric" }))}
                         </p>
                       </div>
                     </div>
@@ -249,7 +251,7 @@ export function LeaseDetail({ lease, backHref }: { lease: any; backHref: string 
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-ink-muted">Aucun paiement enregistré sur ce bail.</p>
+              <p className="text-sm text-ink-muted">{t("Aucun paiement enregistré sur ce bail.")}</p>
             )}
           </Card>
         </StaggerItem>

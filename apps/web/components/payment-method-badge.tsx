@@ -1,5 +1,8 @@
+"use client";
+
 import { PAYMENT_METHOD_COLORS, PAYMENT_METHOD_LABELS, PaymentMethod } from "@ivologis/shared";
 import { PaymentLogo } from "./payment-logo";
+import { t } from "@/lib/t-spaces";
 
 export function PaymentMethodBadge({ method, size = "md" }: { method: PaymentMethod; size?: "sm" | "md" }) {
   const colors = PAYMENT_METHOD_COLORS[method] ?? { bg: "#6B7280", text: "#FFFFFF", border: "#6B7280" };
@@ -12,7 +15,7 @@ export function PaymentMethodBadge({ method, size = "md" }: { method: PaymentMet
       style={{ color: colors.bg === "#FFCB05" ? "#111827" : colors.bg }}
     >
       <PaymentLogo method={method} className={`${logoClass} shrink-0`} />
-      <span className="text-ink">{PAYMENT_METHOD_LABELS[method]}</span>
+      <span className="text-ink">{t(PAYMENT_METHOD_LABELS[method])}</span>
     </span>
   );
 }

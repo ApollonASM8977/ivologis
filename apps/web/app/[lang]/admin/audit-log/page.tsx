@@ -9,6 +9,8 @@ import { Select } from "@/components/ui/input";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { t } from "@/lib/t-spaces";
+import { locale } from "@/lib/t";
 
 interface AuditRow {
   id: string;
@@ -40,9 +42,9 @@ function describeMetadata(row: AuditRow): string {
     case "UPDATE_USER_STATUS":
       return `${m.fullName ?? ""} : ${m.previousStatus ?? "?"} → ${m.newStatus ?? "?"}`;
     case "UPDATE_PERMISSIONS":
-      return `${m.fullName ?? ""} · ${(m.permissions as string[])?.length ?? 0} permission(s) accordée(s)`;
+      return t("{0} · {1} permission(s) accordée(s)", m.fullName ?? "", (m.permissions as string[])?.length ?? 0);
     case "RENEW_LEASE":
-      return `${m.contractNumber ?? ""} · nouvelle échéance ${m.newEndDate ?? ""}`;
+      return t("{0} · nouvelle échéance {1}", m.contractNumber ?? "", m.newEndDate ?? "");
     case "TERMINATE_LEASE":
       return `${m.contractNumber ?? ""}`;
     case "ARCHIVE_PROPERTY":
@@ -67,9 +69,9 @@ export default function AdminAuditLogPage() {
     {
       header: "Date",
       cell: (r) =>
-        new Date(r.createdAt).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }),
+        new Date(r.createdAt).toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }),
     },
-    { header: "Auteur", cell: (r) => r.user?.fullName ?? "Système" },
+    { header: "Auteur", cell: (r) => r.user?.fullName ?? t("Système") },
     {
       header: "Action",
       cell: (r) => {
@@ -77,35 +79,35 @@ export default function AdminAuditLogPage() {
         const Icon = meta.icon;
         return (
           <Badge color={meta.color}>
-            <Icon className="mr-1 h-3 w-3" /> {meta.label}
+            <Icon className="mr-1 h-3 w-3" /> {t(meta.label)}
           </Badge>
         );
       },
     },
-    { header: "Entité", cell: (r) => r.entityType },
-    { header: "Détails", cell: (r) => <span className="text-ink-muted">{describeMetadata(r)}</span> },
+    { header: t("Entité"), cell: (r) => r.entityType },
+    { header: t("Détails"), cell: (r) => <span className="text-ink-muted">{describeMetadata(r)}</span> },
   ];
 
   return (
     <div>
       <PageHeader
-        title="Journal d'activité"
-        subtitle="Historique des actions sensibles effectuées sur la plateforme"
+        title={t("Journal d'activité")}
+        subtitle={t("Historique des actions sensibles effectuées sur la plateforme")}
       />
 
       <div className="mb-4 flex gap-3">
         <Select className="w-64" value={action} onChange={(e) => setAction(e.target.value)}>
-          <option value="">Toutes les actions</option>
+          <option value="">{t("Toutes les actions")}</option>
           {Object.entries(ACTION_META).map(([key, meta]) => (
             <option key={key} value={key}>
-              {meta.label}
+              {t(meta.label)}
             </option>
           ))}
         </Select>
       </div>
 
       {!isLoading && rows.length === 0 ? (
-        <EmptyState icon={History} title="Aucune activité enregistrée" />
+        <EmptyState icon={History} title={t("Aucune activité enregistrée")} />
       ) : (
         <DataTable
           columns={columns}

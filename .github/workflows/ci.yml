@@ -34,6 +34,10 @@ jobs:
       - name: Vérifier les types du web
         run: npx tsc --noEmit -p apps/web/tsconfig.json
 
+      # Bilingue (D-14) : tout texte affiché doit avoir sa traduction anglaise.
+      - name: Vérifier le bilingue
+        run: npm run check:i18n --workspace=apps/web
+
       - name: Construire le web
         run: npm run build:web
         env:

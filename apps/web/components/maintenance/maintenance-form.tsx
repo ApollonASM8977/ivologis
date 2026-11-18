@@ -11,6 +11,7 @@ import { MaintenanceIssueType, MAINTENANCE_ISSUE_LABELS, MaintenancePriority, MA
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Label, Select, Textarea } from "@/components/ui/input";
+import { t as tr } from "@/lib/t-spaces";
 
 export interface MaintenanceFormValues {
   issueType: MaintenanceIssueType;
@@ -40,48 +41,48 @@ export function MaintenanceForm({ loading, onSubmit }: { loading?: boolean; onSu
   return (
     <form onSubmit={handleSubmit((v) => onSubmit({ ...v, photos }))} className="space-y-4">
       <div>
-        <Label htmlFor="mf-type">Type de problème</Label>
+        <Label htmlFor="mf-type">{tr("Type de problème")}</Label>
         <Select id="mf-type" {...register("issueType", { required: true })}>
           {Object.values(MaintenanceIssueType).map((t) => (
             <option key={t} value={t}>
-              {MAINTENANCE_ISSUE_LABELS[t]}
+              {tr(MAINTENANCE_ISSUE_LABELS[t])}
             </option>
           ))}
         </Select>
       </div>
       <div>
-        <Label htmlFor="mf-priority">Urgence</Label>
+        <Label htmlFor="mf-priority">{tr("Urgence")}</Label>
         <Select id="mf-priority" {...register("priority", { required: true })}>
           {Object.values(MaintenancePriority).map((p) => (
             <option key={p} value={p}>
-              {MAINTENANCE_PRIORITY_LABELS[p]}
+              {tr(MAINTENANCE_PRIORITY_LABELS[p])}
             </option>
           ))}
         </Select>
-        <p className="mt-1 text-xs text-ink-muted">« Urgente » : fuite importante, coupure totale, porte qui ne ferme plus.</p>
+        <p className="mt-1 text-xs text-ink-muted">{tr("« Urgente » : fuite importante, coupure totale, porte qui ne ferme plus.")}</p>
       </div>
       <div>
-        <Label htmlFor="mf-desc">Description du problème</Label>
+        <Label htmlFor="mf-desc">{tr("Description du problème")}</Label>
         <Textarea
           id="mf-desc"
           rows={4}
           maxLength={2000}
-          placeholder="Où, depuis quand, ce que vous avez constaté…"
-          {...register("description", { required: "Décrivez le problème.", minLength: { value: 5, message: "5 caractères minimum." } })}
+          placeholder={tr("Où, depuis quand, ce que vous avez constaté…")}
+          {...register("description", { required: tr("Décrivez le problème."), minLength: { value: 5, message: tr("5 caractères minimum.") } })}
         />
         {formState.errors.description && <p className="mt-1 text-xs text-danger">{formState.errors.description.message}</p>}
       </div>
       <div>
-        <Label>Photos (facultatif, {MAX_PHOTOS} maximum)</Label>
+        <Label>{tr("Photos (facultatif, {0} maximum)", MAX_PHOTOS)}</Label>
         <div className="flex flex-wrap gap-2">
           <AnimatePresence initial={false}>
             {photos.map((url) => (
               <motion.div key={url} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="relative h-20 w-20 overflow-hidden rounded-lg">
-                <Image src={fileUrl(url) ?? ""} alt="Photo jointe" fill sizes="80px" className="object-cover" />
+                <Image src={fileUrl(url) ?? ""} alt={tr("Photo jointe")} fill sizes="80px" className="object-cover" />
                 <button
                   type="button"
                   onClick={() => setPhotos((p) => p.filter((u) => u !== url))}
-                  aria-label="Retirer la photo"
+                  aria-label={tr("Retirer la photo")}
                   className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -92,10 +93,10 @@ export function MaintenanceForm({ loading, onSubmit }: { loading?: boolean; onSu
           {photos.length < MAX_PHOTOS && (
             <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 text-xs text-ink-muted transition-colors hover:border-primary hover:text-primary">
               {upload.isPending ? (
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-label="Envoi en cours" />
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-label={tr("Envoi en cours")} />
               ) : (
                 <>
-                  <Camera className="h-5 w-5" /> Ajouter
+                  <Camera className="h-5 w-5" />{" "}{tr("Ajouter")}
                 </>
               )}
               <input
@@ -114,7 +115,7 @@ export function MaintenanceForm({ loading, onSubmit }: { loading?: boolean; onSu
         </div>
       </div>
       <Button type="submit" className="w-full" loading={loading} disabled={upload.isPending}>
-        Envoyer la demande
+        {tr("Envoyer la demande")}
       </Button>
     </form>
   );

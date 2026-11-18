@@ -6,12 +6,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Download, FileType } from "lucide-react";
 import { api, fileUrl } from "@/lib/api";
-import { formatXOF, LEASE_TYPE_LABELS } from "@ivologis/shared";
+import { LEASE_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
+import { t } from "@/lib/t-spaces";
+import { money } from "@/lib/t";
 
 interface LeaseRow {
   id: string;
@@ -35,10 +37,10 @@ export default function OwnerLeasesPage() {
 
   const columns: Column<LeaseRow>[] = [
     { header: "N° Contrat", cell: (r) => <Link href={`/owner/leases/${r.id}`} className="font-mono text-xs font-semibold text-primary hover:underline">{r.contractNumber}</Link> },
-    { header: "Type", cell: (r) => <Badge color="blue">{LEASE_TYPE_LABELS[r.type]}</Badge> },
+    { header: "Type", cell: (r) => <Badge color="blue">{t(LEASE_TYPE_LABELS[r.type])}</Badge> },
     { header: "Bien", cell: (r) => r.property?.name },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
-    { header: "Loyer", cell: (r) => formatXOF(r.rentAmount) },
+    { header: "Loyer", cell: (r) => money(r.rentAmount) },
     { header: "Statut", cell: (r) => <LeaseStatusBadge status={r.status} /> },
     {
       header: "Document",
@@ -46,12 +48,12 @@ export default function OwnerLeasesPage() {
         <div className="flex gap-2">
           {r.documentUrl && (
             <DocumentLink path={r.documentUrl} className="flex items-center gap-1 text-primary hover:underline" title="PDF">
-              <Download className="h-4 w-4" /> PDF
+              <Download className="h-4 w-4" />{" "}{t("PDF")}
             </DocumentLink>
           )}
           {r.wordUrl && (
-            <DocumentLink path={r.wordUrl} className="flex items-center gap-1 text-primary hover:underline" title="Word">
-              <FileType className="h-4 w-4" /> Word
+            <DocumentLink path={r.wordUrl} className="flex items-center gap-1 text-primary hover:underline" title={t("Word")}>
+              <FileType className="h-4 w-4" />{" "}{t("Word")}
             </DocumentLink>
           )}
           {!r.documentUrl && !r.wordUrl && "-"}
@@ -62,10 +64,10 @@ export default function OwnerLeasesPage() {
 
   return (
     <div>
-      <PageHeader title="Contrats" subtitle="Contrats de bail liés à vos biens" />
+      <PageHeader title={t("Contrats")} subtitle={t("Contrats de bail liés à vos biens")} />
 
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={FileText} title="Aucun contrat pour le moment" />
+        <EmptyState icon={FileText} title={t("Aucun contrat pour le moment")} />
       ) : (
         <DataTable columns={columns} rows={data?.data ?? []} loading={isLoading} rowKey={(r) => r.id} page={page} limit={10} total={data?.total} onPageChange={setPage} />
       )}

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Plus, Building2, MapPin } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
-import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -18,13 +18,15 @@ import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 
 /** Le bon prix selon l'usage du bien : un terrain en vente n'a pas de loyer. */
 function priceLabel(p: any) {
-  if (Number(p.rentAmount) > 0) return `${formatXOF(p.rentAmount)} / mois`;
-  if (p.forSale && Number(p.salePrice) > 0) return `En vente : ${formatXOF(p.salePrice)}`;
-  if (p.shortStayEnabled && Number(p.shortStayNightlyRate) > 0) return `${formatXOF(p.shortStayNightlyRate)} / nuit`;
-  return "Prix à définir avec l'agence";
+  if (Number(p.rentAmount) > 0) return t("{0} / mois", money(p.rentAmount));
+  if (p.forSale && Number(p.salePrice) > 0) return t("En vente : {0}", money(p.salePrice));
+  if (p.shortStayEnabled && Number(p.shortStayNightlyRate) > 0) return t("{0} / nuit", money(p.shortStayNightlyRate));
+  return t("Prix à définir avec l'agence");
 }
 import { PropertyStatusBadge } from "@/components/status-badges";
 import { PropertyForm, PropertyFormValues } from "@/components/properties/property-form";
+import { t } from "@/lib/t-spaces";
+import { money } from "@/lib/t";
 
 export default function OwnerPropertiesPage() {
   const router = useRouter();
@@ -41,7 +43,7 @@ export default function OwnerPropertiesPage() {
   const createMutation = useMutation({
     mutationFn: (values: PropertyFormValues) => api.post("/properties", values),
     onSuccess: () => {
-      toast.success("Bien ajouté avec succès.");
+      toast.success(t("Bien ajouté avec succès."));
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       setModalOpen(false);
     },
@@ -51,12 +53,12 @@ export default function OwnerPropertiesPage() {
   return (
     <div>
       <PageHeader
-        title="Mes biens"
-        subtitle="Gérez vos biens immobiliers"
+        title={t("Mes biens")}
+        subtitle={t("Gérez vos biens immobiliers")}
         action={
           canCreate ? (
             <Button size="sm" onClick={() => setModalOpen(true)}>
-              <Plus className="h-4 w-4" /> Ajouter un bien
+              <Plus className="h-4 w-4" />{" "}{t("Ajouter un bien")}
             </Button>
           ) : undefined
         }
@@ -64,15 +66,15 @@ export default function OwnerPropertiesPage() {
 
       {!canCreate && (
         <p className="mb-4 rounded-lg bg-surface px-4 py-3 text-sm text-ink-muted">
-          Pour confier un nouveau bien à l&apos;agence (location, vente ou séjours), contactez-la : elle crée la fiche et vérifie les documents avant toute publication.
+          {t("Pour confier un nouveau bien à l'agence (location, vente ou séjours), contactez-la : elle crée la fiche et vérifie les documents avant toute publication.")}
         </p>
       )}
 
       {!isLoading && data?.data?.length === 0 ? (
         <EmptyState
           icon={Building2}
-          title="Vous n'avez aucun bien"
-          action={canCreate ? <Button onClick={() => setModalOpen(true)}>Ajouter un bien</Button> : undefined}
+          title={t("Vous n'avez aucun bien")}
+          action={canCreate ? <Button onClick={() => setModalOpen(true)}>{t("Ajouter un bien")}</Button> : undefined}
         />
       ) : (
         <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -102,10 +104,10 @@ export default function OwnerPropertiesPage() {
                   <div className="p-4">
                     <p className="font-medium text-ink">{p.name}</p>
                     <p className="flex items-center gap-1 text-xs text-ink-muted">
-                      <MapPin className="h-3 w-3" /> {p.commune} · {PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS]}
+                      <MapPin className="h-3 w-3" /> {p.commune} · {t(PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS])}
                     </p>
                     <p className="mt-2 text-sm font-semibold text-primary">{priceLabel(p)}</p>
-                    {p.currentTenant && <p className="mt-1 text-xs text-ink-muted">Locataire : {p.currentTenant.fullName}</p>}
+                    {p.currentTenant && <p className="mt-1 text-xs text-ink-muted">{t("Locataire : {0}", p.currentTenant.fullName)}</p>}
                   </div>
                 </motion.button>
               </StaggerItem>
@@ -114,7 +116,7 @@ export default function OwnerPropertiesPage() {
         </StaggerContainer>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un bien" width="max-w-2xl">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("Ajouter un bien")} width="max-w-2xl">
         <PropertyForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
       </Modal>
     </div>

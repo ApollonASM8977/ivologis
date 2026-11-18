@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { AccountStatusBadge } from "@/components/status-badges";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { t } from "@/lib/t-spaces";
 
 interface AdminRow {
   id: string;
@@ -55,7 +56,7 @@ function PermissionChecklist({
             checked={selected.has(key)}
             onChange={() => onToggle(key)}
           />
-          {PERMISSION_LABELS[key]}
+          {t(PERMISSION_LABELS[key])}
         </label>
       ))}
     </div>
@@ -82,7 +83,7 @@ export default function AdminTeamPage() {
     mutationFn: (values: CreateAdminForm) =>
       api.post("/users/admins", { ...values, permissions: Array.from(newAgentPermissions) }),
     onSuccess: () => {
-      toast.success("Agent créé avec succès.");
+      toast.success(t("Agent créé avec succès."));
       queryClient.invalidateQueries({ queryKey: ["users", "admins"] });
       setCreateOpen(false);
       reset();
@@ -94,7 +95,7 @@ export default function AdminTeamPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => api.patch(`/users/${id}/status`, { status }),
     onSuccess: () => {
-      toast.success("Statut mis à jour.");
+      toast.success(t("Statut mis à jour."));
       queryClient.invalidateQueries({ queryKey: ["users", "admins"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -104,7 +105,7 @@ export default function AdminTeamPage() {
     mutationFn: ({ id, permissions }: { id: string; permissions: string[] }) =>
       api.patch(`/users/${id}/permissions`, { permissions }),
     onSuccess: () => {
-      toast.success("Permissions mises à jour.");
+      toast.success(t("Permissions mises à jour."));
       queryClient.invalidateQueries({ queryKey: ["users", "admins"] });
       setPermissionsFor(null);
     },
@@ -126,7 +127,7 @@ export default function AdminTeamPage() {
   const columns: Column<AdminRow>[] = [
     { header: "Nom", cell: (r) => <span className="font-medium text-ink">{r.fullName}</span> },
     { header: "Email", cell: (r) => r.email },
-    { header: "Téléphone", cell: (r) => r.phone },
+    { header: t("Téléphone"), cell: (r) => r.phone },
     { header: "Permissions", cell: (r) => `${r.permissions.length} / ${ALL_PERMISSIONS.length}` },
     { header: "Statut", cell: (r) => <AccountStatusBadge status={r.status} /> },
     {
@@ -134,16 +135,16 @@ export default function AdminTeamPage() {
       cell: (r) => (
         <div className="flex gap-1">
           <button
-            title="Gérer les permissions"
-            aria-label={`Gérer les permissions de ${r.fullName}`}
+            title={t("Gérer les permissions")}
+            aria-label={t("Gérer les permissions de {0}", r.fullName)}
             onClick={() => openPermissions(r)}
             className="rounded p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary"
           >
             <ShieldCheck className="h-4 w-4" />
           </button>
           <button
-            title={r.status === "SUSPENDED" ? "Réactiver" : "Suspendre"}
-            aria-label={`${r.status === "SUSPENDED" ? "Réactiver" : "Suspendre"} ${r.fullName}`}
+            title={r.status === "SUSPENDED" ? t("Réactiver") : t("Suspendre")}
+            aria-label={`${r.status === "SUSPENDED" ? t("Réactiver") : t("Suspendre")} ${r.fullName}`}
             onClick={() =>
               r.status === "SUSPENDED" ? statusMutation.mutate({ id: r.id, status: "ACTIVE" }) : setSuspendTarget(r)
             }
@@ -159,17 +160,17 @@ export default function AdminTeamPage() {
   return (
     <div>
       <PageHeader
-        title="Équipe"
-        subtitle="Agents immobiliers (admins secondaires) et leurs permissions"
+        title={t("Équipe")}
+        subtitle={t("Agents immobiliers (admins secondaires) et leurs permissions")}
         action={
           <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" /> Ajouter un agent
+            <Plus className="h-4 w-4" />{" "}{t("Ajouter un agent")}
           </Button>
         }
       />
 
       {!isLoading && admins?.length === 0 ? (
-        <EmptyState icon={UserCog} title="Aucun agent" description="Créez un compte pour vos agents immobiliers." action={<Button onClick={() => setCreateOpen(true)}>Ajouter un agent</Button>} />
+        <EmptyState icon={UserCog} title={t("Aucun agent")} description={t("Créez un compte pour vos agents immobiliers.")} action={<Button onClick={() => setCreateOpen(true)}>{t("Ajouter un agent")}</Button>} />
       ) : (
         <DataTable columns={columns} rows={admins ?? []} loading={isLoading} rowKey={(r) => r.id} />
       )}
@@ -177,9 +178,9 @@ export default function AdminTeamPage() {
       <ConfirmDialog
         open={!!suspendTarget}
         danger
-        title="Suspendre cet agent ?"
-        message={`${suspendTarget?.fullName ?? ""} sera déconnecté immédiatement de tous ses appareils et ne pourra plus se connecter jusqu'à sa réactivation.`}
-        confirmLabel="Suspendre"
+        title={t("Suspendre cet agent ?")}
+        message={t("{0} sera déconnecté immédiatement de tous ses appareils et ne pourra plus se connecter jusqu'à sa réactivation.", suspendTarget?.fullName ?? "")}
+        confirmLabel={t("Suspendre")}
         loading={statusMutation.isPending}
         onConfirm={() =>
           suspendTarget && statusMutation.mutate({ id: suspendTarget.id, status: "SUSPENDED" }, { onSettled: () => setSuspendTarget(null) })
@@ -187,36 +188,36 @@ export default function AdminTeamPage() {
         onClose={() => setSuspendTarget(null)}
       />
 
-      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Ajouter un agent immobilier" width="max-w-xl">
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t("Ajouter un agent immobilier")} width="max-w-xl">
         <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} className="space-y-4">
           <div>
-            <Label>Nom complet</Label>
+            <Label>{t("Nom complet")}</Label>
             <Input {...register("fullName", { required: true })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Email</Label>
+              <Label>{t("Email")}</Label>
               <Input type="email" {...register("email", { required: true })} />
             </div>
             <div>
-              <Label>Téléphone</Label>
+              <Label>{t("Téléphone")}</Label>
               <Input {...register("phone", { required: true })} />
             </div>
           </div>
           <div>
-            <Label>Mot de passe</Label>
+            <Label>{t("Mot de passe")}</Label>
             <Input type="password" {...register("password", { required: true, minLength: 8 })} />
             <PasswordStrengthMeter password={newAdminPassword} />
           </div>
           <div>
-            <Label>Permissions accordées</Label>
+            <Label>{t("Permissions accordées")}</Label>
             <PermissionChecklist
               selected={newAgentPermissions}
               onToggle={(key) => toggle(newAgentPermissions, setNewAgentPermissions, key)}
             />
           </div>
           <Button type="submit" className="w-full" loading={createMutation.isPending}>
-            Créer l&apos;agent
+            {t("Créer l'agent")}
           </Button>
         </form>
       </Modal>
@@ -224,7 +225,7 @@ export default function AdminTeamPage() {
       <Modal
         open={!!permissionsFor}
         onClose={() => setPermissionsFor(null)}
-        title={`Permissions de ${permissionsFor?.fullName ?? ""}`}
+        title={t("Permissions de {0}", permissionsFor?.fullName ?? "")}
         width="max-w-xl"
       >
         <PermissionChecklist selected={editPermissions} onToggle={(key) => toggle(editPermissions, setEditPermissions, key)} />
@@ -236,7 +237,7 @@ export default function AdminTeamPage() {
             permissionsMutation.mutate({ id: permissionsFor.id, permissions: Array.from(editPermissions) })
           }
         >
-          Enregistrer les permissions
+          {t("Enregistrer les permissions")}
         </Button>
       </Modal>
     </div>

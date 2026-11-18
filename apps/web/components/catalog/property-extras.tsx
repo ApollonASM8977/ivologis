@@ -6,6 +6,7 @@ import { FlaskConical, MessageCircle, Phone, ChevronLeft, ChevronRight, X, Expan
 import { CardHeader } from "@/components/ui/card";
 import { usePublicCompany } from "@/lib/use-company";
 import { fileUrl } from "@/lib/api";
+import { t } from "@/lib/t-catalog";
 
 /** Apparition douce d'une section quand elle entre à l'écran (CSS piloté par le défilement, sans JavaScript). */
 export function Reveal({ children, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -42,11 +43,11 @@ export function PhotoGallery({ images, alt }: { images?: { id: string; url: stri
             // Mouvement seul : la photo principale compte comme affichée dès le premier rendu (LCP).
             style={{ animationDelay: `${i * 60}ms` }}
             className={`ivo-rise ivo-lift group relative overflow-hidden rounded-lg bg-gray-100 ${i === 0 && count > 2 ? "col-span-2 row-span-2 h-56 sm:h-full" : "h-28"}`}
-            aria-label={`Agrandir la photo ${i + 1} sur ${count}`}
+            aria-label={t("Agrandir la photo {0} sur {1}", i + 1, count)}
           >
             <Image
               src={fileUrl(img.url) ?? ""}
-              alt={`${alt} — photo ${i + 1}`}
+              alt={t("{0} — photo {1}", alt, i + 1)}
               fill
               priority={i === 0}
               sizes={i === 0 ? "(min-width: 640px) 50vw, 100vw" : "200px"}
@@ -63,19 +64,19 @@ export function PhotoGallery({ images, alt }: { images?: { id: string; url: stri
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Photos du bien"
+          aria-label={t("Photos du bien")}
           className="ivo-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
           onClick={() => setOpen(null)}
         >
-          <button type="button" aria-label="Fermer" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setOpen(null)}>
+          <button type="button" aria-label={t("Fermer")} className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setOpen(null)}>
             <X className="h-6 w-6" />
           </button>
           {count > 1 && (
             <>
-              <button type="button" aria-label="Photo précédente" className="absolute left-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(-1); }}>
+              <button type="button" aria-label={t("Photo précédente")} className="absolute left-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(-1); }}>
                 <ChevronLeft className="h-7 w-7" />
               </button>
-              <button type="button" aria-label="Photo suivante" className="absolute right-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(1); }}>
+              <button type="button" aria-label={t("Photo suivante")} className="absolute right-3 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); go(1); }}>
                 <ChevronRight className="h-7 w-7" />
               </button>
             </>
@@ -94,7 +95,7 @@ export function PhotoGallery({ images, alt }: { images?: { id: string; url: stri
               if (dx > 60) go(-1);
             }}
           >
-            <Image src={fileUrl(images![open].url) ?? ""} alt={`${alt} — photo ${open + 1}`} fill sizes="100vw" className="select-none object-contain" draggable={false} />
+            <Image src={fileUrl(images![open].url) ?? ""} alt={t("{0} — photo {1}", alt, open + 1)} fill sizes="100vw" className="select-none object-contain" draggable={false} />
           </div>
           <p className="absolute bottom-4 text-sm text-white/80">
             {open + 1} / {count}
@@ -121,7 +122,7 @@ export function AgencyContact({ listingName, disabled }: { listingName: string; 
   const [pageUrl, setPageUrl] = useState("");
   useEffect(() => setPageUrl(window.location.href), []);
   if (disabled || (!whatsapp && !phone)) return null;
-  const message = `Bonjour, je suis intéressé(e) par l'annonce « ${listingName} »${pageUrl ? ` : ${pageUrl}` : ""}`;
+  const message = t("Bonjour, je suis intéressé(e) par l'annonce « {0} »{1}", listingName, pageUrl ? ` : ${pageUrl}` : "");
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {whatsapp && (
@@ -131,7 +132,7 @@ export function AgencyContact({ listingName, disabled }: { listingName: string; 
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800"
         >
-          <MessageCircle className="h-4 w-4" /> Écrire à l&apos;agence sur WhatsApp
+          <MessageCircle className="h-4 w-4" />{" "}{t("Écrire à l'agence sur WhatsApp")}
         </a>
       )}
       {phone && (
@@ -139,7 +140,7 @@ export function AgencyContact({ listingName, disabled }: { listingName: string; 
           href={`tel:${phone.replace(/\s/g, "")}`}
           className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:border-primary/40 hover:text-primary"
         >
-          <Phone className="h-4 w-4" /> Appeler l&apos;agence
+          <Phone className="h-4 w-4" />{" "}{t("Appeler l'agence")}
         </a>
       )}
     </div>
@@ -165,7 +166,7 @@ export function locationLabel(p: Located, withAddress = false) {
 export function DemoBadge() {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-900">
-      <FlaskConical className="h-3 w-3" aria-hidden="true" /> Démo
+      <FlaskConical className="h-3 w-3" aria-hidden="true" />{" "}{t("Démo")}
     </span>
   );
 }
@@ -175,8 +176,7 @@ export function DemoNotice() {
     <div role="note" className="mb-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
       <FlaskConical className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
       <p>
-        <strong>Annonce de démonstration.</strong> Ce bien est fictif : il sert à montrer le fonctionnement du catalogue. Les photos, le prix et
-        les documents ne correspondent à aucun bien réel, et aucune demande ne peut être envoyée.
+        <strong>{t("Annonce de démonstration.")}</strong>{" "}{t("Ce bien est fictif : il sert à montrer le fonctionnement du catalogue. Les photos, le prix et les documents ne correspondent à aucun bien réel, et aucune demande ne peut être envoyée.")}
       </p>
     </div>
   );
@@ -194,9 +194,9 @@ export function LocationMap({ latitude, longitude }: { latitude?: number | strin
   return (
     <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
       <div className="p-5 pb-0">
-        <CardHeader title="Emplacement" />
+        <CardHeader title={t("Emplacement")} />
       </div>
-      <iframe src={src} loading="lazy" className="h-64 w-full border-0" title="Emplacement du bien" />
+      <iframe src={src} loading="lazy" className="h-64 w-full border-0" title={t("Emplacement du bien")} />
     </div>
   );
 }
@@ -206,9 +206,9 @@ export function VirtualTourCard({ url }: { url?: string | null }) {
   return (
     <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
       <div className="p-5 pb-0">
-        <CardHeader title="Visite virtuelle 360°" />
+        <CardHeader title={t("Visite virtuelle 360°")} />
       </div>
-      <iframe src={url} loading="lazy" allow="xr-spatial-tracking; gyroscope; accelerometer" className="h-96 w-full border-0" title="Visite virtuelle 360°" />
+      <iframe src={url} loading="lazy" allow="xr-spatial-tracking; gyroscope; accelerometer" className="h-96 w-full border-0" title={t("Visite virtuelle 360°")} />
     </div>
   );
 }

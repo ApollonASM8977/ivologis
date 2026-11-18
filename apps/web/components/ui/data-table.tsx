@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
 import { LoadingState } from "./empty-state";
+import { t } from "@/lib/t-ui";
 
 export interface Column<T> {
   header: string;
@@ -15,7 +16,7 @@ export function DataTable<T>({
   columns,
   rows,
   loading,
-  emptyMessage = "Aucune donnée pour le moment.",
+  emptyMessage = t("Aucune donnée pour le moment."),
   page,
   limit,
   total,
@@ -79,7 +80,7 @@ export function DataTable<T>({
       {onPageChange && total !== undefined && total > 0 && (
         <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 text-sm text-ink-muted">
           <span>
-            {total} résultat{total > 1 ? "s" : ""}
+            {t("{0} résultat", total)}{total > 1 ? "s" : ""}
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -90,7 +91,7 @@ export function DataTable<T>({
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span>
-              Page {page} / {totalPages}
+              {t("Page {0} / {1}", page, totalPages)}
             </span>
             <button
               disabled={(page ?? 1) >= totalPages}

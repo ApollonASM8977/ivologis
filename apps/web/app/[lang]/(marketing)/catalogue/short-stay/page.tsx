@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { toLang } from "@/lib/i18n";
+import { catalogMeta } from "@/messages/catalog-meta";
 import { fetchCatalogPage, toQueryString } from "@/lib/listing-seo";
 import { ShortStayCatalog } from "@/components/catalog/short-stay-catalog";
 
-export const metadata: Metadata = {
-  title: "Résidences meublées à la nuitée",
-  description: "Résidences meublées à louer à la nuitée à Abidjan et sur la côte, disponibilités en ligne, réservation sans compte.",
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const m = catalogMeta[toLang((await params).lang)].shortStay;
+  return { title: m.title, description: m.description };
+}
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 

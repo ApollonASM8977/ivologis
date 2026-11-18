@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Wallet, Download, Receipt, AlertTriangle, FileDown } from "lucide-react";
 import { api, apiErrorMessage, downloadFile, openDocument } from "@/lib/api";
-import { formatXOF, PaymentMethod } from "@ivologis/shared";
+import { PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PaymentStatusBadge } from "@/components/status-badges";
 import { PaymentMethodBadge } from "@/components/payment-method-badge";
 import { PaymentForm, PaymentFormValues } from "@/components/payments/payment-form";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 interface PaymentRow {
   id: string;
@@ -48,7 +50,7 @@ export default function AdminPaymentsPage() {
   const createMutation = useMutation({
     mutationFn: (values: PaymentFormValues) => api.post("/payments", values),
     onSuccess: () => {
-      toast.success("Paiement enregistré et quittance générée.");
+      toast.success(t("Paiement enregistré et quittance générée."));
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       setModalOpen(false);
     },
@@ -58,7 +60,7 @@ export default function AdminPaymentsPage() {
   const receiptMutation = useMutation({
     mutationFn: (id: string) => api.post(`/payments/${id}/receipt`),
     onSuccess: (res) => {
-      toast.success("Quittance générée.");
+      toast.success(t("Quittance générée."));
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       openDocument(res.data.pdfUrl).catch((e) => toast.error(apiErrorMessage(e)));
     },
@@ -68,19 +70,19 @@ export default function AdminPaymentsPage() {
   const decisionMutation = useMutation({
     mutationFn: ({ id, decision }: { id: string; decision: "confirm" | "reject" }) => api.post(`/payments/${id}/${decision}`, {}),
     onSuccess: (_res, { decision }) => {
-      toast.success(decision === "confirm" ? "Paiement confirmé, quittance émise." : "Déclaration refusée, le locataire est prévenu.");
+      toast.success(decision === "confirm" ? t("Paiement confirmé, quittance émise.") : t("Déclaration refusée, le locataire est prévenu."));
       queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
   const columns: Column<PaymentRow>[] = [
-    { header: "Date", cell: (r) => new Date(r.paymentDate).toLocaleDateString("fr-FR") },
+    { header: "Date", cell: (r) => new Date(r.paymentDate).toLocaleDateString(locale()) },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
     { header: "Bien", cell: (r) => r.property?.name },
-    { header: "Montant", cell: (r) => formatXOF(r.amount) },
+    { header: "Montant", cell: (r) => money(r.amount) },
     { header: "Moyen", cell: (r) => <PaymentMethodBadge method={r.method as PaymentMethod} size="sm" /> },
-    { header: "Référence", cell: (r) => <span className="font-mono text-xs">{r.transactionRef ?? "-"}</span> },
+    { header: t("Référence"), cell: (r) => <span className="font-mono text-xs">{r.transactionRef ?? "-"}</span> },
     { header: "Statut", cell: (r) => <PaymentStatusBadge status={r.status} /> },
     {
       header: "Quittance",
@@ -92,27 +94,27 @@ export default function AdminPaymentsPage() {
               disabled={decisionMutation.isPending}
               className="rounded px-1.5 py-1 text-xs font-semibold text-success hover:bg-success/10 disabled:opacity-50"
             >
-              Confirmer
+              {t("Confirmer")}
             </button>
             <button
               onClick={() => decisionMutation.mutate({ id: r.id, decision: "reject" })}
               disabled={decisionMutation.isPending}
               className="rounded px-1.5 py-1 text-xs font-semibold text-danger hover:bg-danger/10 disabled:opacity-50"
             >
-              Refuser
+              {t("Refuser")}
             </button>
           </div>
         ) : r.status !== "PAID" ? (
           "-"
         ) : (
         <button
-          title="Générer la quittance PDF"
+          title={t("Générer la quittance PDF")}
           onClick={() => receiptMutation.mutate(r.id)}
           disabled={receiptMutation.isPending}
           className="flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-ink-muted hover:bg-gray-100 hover:text-primary disabled:opacity-50"
         >
           {r.receipt?.pdfUrl ? <Receipt className="h-3.5 w-3.5" /> : <FileDown className="h-3.5 w-3.5" />}
-          PDF
+          {t("PDF")}
         </button>
       ),
     },
@@ -121,15 +123,15 @@ export default function AdminPaymentsPage() {
   return (
     <div>
       <PageHeader
-        title="Paiements"
-        subtitle="Suivi des loyers et transactions"
+        title={t("Paiements")}
+        subtitle={t("Suivi des loyers et transactions")}
         action={
           <div className="flex gap-2">
             <Button size="sm" onClick={() => setModalOpen(true)}>
-              <Plus className="h-4 w-4" /> Enregistrer un paiement
+              <Plus className="h-4 w-4" />{" "}{t("Enregistrer un paiement")}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => downloadFile("/payments/export", "paiements.csv").catch((e) => toast.error(apiErrorMessage(e)))}>
-              <Download className="h-4 w-4" /> Exporter CSV
+              <Download className="h-4 w-4" />{" "}{t("Exporter CSV")}
             </Button>
           </div>
         }
@@ -138,13 +140,13 @@ export default function AdminPaymentsPage() {
       {!!overdue?.length && (
         <Card className="mb-4 border-red-100 bg-red-50/50">
           <div className="flex items-center gap-2 text-sm font-medium text-danger">
-            <AlertTriangle className="h-4 w-4" /> {overdue.length} loyer(s) en retard ce mois-ci
+            <AlertTriangle className="h-4 w-4" />{" "}{t("{0} loyer(s) en retard ce mois-ci", overdue.length)}
           </div>
           <div className="mt-2 space-y-1 text-sm text-ink">
             {overdue.slice(0, 5).map((o: any) => (
               <div key={o.leaseId} className="flex justify-between">
                 <span>{o.tenant.fullName} · {o.property.name}</span>
-                <span className="font-medium">{formatXOF(o.rentAmount)}</span>
+                <span className="font-medium">{money(o.rentAmount)}</span>
               </div>
             ))}
           </div>
@@ -153,21 +155,21 @@ export default function AdminPaymentsPage() {
 
       <div className="mb-4 flex gap-3">
         <Select className="w-48" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Tous les statuts</option>
-          <option value="PAID">Payé</option>
-          <option value="PENDING">En attente</option>
-          <option value="LATE">En retard</option>
-          <option value="CANCELLED">Annulé</option>
+          <option value="">{t("Tous les statuts")}</option>
+          <option value="PAID">{t("Payé")}</option>
+          <option value="PENDING">{t("En attente")}</option>
+          <option value="LATE">{t("En retard")}</option>
+          <option value="CANCELLED">{t("Annulé")}</option>
         </Select>
       </div>
 
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={Wallet} title="Aucun paiement" action={<Button onClick={() => setModalOpen(true)}>Enregistrer un paiement</Button>} />
+        <EmptyState icon={Wallet} title={t("Aucun paiement")} action={<Button onClick={() => setModalOpen(true)}>{t("Enregistrer un paiement")}</Button>} />
       ) : (
         <DataTable columns={columns} rows={data?.data ?? []} loading={isLoading} rowKey={(r) => r.id} page={page} limit={10} total={data?.total} onPageChange={setPage} />
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Enregistrer un paiement">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("Enregistrer un paiement")}>
         <PaymentForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
       </Modal>
     </div>

@@ -5,6 +5,7 @@ import { usePath } from "@/lib/i18n-client";
 import clsx from "clsx";
 import { Building, X } from "lucide-react";
 import { NavItem } from "./nav-config";
+import { t } from "@/lib/t-spaces";
 
 export function MobileSidebar({
   open,
@@ -27,9 +28,9 @@ export function MobileSidebar({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
               <Building className="h-4 w-4" />
             </div>
-            <p className="font-bold text-primary-dark">IVOLOGIS</p>
+            <p className="font-bold text-primary-dark">{t("IVOLOGIS")}</p>
           </div>
-          <button onClick={onClose} aria-label="Fermer le menu">
+          <button onClick={onClose} aria-label={t("Fermer le menu")}>
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -48,7 +49,7 @@ export function MobileSidebar({
                 )}
               >
                 <Icon className="h-4.5 w-4.5" />
-                {item.label}
+                {t(item.label)}
               </Link>
             );
           })}

@@ -3,12 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { CalendarRange, MapPin } from "lucide-react";
 import { api } from "@/lib/api";
-import { formatXOF, SHORT_STAY_STATUS_LABELS, SHORT_STAY_STATUS_COLORS } from "@ivologis/shared";
+import { SHORT_STAY_STATUS_LABELS, SHORT_STAY_STATUS_COLORS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { DocumentLink } from "@/components/document-link";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 interface BookingRow {
   id: string;
@@ -28,12 +30,12 @@ export default function TenantShortStayPage() {
 
   return (
     <div>
-      <PageHeader title="Mes réservations" subtitle="Vos séjours en location courte durée" />
+      <PageHeader title={t("Mes réservations")} subtitle={t("Vos séjours en location courte durée")} />
 
       {isLoading ? (
         <LoadingState />
       ) : !bookings?.length ? (
-        <EmptyState icon={CalendarRange} title="Aucune réservation" description="Vos séjours en courte durée apparaîtront ici." />
+        <EmptyState icon={CalendarRange} title={t("Aucune réservation")} description={t("Vos séjours en courte durée apparaîtront ici.")} />
       ) : (
         <div className="space-y-3">
           {bookings.map((b) => (
@@ -45,17 +47,17 @@ export default function TenantShortStayPage() {
                     <MapPin className="h-3.5 w-3.5" /> {b.property.address}, {b.property.commune}
                   </p>
                   <p className="mt-2 text-sm text-ink-muted">
-                    {new Date(b.checkIn).toLocaleDateString("fr-FR")} → {new Date(b.checkOut).toLocaleDateString("fr-FR")}
+                    {new Date(b.checkIn).toLocaleDateString(locale())} → {new Date(b.checkOut).toLocaleDateString(locale())}
                   </p>
                 </div>
                 <div className="text-right">
                   <Badge color={SHORT_STAY_STATUS_COLORS[b.status as keyof typeof SHORT_STAY_STATUS_COLORS]}>
-                    {SHORT_STAY_STATUS_LABELS[b.status as keyof typeof SHORT_STAY_STATUS_LABELS]}
+                    {t(SHORT_STAY_STATUS_LABELS[b.status as keyof typeof SHORT_STAY_STATUS_LABELS])}
                   </Badge>
-                  <p className="mt-2 font-semibold text-ink">{formatXOF(Number(b.totalAmount))}</p>
+                  <p className="mt-2 font-semibold text-ink">{money(Number(b.totalAmount))}</p>
                   {b.receiptUrl && (
                     <DocumentLink path={b.receiptUrl} className="mt-1 block text-xs font-medium text-primary hover:underline">
-                      Quittance
+                      {t("Quittance")}
                     </DocumentLink>
                   )}
                 </div>

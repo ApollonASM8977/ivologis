@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { locale } from "@/lib/t";
 
 /** Compteur animé (montant, nombre) ; requestAnimationFrame natif, sans bibliothèque. Respecte « réduire les animations ». */
 export function CountUp({
   value,
-  format = (n: number) => Math.round(n).toLocaleString("fr-FR"),
+  format = (n: number) => Math.round(n).toLocaleString(locale()),
   duration = 1.2,
 }: {
   value: number;

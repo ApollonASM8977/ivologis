@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useOnClickOutside } from "@/lib/use-on-click-outside";
+import { t } from "@/lib/t-spaces";
+import { locale } from "@/lib/t";
 
 const ICONS: Record<string, typeof Bell> = {
   PAYMENT_RECEIVED: Wallet,
@@ -27,13 +29,13 @@ const ICONS: Record<string, typeof Bell> = {
 function timeAgo(dateStr: string) {
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 1) return t("à l'instant");
+  if (minutes < 60) return t("il y a {0} min", minutes);
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `il y a ${hours} h`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `il y a ${days} j`;
-  return new Date(dateStr).toLocaleDateString("fr-FR");
+  return new Date(dateStr).toLocaleDateString(locale());
 }
 
 export function NotificationPanel() {
@@ -68,7 +70,7 @@ export function NotificationPanel() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.92 }}
         onClick={() => setOpen((v) => !v)}
-        aria-label={unreadCount ? `Notifications, ${unreadCount} non lue(s)` : "Notifications"}
+        aria-label={unreadCount ? t("Notifications, {0} non lue(s)", unreadCount) : t("Notifications")}
         aria-expanded={open}
         className="relative rounded-full p-2 hover:bg-gray-50"
       >
@@ -106,14 +108,14 @@ export function NotificationPanel() {
             <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
               <div className="flex items-center gap-2">
                 <BellRing className="h-4 w-4 text-primary" />
-                <p className="text-sm font-semibold text-ink">Notifications</p>
+                <p className="text-sm font-semibold text-ink">{t("Notifications")}</p>
               </div>
               {unreadCount > 0 && (
                 <button
                   onClick={() => markAllReadMutation.mutate()}
                   className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                 >
-                  <CheckCheck className="h-3.5 w-3.5" /> Tout marquer lu
+                  <CheckCheck className="h-3.5 w-3.5" />{" "}{t("Tout marquer lu")}
                 </button>
               )}
             </div>
@@ -122,7 +124,7 @@ export function NotificationPanel() {
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
                   <Inbox className="h-8 w-8 text-gray-300" />
-                  <p className="text-sm text-ink-muted">Aucune notification pour le moment.</p>
+                  <p className="text-sm text-ink-muted">{t("Aucune notification pour le moment.")}</p>
                 </div>
               ) : (
                 notifications.map((n: any, i: number) => {

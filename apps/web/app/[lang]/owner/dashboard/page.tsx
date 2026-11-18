@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { Building2, Wallet, AlertTriangle, Wrench, ArrowRight, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
-import { formatXOF } from "@ivologis/shared";
+
 import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +15,8 @@ import { MaintenanceStatusBadge } from "@/components/status-badges";
 import { CountUp } from "@/components/dashboard/count-up";
 import { ProgressRing } from "@/components/dashboard/progress-ring";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 const RevenueAreaChart = dynamic(() => import("@/components/charts/revenue-area-chart"), {
   ssr: false,
@@ -48,9 +50,9 @@ export default function OwnerDashboardPage() {
   return (
     <div>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-        <p className="text-sm text-ink-muted">{now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</p>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Bonjour{firstName ? `, ${firstName}` : ""}</h1>
-        <p className="text-sm text-ink-muted">Voici l&apos;état de vos biens aujourd&apos;hui.</p>
+        <p className="text-sm text-ink-muted">{now.toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" })}</p>
+        <h1 className="text-2xl font-bold tracking-tight text-ink">{t("Bonjour")}{firstName ? `, ${firstName}` : ""}</h1>
+        <p className="text-sm text-ink-muted">{t("Voici l'état de vos biens aujourd'hui.")}</p>
       </motion.div>
 
       <StaggerContainer className="space-y-4">
@@ -62,28 +64,28 @@ export default function OwnerDashboardPage() {
                   <p className="text-lg font-bold text-ink">
                     <CountUp value={Math.round(occupancy * 100)} />%
                   </p>
-                  <p className="text-[10px] uppercase tracking-wide text-ink-muted">occupés</p>
+                  <p className="text-[10px] uppercase tracking-wide text-ink-muted">{t("occupés")}</p>
                 </div>
               </ProgressRing>
               <div className="space-y-1 text-sm">
                 <p className="font-semibold text-ink">
-                  <CountUp value={data.totalProperties} /> bien{data.totalProperties > 1 ? "s" : ""}
+                  <CountUp value={data.totalProperties} />{" "}{t("bien")}{data.totalProperties > 1 ? "s" : ""}
                 </p>
-                <p className="text-ink-muted">{data.occupied} loué(s) · {data.vacant} vacant(s)</p>
+                <p className="text-ink-muted">{t("{0} loué(s) · {1} vacant(s)", data.occupied, data.vacant)}</p>
               </div>
             </Card>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-2">
               {[
-                { label: "Revenus du mois", value: data.monthlyRevenue, format: (n: number) => formatXOF(n), icon: Wallet, tone: "text-success bg-success/10" },
-                { label: "Loyers en retard", value: data.overdueCount, format: undefined, icon: AlertTriangle, tone: "text-danger bg-danger/10" },
-                { label: "Maintenance ouverte", value: data.openMaintenanceCount, format: undefined, icon: Wrench, tone: "text-warning bg-warning/10" },
+                { label: t("Revenus du mois"), value: data.monthlyRevenue, format: (n: number) => money(n), icon: Wallet, tone: "text-success bg-success/10" },
+                { label: t("Loyers en retard"), value: data.overdueCount, format: undefined, icon: AlertTriangle, tone: "text-danger bg-danger/10" },
+                { label: t("Maintenance ouverte"), value: data.openMaintenanceCount, format: undefined, icon: Wrench, tone: "text-warning bg-warning/10" },
               ].map((k) => (
                 <Card key={k.label} className="transition-shadow hover:shadow-lg hover:shadow-primary/5">
                   <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.tone}`}>
                     <k.icon className="h-4 w-4" />
                   </span>
-                  <p className="mt-3 text-sm text-ink-muted">{k.label}</p>
+                  <p className="mt-3 text-sm text-ink-muted">{t(k.label)}</p>
                   <p className="mt-1 text-xl font-bold text-ink">
                     <CountUp value={Number(k.value)} format={k.format} />
                   </p>
@@ -95,7 +97,7 @@ export default function OwnerDashboardPage() {
 
         <StaggerItem>
           <Card>
-            <CardHeader title="Revenus mensuels" subtitle="6 derniers mois" />
+            <CardHeader title={t("Revenus mensuels")} subtitle={t("6 derniers mois")} />
             <div className="h-72">
               <RevenueAreaChart data={data.revenueChart} gradientId="ownerRevenue" />
             </div>
@@ -105,7 +107,7 @@ export default function OwnerDashboardPage() {
         <StaggerItem>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader title="Loyers en retard" subtitle={overdue?.length ? `${overdue.length} à suivre` : "Tout est à jour"} />
+              <CardHeader title={t("Loyers en retard")} subtitle={overdue?.length ? t("{0} à suivre", overdue.length) : t("Tout est à jour")} />
               {overdue?.length ? (
                 <ul className="space-y-2">
                   {overdue.slice(0, 5).map((o: any, i: number) => (
@@ -120,23 +122,23 @@ export default function OwnerDashboardPage() {
                         <p className="truncate font-medium text-ink">{o.tenant?.fullName}</p>
                         <p className="truncate text-xs text-ink-muted">{o.property?.name}</p>
                       </div>
-                      <span className="shrink-0 font-semibold text-danger">{formatXOF(Number(o.rentAmount))}</span>
+                      <span className="shrink-0 font-semibold text-danger">{money(Number(o.rentAmount))}</span>
                     </motion.li>
                   ))}
                 </ul>
               ) : (
                 <div className="flex items-center gap-3 rounded-xl bg-success/5 px-4 py-6 text-sm text-ink-muted">
-                  <CheckCircle2 className="h-5 w-5 text-success" /> Aucun loyer en retard ce mois-ci.
+                  <CheckCircle2 className="h-5 w-5 text-success" />{" "}{t("Aucun loyer en retard ce mois-ci.")}
                 </div>
               )}
             </Card>
 
             <Card>
               <CardHeader
-                title="Maintenance récente"
+                title={t("Maintenance récente")}
                 action={
                   <Link href="/owner/maintenance" className="text-sm font-medium text-primary hover:underline">
-                    Tout voir
+                    {t("Tout voir")}
                   </Link>
                 }
               />
@@ -158,7 +160,7 @@ export default function OwnerDashboardPage() {
                   ))}
                 </ul>
               ) : (
-                <EmptyState icon={Building2} title="Aucune demande" description="Les demandes de vos locataires apparaîtront ici." />
+                <EmptyState icon={Building2} title={t("Aucune demande")} description={t("Les demandes de vos locataires apparaîtront ici.")} />
               )}
             </Card>
           </div>

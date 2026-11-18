@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
+import { t } from "@/lib/t-auth";
 
 interface RegisterForm {
   fullName: string;
@@ -38,7 +39,7 @@ export default function RegisterPage() {
     try {
       const { data } = await api.post("/auth/register", inviteCode?.trim() ? { ...values, inviteCode: inviteCode.trim() } : values);
       setSession(data.accessToken, data.user);
-      toast.success("Compte créé avec succès !");
+      toast.success(t("Compte créé avec succès !"));
       router.push(ROLE_HOME[data.user.role as keyof typeof ROLE_HOME] ?? "/login");
     } catch (error) {
       toast.error(apiErrorMessage(error));
@@ -48,18 +49,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthLayout title="Créer un compte" subtitle="Propriétaires et locataires suivis par l'agence">
+    <AuthLayout title={t("Créer un compte")} subtitle={t("Propriétaires et locataires suivis par l'agence")}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <StaggerContainer className="space-y-4">
           <StaggerItem>
-            <Label>Je suis</Label>
+            <Label>{t("Je suis")}</Label>
             <Select {...register("role")}>
-              <option value={UserRole.OWNER}>Propriétaire</option>
-              <option value={UserRole.TENANT}>Locataire</option>
+              <option value={UserRole.OWNER}>{t("Propriétaire")}</option>
+              <option value={UserRole.TENANT}>{t("Locataire")}</option>
             </Select>
           </StaggerItem>
           <StaggerItem>
-            <Label htmlFor="invite-code">Code d&apos;invitation{isTenant ? "" : " (si l'agence vous en a donné un)"}</Label>
+            <Label htmlFor="invite-code">{t("Code d'invitation")}{isTenant ? "" : t(" (si l'agence vous en a donné un)")}</Label>
             <Input
               id="invite-code"
               autoComplete="off"
@@ -69,40 +70,40 @@ export default function RegisterPage() {
             />
             <p className="mt-1 text-xs text-ink-muted">
               {isTenant
-                ? "Votre agence vous transmet ce code (par WhatsApp ou SMS) pour relier le compte à votre dossier."
-                : "Avec le code, votre compte est relié aux biens que l'agence gère déjà pour vous. Sans code, vous démarrez un espace vide."}
+                ? t("Votre agence vous transmet ce code (par WhatsApp ou SMS) pour relier le compte à votre dossier.")
+                : t("Avec le code, votre compte est relié aux biens que l'agence gère déjà pour vous. Sans code, vous démarrez un espace vide.")}
             </p>
           </StaggerItem>
           <StaggerItem>
-            <Label>Nom complet</Label>
-            <Input placeholder="Ex : Kouadio Jean" {...register("fullName", { required: true })} />
+            <Label>{t("Nom complet")}</Label>
+            <Input placeholder={t("Ex : Kouadio Jean")} {...register("fullName", { required: true })} />
           </StaggerItem>
           <StaggerItem>
-            <Label>Email</Label>
+            <Label>{t("Email")}</Label>
             <Input type="email" placeholder="vous@exemple.ci" {...register("email", { required: true })} />
           </StaggerItem>
           <StaggerItem>
-            <Label>Téléphone</Label>
+            <Label>{t("Téléphone")}</Label>
             <Input placeholder="+225 07 00 00 00 00" {...register("phone", { required: true })} />
           </StaggerItem>
           <StaggerItem>
-            <Label>Mot de passe</Label>
-            <Input type="password" placeholder="8 caractères minimum" {...register("password", { required: true, minLength: 8 })} />
+            <Label>{t("Mot de passe")}</Label>
+            <Input type="password" placeholder={t("8 caractères minimum")} {...register("password", { required: true, minLength: 8 })} />
             <PasswordStrengthMeter password={password} />
           </StaggerItem>
 
           <StaggerItem>
             <Button type="submit" className="w-full" loading={loading}>
-              Créer mon compte
+              {t("Créer mon compte")}
             </Button>
           </StaggerItem>
         </StaggerContainer>
       </form>
 
       <p className="mt-6 text-center text-sm text-ink-muted">
-        Déjà un compte ?{" "}
+        {t("Déjà un compte ?")}{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Se connecter
+          {t("Se connecter")}
         </Link>
       </p>
     </AuthLayout>

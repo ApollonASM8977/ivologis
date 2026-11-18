@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
+import { t } from "@/lib/t-spaces";
+import { locale } from "@/lib/t";
 
 interface ContactRow {
   id: string;
@@ -49,7 +51,7 @@ export default function AdminContactRequestsPage() {
       cell: (r) => (
         <div>
           <p className="font-medium text-ink">{r.fullName}</p>
-          <p className="text-xs text-ink-muted">{r.organization ?? "Particulier"}</p>
+          <p className="text-xs text-ink-muted">{r.organization ?? t("Particulier")}</p>
         </div>
       ),
     },
@@ -62,15 +64,15 @@ export default function AdminContactRequestsPage() {
         </div>
       ),
     },
-    { header: "Parc", cell: (r) => (r.portfolioSize ? <Badge color="blue">{r.portfolioSize} biens</Badge> : "-") },
-    { header: "Reçue le", cell: (r) => new Date(r.createdAt).toLocaleDateString("fr-FR", { dateStyle: "medium" }) },
+    { header: "Parc", cell: (r) => (r.portfolioSize ? <Badge color="blue">{t("{0} biens", r.portfolioSize)}</Badge> : "-") },
+    { header: t("Reçue le"), cell: (r) => new Date(r.createdAt).toLocaleDateString(locale(), { dateStyle: "medium" }) },
     {
       header: "Statut",
       cell: (r) =>
         r.handled ? (
-          <Badge color="green">Traitée</Badge>
+          <Badge color="green">{t("Traitée")}</Badge>
         ) : (
-          <Badge color="amber">À traiter</Badge>
+          <Badge color="amber">{t("À traiter")}</Badge>
         ),
     },
     {
@@ -82,7 +84,7 @@ export default function AdminContactRequestsPage() {
             onClick={() => setExpanded(expanded === r.id ? null : r.id)}
             className="text-xs font-medium text-primary hover:underline"
           >
-            {expanded === r.id ? "Masquer" : "Lire"}
+            {expanded === r.id ? t("Masquer") : t("Lire")}
           </button>
           <Button
             size="sm"
@@ -91,7 +93,7 @@ export default function AdminContactRequestsPage() {
             onClick={() => toggleMutation.mutate({ id: r.id, handled: !r.handled })}
           >
             {r.handled ? <Circle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
-            {r.handled ? "Rouvrir" : "Marquer traitée"}
+            {r.handled ? t("Rouvrir") : t("Marquer traitée")}
           </Button>
         </div>
       ),
@@ -101,12 +103,12 @@ export default function AdminContactRequestsPage() {
   return (
     <div>
       <PageHeader
-        title="Demandes de démo"
-        subtitle={pending ? `${pending} demande(s) à traiter sur cette page` : "Demandes reçues depuis le site vitrine"}
+        title={t("Demandes de démo")}
+        subtitle={pending ? t("{0} demande(s) à traiter sur cette page", pending) : t("Demandes reçues depuis le site vitrine")}
       />
 
       {!isLoading && rows.length === 0 ? (
-        <EmptyState icon={Inbox} title="Aucune demande pour le moment" description="Les demandes envoyées depuis la page d'accueil apparaîtront ici." />
+        <EmptyState icon={Inbox} title={t("Aucune demande pour le moment")} description={t("Les demandes envoyées depuis la page d'accueil apparaîtront ici.")} />
       ) : (
         <>
           <DataTable
@@ -129,7 +131,7 @@ export default function AdminContactRequestsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-xl border border-gray-100 bg-white p-5 text-sm leading-relaxed text-ink shadow-sm"
                 >
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Message</p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{t("Message")}</p>
                   <p className="whitespace-pre-line">{r.message}</p>
                 </motion.div>
               ))}

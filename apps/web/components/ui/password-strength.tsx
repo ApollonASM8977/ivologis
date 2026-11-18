@@ -1,4 +1,5 @@
 "use client";
+import { t } from "@/lib/t-ui";
 
 const COMMON_PASSWORDS = new Set([
   "password", "motdepasse", "123456", "12345678", "123456789", "azerty",
@@ -47,7 +48,7 @@ export function PasswordStrengthMeter({ password }: { password: string }) {
       <div className="flex h-1.5 w-full gap-1 overflow-hidden rounded-full bg-gray-100">
         <div className={`h-full rounded-full transition-all duration-300 ${barClass}`} style={{ width: widthByScore[score] }} />
       </div>
-      <p className={`mt-1 text-xs font-medium ${textClass}`}>Mot de passe {label.toLowerCase()}</p>
+      <p className={`mt-1 text-xs font-medium ${textClass}`}>{t("Mot de passe {0}", label.toLowerCase())}</p>
     </div>
   );
 }

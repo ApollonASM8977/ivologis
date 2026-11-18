@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { DemoBadge, locationLabel } from "@/components/catalog/property-extras";
+import { t as tr } from "@/lib/t-catalog";
 
 export type CatalogKind = "sales" | "rentals" | "short-stay";
 
@@ -55,7 +56,7 @@ function ListingSkeletons() {
     <div role="status" aria-live="polite">
       <p className="mb-3 flex items-center gap-2 text-sm text-ink-muted">
         <span className="ivo-ping h-2 w-2 rounded-full bg-primary" />
-        Chargement des annonces… {LOADING_HINT}
+        {tr("Chargement des annonces… {0}", LOADING_HINT)}
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -123,17 +124,17 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
           <span aria-hidden="true" className="ivo-progress absolute inset-x-0 top-0 h-0.5 origin-left bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
         )}
         <div className="col-span-2 sm:col-span-1">
-          <Label htmlFor="f-zone">Commune / ville</Label>
+          <Label htmlFor="f-zone">{tr("Commune / ville")}</Label>
           <Select id="f-zone" name="zone" defaultValue={current.zone ?? ""}>
-            <option value="">Toutes</option>
-            <optgroup label="Abidjan">
+            <option value="">{tr("Toutes")}</option>
+            <optgroup label={tr("Abidjan")}>
               {COMMUNES_ABIDJAN.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Autres villes">
+            <optgroup label={tr("Autres villes")}>
               {AUTRES_VILLES.map((v) => (
                 <option key={v} value={v}>
                   {v}
@@ -143,58 +144,58 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
           </Select>
         </div>
         <div className="col-span-2 sm:col-span-1">
-          <Label htmlFor="f-quartier">Quartier</Label>
-          <Input id="f-quartier" name="neighborhood" placeholder="Ex : Riviera, Angré" defaultValue={current.neighborhood ?? ""} />
+          <Label htmlFor="f-quartier">{tr("Quartier")}</Label>
+          <Input id="f-quartier" name="neighborhood" placeholder={tr("Ex : Riviera, Angré")} defaultValue={current.neighborhood ?? ""} />
         </div>
         <div>
-          <Label htmlFor="f-type">Type</Label>
+          <Label htmlFor="f-type">{tr("Type")}</Label>
           <Select id="f-type" name="type" defaultValue={current.type ?? ""}>
-            <option value="">Tous</option>
+            <option value="">{tr("Tous")}</option>
             {Object.values(PropertyType).map((t) => (
               <option key={t} value={t}>
-                {PROPERTY_TYPE_LABELS[t]}
+                {tr(PROPERTY_TYPE_LABELS[t])}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <Label htmlFor="f-max">{priceLabel} max (FCFA)</Label>
+          <Label htmlFor="f-max">{tr("{0} max (FCFA)", priceLabel)}</Label>
           <Input id="f-max" name="maxPrice" type="number" min={0} step={5000} inputMode="numeric" defaultValue={current.maxPrice ?? ""} />
         </div>
         <div>
-          <Label htmlFor="f-rooms">Pièces</Label>
+          <Label htmlFor="f-rooms">{tr("Pièces")}</Label>
           <Select id="f-rooms" name="minRooms" defaultValue={current.minRooms ?? ""}>
-            <option value="">Indifférent</option>
+            <option value="">{tr("Indifférent")}</option>
             {[1, 2, 3, 4, 5].map((n) => (
               <option key={n} value={n}>
-                {n === 1 ? "1 ou plus" : `${n} ou plus`}
+                {n === 1 ? tr("1 ou plus") : tr("{0} ou plus", n)}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <Label htmlFor="f-sort">Trier par</Label>
+          <Label htmlFor="f-sort">{tr("Trier par")}</Label>
           <Select id="f-sort" name="sort" defaultValue={current.sort ?? ""}>
-            <option value="">Plus récentes</option>
-            <option value="price_asc">Prix croissant</option>
-            <option value="price_desc">Prix décroissant</option>
+            <option value="">{tr("Plus récentes")}</option>
+            <option value="price_asc">{tr("Prix croissant")}</option>
+            <option value="price_desc">{tr("Prix décroissant")}</option>
           </Select>
         </div>
         <div className="col-span-2 flex flex-wrap items-center gap-3 sm:col-span-3 lg:col-span-6">
           {showFurnished && (
             <label className="flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" name="furnished" value="true" defaultChecked={current.furnished === "true"} className="h-4 w-4 rounded border-gray-300" />
-              Meublé uniquement
+              {tr("Meublé uniquement")}
             </label>
           )}
           <div className="ml-auto flex gap-2">
             {filtered && (
               <Button type="button" variant="ghost" onClick={() => apply({})}>
-                Effacer
+                {tr("Effacer")}
               </Button>
             )}
             <Button type="submit" loading={isFetching && !isLoading}>
-              <SlidersHorizontal className="h-4 w-4" /> Filtrer
+              <SlidersHorizontal className="h-4 w-4" />{" "}{tr("Filtrer")}
             </Button>
           </div>
         </div>
@@ -205,17 +206,16 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
       ) : !data?.data.length ? (
         <EmptyState
           icon={Icon}
-          title={filtered ? "Aucune annonce ne correspond à ces critères" : emptyTitle}
-          description={filtered ? "Élargissez la zone ou le budget." : "Revenez bientôt, de nouvelles annonces seront publiées ici."}
+          title={filtered ? tr("Aucune annonce ne correspond à ces critères") : emptyTitle}
+          description={filtered ? tr("Élargissez la zone ou le budget.") : tr("Revenez bientôt, de nouvelles annonces seront publiées ici.")}
         />
       ) : (
         <>
           <p className="mb-3 text-sm text-ink-muted" aria-live="polite">
             <span className="font-semibold text-ink">
               <CountUp value={data.total} duration={0.6} />
-            </span>{" "}
-            annonce{data.total > 1 ? "s" : ""}
-            {isFetching && " · mise à jour…"}
+            </span>{" "}{tr("annonce")}{data.total > 1 ? "s" : ""}
+            {isFetching && tr(" · mise à jour…")}
           </p>
           <StaggerContainer key={qs} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.data.map((p, i) => (
@@ -225,15 +225,15 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
             ))}
           </StaggerContainer>
           {pages > 1 && (
-            <nav className="mt-6 flex items-center justify-center gap-3" aria-label="Pagination">
+            <nav className="mt-6 flex items-center justify-center gap-3" aria-label={tr("Pagination")}>
               <Button variant="secondary" disabled={page <= 1} onClick={() => apply({ ...current, page: String(page - 1) })}>
-                Précédent
+                {tr("Précédent")}
               </Button>
               <span className="text-sm text-ink-muted">
-                Page {page} sur {pages}
+                {tr("Page {0} sur {1}", page, pages)}
               </span>
               <Button variant="secondary" disabled={page >= pages} onClick={() => apply({ ...current, page: String(page + 1) })}>
-                Suivant
+                {tr("Suivant")}
               </Button>
             </nav>
           )}
@@ -253,10 +253,10 @@ function ListingCard({ p, href, price, icon: Icon, priority }: { p: any; href: s
           {p.isDemo && <DemoBadge />}
           {p.landTitleVerified && !p.isDemo && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-semibold text-green-800">
-              <ShieldCheck className="h-3 w-3" aria-hidden="true" /> Titre vérifié
+              <ShieldCheck className="h-3 w-3" aria-hidden="true" />{" "}{tr("Titre vérifié")}
             </span>
           )}
-          {p.furnished && <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-semibold text-ink">Meublé</span>}
+          {p.furnished && <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-semibold text-ink">{tr("Meublé")}</span>}
         </div>
         {cover ? (
           <Image
@@ -280,8 +280,8 @@ function ListingCard({ p, href, price, icon: Icon, priority }: { p: any; href: s
           <MapPin className="h-3.5 w-3.5 shrink-0" /> {locationLabel(p)}
         </p>
         <p className="mt-2 text-xs uppercase tracking-wide text-ink-muted">
-          {PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS]}
-          {p.rooms ? ` · ${p.rooms} pièces` : ""}
+          {tr(PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS])}
+          {p.rooms ? tr(" · {0} pièces", p.rooms) : ""}
           {p.surfaceM2 ? ` · ${Number(p.surfaceM2)} m²` : ""}
         </p>
         <p className="mt-1 text-lg font-bold text-primary">{price}</p>

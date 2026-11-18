@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SessionsList } from "@/components/profile/sessions-list";
+import { t } from "@/lib/t-spaces";
 
 interface SetupResponse {
   secret: string;
@@ -41,7 +42,7 @@ export function SecurityCard() {
   const enableMutation = useMutation({
     mutationFn: (code: string) => api.post("/auth/2fa/enable", { code }),
     onSuccess: () => {
-      toast.success("Double authentification activée.");
+      toast.success(t("Double authentification activée."));
       setSetup(null);
       reset();
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
@@ -52,7 +53,7 @@ export function SecurityCard() {
   const disableMutation = useMutation({
     mutationFn: (code: string) => api.post("/auth/2fa/disable", { code }),
     onSuccess: () => {
-      toast.success("Double authentification désactivée.");
+      toast.success(t("Double authentification désactivée."));
       reset();
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
@@ -72,7 +73,7 @@ export function SecurityCard() {
 
   return (
     <Card className="max-w-xl">
-      <CardHeader title="Sécurité du compte" />
+      <CardHeader title={t("Sécurité du compte")} />
 
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
@@ -83,16 +84,16 @@ export function SecurityCard() {
               <ShieldAlert className="mt-0.5 h-5 w-5 text-warning" />
             )}
             <div>
-              <p className="font-medium text-ink">Double authentification</p>
-              <p className="text-sm text-ink-muted">Un code à 6 chiffres, généré par votre application d&apos;authentification, est demandé à chaque connexion.</p>
+              <p className="font-medium text-ink">{t("Double authentification")}</p>
+              <p className="text-sm text-ink-muted">{t("Un code à 6 chiffres, généré par votre application d'authentification, est demandé à chaque connexion.")}</p>
             </div>
           </div>
-          <Badge color={enabled ? "green" : "amber"}>{enabled ? "Activée" : "Désactivée"}</Badge>
+          <Badge color={enabled ? "green" : "amber"}>{enabled ? t("Activée") : t("Désactivée")}</Badge>
         </div>
 
         {!enabled && !setup && (
           <Button variant="secondary" loading={setupMutation.isPending} onClick={() => setupMutation.mutate()}>
-            Configurer la double authentification
+            {t("Configurer la double authentification")}
           </Button>
         )}
 
@@ -106,25 +107,25 @@ export function SecurityCard() {
               className="space-y-4 overflow-hidden rounded-xl border border-gray-100 bg-surface p-4"
             >
               <p className="text-sm text-ink">
-                Dans Google Authenticator, Microsoft Authenticator ou Authy, ajoutez un compte avec cette clé :
+                {t("Dans Google Authenticator, Microsoft Authenticator ou Authy, ajoutez un compte avec cette clé :")}
               </p>
               <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 font-mono text-sm tracking-widest text-ink ring-1 ring-gray-200">
                 <span className="flex-1 break-all">{setup.secret}</span>
                 <button
                   type="button"
-                  aria-label="Copier la clé"
-                  onClick={() => navigator.clipboard?.writeText(setup.secret).then(() => toast.success("Clé copiée."))}
+                  aria-label={t("Copier la clé")}
+                  onClick={() => navigator.clipboard?.writeText(setup.secret).then(() => toast.success(t("Clé copiée.")))}
                   className="rounded p-1 text-ink-muted hover:bg-gray-100 hover:text-primary"
                 >
                   <Copy className="h-4 w-4" />
                 </button>
               </div>
               <a href={setup.otpauthUrl} className="inline-block text-sm font-medium text-primary hover:underline">
-                Ouvrir directement dans mon application
+                {t("Ouvrir directement dans mon application")}
               </a>
               <form onSubmit={handleSubmit((v) => enableMutation.mutate(v.code.trim()))} className="space-y-3">
                 <div>
-                  <Label htmlFor="2fa-enable">Code affiché dans l&apos;application</Label>
+                  <Label htmlFor="2fa-enable">{t("Code affiché dans l'application")}</Label>
                   <Input
                     id="2fa-enable"
                     inputMode="numeric"
@@ -135,7 +136,7 @@ export function SecurityCard() {
                   />
                 </div>
                 <Button type="submit" loading={enableMutation.isPending}>
-                  Activer
+                  {t("Activer")}
                 </Button>
               </form>
             </motion.div>
@@ -145,7 +146,7 @@ export function SecurityCard() {
         {enabled && (
           <form onSubmit={handleSubmit((v) => disableMutation.mutate(v.code.trim()))} className="flex flex-wrap items-end gap-3">
             <div className="min-w-[10rem] flex-1">
-              <Label htmlFor="2fa-disable">Code pour désactiver</Label>
+              <Label htmlFor="2fa-disable">{t("Code pour désactiver")}</Label>
               <Input
                 id="2fa-disable"
                 inputMode="numeric"
@@ -156,17 +157,17 @@ export function SecurityCard() {
               />
             </div>
             <Button type="submit" variant="danger" loading={disableMutation.isPending}>
-              Désactiver
+              {t("Désactiver")}
             </Button>
           </form>
         )}
 
         <SessionsList />
         <div className="border-t border-gray-100 pt-5">
-          <p className="font-medium text-ink">Sessions</p>
-          <p className="mb-3 text-sm text-ink-muted">Ferme la session sur tous vos appareils, y compris celui-ci.</p>
+          <p className="font-medium text-ink">{t("Sessions")}</p>
+          <p className="mb-3 text-sm text-ink-muted">{t("Ferme la session sur tous vos appareils, y compris celui-ci.")}</p>
           <Button variant="ghost" loading={logoutAllMutation.isPending} onClick={() => logoutAllMutation.mutate()}>
-            <LogOut className="h-4 w-4" /> Déconnecter partout
+            <LogOut className="h-4 w-4" />{" "}{t("Déconnecter partout")}
           </Button>
         </div>
       </div>

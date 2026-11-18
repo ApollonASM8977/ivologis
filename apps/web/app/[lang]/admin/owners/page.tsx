@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Users } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
-import { formatXOF } from "@ivologis/shared";
+
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -15,6 +15,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { AccountStatusBadge } from "@/components/status-badges";
 import { OwnerForm, OwnerFormValues } from "@/components/owners/owner-form";
 import { SearchInput, useDebouncedValue } from "@/components/ui/search-input";
+import { t } from "@/lib/t-spaces";
+import { money } from "@/lib/t";
 
 interface OwnerRow {
   id: string;
@@ -50,7 +52,7 @@ function AdminOwnersPageContent() {
   const createMutation = useMutation({
     mutationFn: (values: OwnerFormValues) => api.post("/owners", values),
     onSuccess: () => {
-      toast.success("Propriétaire ajouté.");
+      toast.success(t("Propriétaire ajouté."));
       queryClient.invalidateQueries({ queryKey: ["owners"] });
       setModalOpen(false);
     },
@@ -59,7 +61,7 @@ function AdminOwnersPageContent() {
 
   const columns: Column<OwnerRow>[] = [
     { header: "Nom", cell: (r) => <span className="font-medium text-ink">{r.fullName}</span> },
-    { header: "Téléphone", cell: (r) => r.phone },
+    { header: t("Téléphone"), cell: (r) => r.phone },
     { header: "Email", cell: (r) => r.email ?? "-" },
     { header: "Biens", cell: (r) => r._count?.properties ?? 0 },
     { header: "Statut", cell: (r) => <AccountStatusBadge status={r.status} /> },
@@ -68,11 +70,11 @@ function AdminOwnersPageContent() {
   return (
     <div>
       <PageHeader
-        title="Propriétaires"
-        subtitle="Propriétaires externes gérés par IVOLOGIS"
+        title={t("Propriétaires")}
+        subtitle={t("Propriétaires externes gérés par IVOLOGIS")}
         action={
           <Button size="sm" onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4" /> Ajouter un propriétaire
+            <Plus className="h-4 w-4" />{" "}{t("Ajouter un propriétaire")}
           </Button>
         }
       />
@@ -84,12 +86,12 @@ function AdminOwnersPageContent() {
             setSearch(v);
             setPage(1);
           }}
-          placeholder="Rechercher par nom, téléphone ou email…"
+          placeholder={t("Rechercher par nom, téléphone ou email…")}
         />
       </div>
 
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={Users} title={debouncedSearch ? "Aucun résultat" : "Aucun propriétaire"} description={debouncedSearch ? `Aucun propriétaire ne correspond à « ${debouncedSearch} ».` : undefined} action={<Button onClick={() => setModalOpen(true)}>Ajouter un propriétaire</Button>} />
+        <EmptyState icon={Users} title={debouncedSearch ? t("Aucun résultat") : t("Aucun propriétaire")} description={debouncedSearch ? t("Aucun propriétaire ne correspond à « {0} ».", debouncedSearch) : undefined} action={<Button onClick={() => setModalOpen(true)}>{t("Ajouter un propriétaire")}</Button>} />
       ) : (
         <DataTable
           columns={columns}
@@ -104,7 +106,7 @@ function AdminOwnersPageContent() {
         />
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un propriétaire">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("Ajouter un propriétaire")}>
         <OwnerForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
       </Modal>
     </div>

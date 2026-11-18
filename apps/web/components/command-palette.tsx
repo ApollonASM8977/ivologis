@@ -8,6 +8,7 @@ import { Search, CornerDownLeft, Building2, UserRound, Users, FileText, LayoutDa
 import { api } from "@/lib/api";
 import { useDebouncedValue } from "@/components/ui/search-input";
 import { ADMIN_NAV } from "@/components/layout/nav-config";
+import { t as tr } from "@/lib/t-spaces";
 
 interface Option {
   id: string;
@@ -62,6 +63,7 @@ export function CommandPalette() {
       ? [
           ...(data.properties ?? []).map((p: any) => ({ id: `p-${p.id}`, label: p.name, hint: p.commune, href: `/admin/properties/${p.id}`, group: "Biens" as const, icon: Building2 })),
           ...(data.tenants ?? []).map((t: any) => ({ id: `t-${t.id}`, label: t.fullName, hint: t.phone, href: `/admin/tenants/${t.id}`, group: "Locataires" as const, icon: UserRound })),
+          // i18n-ok : les groupes sont des clés, affichées via tr(o.group)
           ...(data.owners ?? []).map((o: any) => ({ id: `o-${o.id}`, label: o.fullName, hint: o.phone, href: `/admin/owners/${o.id}`, group: "Propriétaires" as const, icon: Users })),
           ...(data.leases ?? []).map((l: any) => ({ id: `l-${l.id}`, label: l.contractNumber, hint: l.tenant?.fullName, href: `/admin/leases/${l.id}`, group: "Contrats" as const, icon: FileText })),
         ]
@@ -106,7 +108,7 @@ export function CommandPalette() {
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Recherche rapide"
+            aria-label={tr("Recherche rapide")}
             initial={{ opacity: 0, y: -12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
@@ -124,21 +126,21 @@ export function CommandPalette() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Rechercher un bien, un locataire, un contrat… ou une page"
+                placeholder={tr("Rechercher un bien, un locataire, un contrat… ou une page")}
                 className="h-14 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted/70"
               />
-              <kbd className="hidden rounded-md border border-gray-200 px-1.5 py-0.5 text-[11px] text-ink-muted sm:block">Échap</kbd>
+              <kbd className="hidden rounded-md border border-gray-200 px-1.5 py-0.5 text-[11px] text-ink-muted sm:block">{tr("Échap")}</kbd>
             </div>
 
             <ul id="palette-list" role="listbox" className="max-h-96 overflow-y-auto p-2">
-              {options.length === 0 && <li className="px-3 py-8 text-center text-sm text-ink-muted">Aucun résultat.</li>}
+              {options.length === 0 && <li className="px-3 py-8 text-center text-sm text-ink-muted">{tr("Aucun résultat.")}</li>}
               {options.map((o, i) => {
                 const Icon = o.icon;
                 const isActive = i === active;
                 const showGroup = i === 0 || options[i - 1].group !== o.group;
                 return (
                   <li key={o.id} role="presentation">
-                    {showGroup && <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{o.group}</p>}
+                    {showGroup && <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{tr(o.group)}</p>}
                     <div
                       id={`opt-${o.id}`}
                       role="option"
@@ -149,10 +151,10 @@ export function CommandPalette() {
                     >
                       <span className="flex min-w-0 items-center gap-3">
                         <Icon className="h-4 w-4 shrink-0" />
-                        <span className="truncate font-medium">{o.label}</span>
+                        <span className="truncate font-medium">{tr(o.label)}</span>
                       </span>
                       <span className="flex shrink-0 items-center gap-2 text-xs text-ink-muted">
-                        {o.hint && <span className="hidden sm:inline">{o.hint}</span>}
+                        {o.hint && <span className="hidden sm:inline">{tr(o.hint)}</span>}
                         {isActive && <CornerDownLeft className="h-3.5 w-3.5" />}
                       </span>
                     </div>

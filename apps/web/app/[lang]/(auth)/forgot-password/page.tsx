@@ -11,6 +11,7 @@ import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { t } from "@/lib/t-auth";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthLayout title="Mot de passe oublié" subtitle="Votre agence vous transmet un lien de réinitialisation">
+    <AuthLayout title={t("Mot de passe oublié")} subtitle={t("Votre agence vous transmet un lien de réinitialisation")}>
       <AnimatePresence mode="wait">
         {sent ? (
           <motion.div
@@ -49,8 +50,7 @@ export default function ForgotPasswordPage() {
               <MailCheck className="h-6 w-6 text-success" />
             </motion.div>
             <p className="text-sm text-green-800">
-              Demande enregistrée. Contactez votre agence par téléphone ou WhatsApp : après vérification de votre identité, elle vous
-              transmet un lien de réinitialisation valable une heure.
+              {t("Demande enregistrée. Contactez votre agence par téléphone ou WhatsApp : après vérification de votre identité, elle vous transmet un lien de réinitialisation valable une heure.")}
             </p>
           </motion.div>
         ) : (
@@ -58,16 +58,16 @@ export default function ForgotPasswordPage() {
             <StaggerContainer className="space-y-4">
               <StaggerItem>
                 <p className="text-sm text-ink-muted">
-                  L&apos;envoi automatique par email n&apos;est pas encore disponible. Indiquez votre email, puis contactez votre agence pour recevoir le lien.
+                  {t("L'envoi automatique par email n'est pas encore disponible. Indiquez votre email, puis contactez votre agence pour recevoir le lien.")}
                 </p>
               </StaggerItem>
               <StaggerItem>
-                <Label>Email</Label>
+                <Label>{t("Email")}</Label>
                 <Input type="email" placeholder="vous@exemple.ci" {...register("email", { required: true })} />
               </StaggerItem>
               <StaggerItem>
                 <Button type="submit" className="w-full" loading={loading}>
-                  Enregistrer ma demande
+                  {t("Enregistrer ma demande")}
                 </Button>
               </StaggerItem>
             </StaggerContainer>
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
 
       <p className="mt-6 text-center text-sm text-ink-muted">
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Retour à la connexion
+          {t("Retour à la connexion")}
         </Link>
       </p>
     </AuthLayout>

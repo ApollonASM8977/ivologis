@@ -1,9 +1,12 @@
+"use client";
+import { t } from "@/lib/t-ui";
+
 /**
  * Chargement « maison qui se construit » : sol tracé, fondation, murs qui montent, toit en terre cuite qui se pose,
  * cheminée, porte, fenêtres qui s'allument, fumée… puis la maison s'efface et se reconstruit (boucle de 3,6 s).
  * SVG + CSS uniquement (classes `ivo-house-*` de globals.css) : aucun JavaScript, fluide même en 3G.
  */
-export function HouseLoader({ label = "Chargement en cours", hint, size = 96 }: { label?: string; hint?: string; size?: number }) {
+export function HouseLoader({ label = t("Chargement en cours"), hint, size = 96 }: { label?: string; hint?: string; size?: number }) {
   return (
     <div role="status" aria-live="polite" className="flex flex-col items-center justify-center gap-3 py-10 text-center">
       <svg viewBox="0 0 120 100" width={size} height={(size * 100) / 120} aria-hidden="true" className="ivo-house overflow-visible">

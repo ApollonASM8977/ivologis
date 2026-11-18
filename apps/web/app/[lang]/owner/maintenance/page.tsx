@@ -10,6 +10,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MaintenanceStatusBadge } from "@/components/status-badges";
+import { t } from "@/lib/t-spaces";
+import { locale } from "@/lib/t";
 
 interface MaintenanceRow {
   id: string;
@@ -31,7 +33,7 @@ export default function OwnerMaintenancePage() {
   });
 
   const columns: Column<MaintenanceRow>[] = [
-    { header: "Date", cell: (r) => new Date(r.createdAt).toLocaleDateString("fr-FR") },
+    { header: "Date", cell: (r) => new Date(r.createdAt).toLocaleDateString(locale()) },
     { header: "Bien", cell: (r) => r.property?.name },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
     { header: "Type", cell: (r) => MAINTENANCE_ISSUE_LABELS[r.issueType as keyof typeof MAINTENANCE_ISSUE_LABELS] },
@@ -40,10 +42,10 @@ export default function OwnerMaintenancePage() {
 
   return (
     <div>
-      <PageHeader title="Maintenance" subtitle="Cliquez sur une demande pour suivre l'échange avec votre locataire" />
+      <PageHeader title={t("Maintenance")} subtitle={t("Cliquez sur une demande pour suivre l'échange avec votre locataire")} />
 
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={Wrench} title="Aucune demande de maintenance" />
+        <EmptyState icon={Wrench} title={t("Aucune demande de maintenance")} />
       ) : (
         <DataTable columns={columns} rows={data?.data ?? []} loading={isLoading} rowKey={(r) => r.id}
           onRowClick={(r) => router.push(`/owner/maintenance/${r.id}`)}

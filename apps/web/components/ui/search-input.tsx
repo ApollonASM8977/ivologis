@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Search, X } from "lucide-react";
+import { t } from "@/lib/t-ui";
 
 export function useDebouncedValue<T>(value: T, delay = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -16,7 +17,7 @@ export function useDebouncedValue<T>(value: T, delay = 300) {
 export function SearchInput({
   value,
   onChange,
-  placeholder = "Rechercher…",
+  placeholder = t("Rechercher…"),
   className = "",
 }: {
   value: string;
@@ -46,7 +47,7 @@ export function SearchInput({
           type="button"
           onClick={() => onChange("")}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-ink-muted hover:bg-gray-100 hover:text-ink"
-          aria-label="Effacer la recherche"
+          aria-label={t("Effacer la recherche")}
         >
           <X className="h-3.5 w-3.5" />
         </button>

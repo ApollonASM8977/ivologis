@@ -1,7 +1,8 @@
 "use client";
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { formatXOF } from "@ivologis/shared";
+import { money } from "@/lib/t";
+
 
 export default function RevenueAreaChart({
   data,
@@ -24,7 +25,7 @@ export default function RevenueAreaChart({
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-        <Tooltip formatter={(v: any) => formatXOF(Number(v))} />
+        <Tooltip formatter={(v: any) => money(Number(v))} />
         <Area type="monotone" dataKey="revenue" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} animationDuration={1200} />
       </AreaChart>
     </ResponsiveContainer>

@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { Building } from "lucide-react";
 import { motion } from "motion/react";
 import { NavItem } from "./nav-config";
+import { t } from "@/lib/t-spaces";
 
 export function Sidebar({ items }: { items: NavItem[] }) {
   const pathname = usePath();
@@ -22,8 +23,8 @@ export function Sidebar({ items }: { items: NavItem[] }) {
           <Building className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-base font-bold text-primary-dark">IVOLOGIS</p>
-          <p className="text-[11px] text-ink-muted">Gestion immobilière</p>
+          <p className="text-base font-bold text-primary-dark">{t("IVOLOGIS")}</p>
+          <p className="text-[11px] text-ink-muted">{t("Gestion immobilière")}</p>
         </div>
       </motion.div>
 
@@ -53,14 +54,14 @@ export function Sidebar({ items }: { items: NavItem[] }) {
                   />
                 )}
                 <Icon className="relative z-10 h-4.5 w-4.5" />
-                <span className="relative z-10">{item.label}</span>
+                <span className="relative z-10">{t(item.label)}</span>
               </Link>
             </motion.div>
           );
         })}
       </nav>
 
-      <div className="px-6 py-4 text-[11px] text-ink-muted">© {new Date().getFullYear()} IVOLOGIS</div>
+      <div className="px-6 py-4 text-[11px] text-ink-muted">© {new Date().getFullYear()}{" "}{t("IVOLOGIS")}</div>
     </aside>
   );
 }

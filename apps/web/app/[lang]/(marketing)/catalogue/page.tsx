@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { toLang } from "@/lib/i18n";
+import { catalogMeta } from "@/messages/catalog-meta";
 import { CatalogHub } from "@/components/catalog/catalog-hub";
 
-export const metadata: Metadata = {
-  title: "Annonces immobilières à Abidjan et en Côte d'Ivoire",
-  description: "Logements à louer, terrains et maisons à vendre, résidences meublées : annonces publiées et vérifiées par l'agence, prix en FCFA.",
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const m = catalogMeta[toLang((await params).lang)].hub;
+  return { title: m.title, description: m.description };
+}
 
 export default function PublicCatalogHubPage() {
   return (

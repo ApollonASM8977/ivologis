@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { Home, Wallet, FileText, Wrench, ArrowRight, CalendarClock, Receipt, CheckCircle2, Clock } from "lucide-react";
 import { api, fileUrl } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
-import { formatXOF } from "@ivologis/shared";
+
 import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { PaymentStatusBadge, MaintenanceStatusBadge } from "@/components/status-badges";
@@ -15,6 +15,8 @@ import { PaymentMethodBadge } from "@/components/payment-method-badge";
 import { CountUp } from "@/components/dashboard/count-up";
 import { ProgressRing } from "@/components/dashboard/progress-ring";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -69,12 +71,12 @@ export default function TenantDashboardPage() {
   return (
     <div>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-        <p className="text-sm text-ink-muted">{now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</p>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Bonjour{firstName ? `, ${firstName}` : ""}</h1>
+        <p className="text-sm text-ink-muted">{now.toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" })}</p>
+        <h1 className="text-2xl font-bold tracking-tight text-ink">{t("Bonjour")}{firstName ? `, ${firstName}` : ""}</h1>
       </motion.div>
 
       {!property ? (
-        <EmptyState icon={Home} title="Aucun logement associé" description="Contactez votre agence si vous pensez qu'il s'agit d'une erreur." />
+        <EmptyState icon={Home} title={t("Aucun logement associé")} description={t("Contactez votre agence si vous pensez qu'il s'agit d'une erreur.")} />
       ) : (
         <StaggerContainer className="space-y-4">
           <StaggerItem>
@@ -87,24 +89,24 @@ export default function TenantDashboardPage() {
               />
               <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Mon logement</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/70">{t("Mon logement")}</p>
                   <h2 className="mt-1 text-2xl font-bold">{property.name}</h2>
                   <p className="text-sm text-white/80">{property.address}, {property.commune}</p>
                   <div className="mt-5 flex flex-wrap items-center gap-3">
                     <span className="text-3xl font-extrabold">
-                      <CountUp value={Number(lease?.rentAmount ?? property.rentAmount)} format={(n) => formatXOF(n)} />
+                      <CountUp value={Number(lease?.rentAmount ?? property.rentAmount)} format={(n) => money(n)} />
                     </span>
-                    <span className="text-sm text-white/80">/ mois</span>
+                    <span className="text-sm text-white/80">{t("/ mois")}</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-start gap-3 md:items-end">
                   {paidThisMonth ? (
                     <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold">
-                      <CheckCircle2 className="h-4 w-4 text-green-300" /> Loyer du mois réglé
+                      <CheckCircle2 className="h-4 w-4 text-green-300" />{" "}{t("Loyer du mois réglé")}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-2 rounded-full bg-amber-300/20 px-3 py-1.5 text-sm font-semibold text-amber-100">
-                      <Clock className="h-4 w-4" /> Loyer du mois à régler
+                      <Clock className="h-4 w-4" />{" "}{t("Loyer du mois à régler")}
                     </span>
                   )}
                   <Link href="/tenant/payments" className="relative">
@@ -117,7 +119,7 @@ export default function TenantDashboardPage() {
                       />
                     )}
                     <span className="relative inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-primary shadow-lg transition-transform hover:-translate-y-0.5">
-                      {paidThisMonth ? "Voir mes paiements" : "Déclarer mon paiement"} <ArrowRight className="h-4 w-4" />
+                      {paidThisMonth ? t("Voir mes paiements") : t("Déclarer mon paiement")} <ArrowRight className="h-4 w-4" />
                     </span>
                   </Link>
                 </div>
@@ -128,18 +130,18 @@ export default function TenantDashboardPage() {
           <StaggerItem>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Card>
-                <p className="text-sm text-ink-muted">Total réglé</p>
+                <p className="text-sm text-ink-muted">{t("Total réglé")}</p>
                 <p className="mt-1 text-2xl font-bold text-ink">
-                  <CountUp value={totalPaid} format={(n) => formatXOF(n)} />
+                  <CountUp value={totalPaid} format={(n) => money(n)} />
                 </p>
-                <p className="mt-1 text-xs text-ink-muted">{paymentList.filter((p) => p.status === "PAID").length} paiement(s)</p>
+                <p className="mt-1 text-xs text-ink-muted">{t("{0} paiement(s)", paymentList.filter((p) => p.status === "PAID").length)}</p>
               </Card>
               <Card>
-                <p className="text-sm text-ink-muted">Demandes en cours</p>
+                <p className="text-sm text-ink-muted">{t("Demandes en cours")}</p>
                 <p className="mt-1 text-2xl font-bold text-ink">
                   <CountUp value={openRequests.length} />
                 </p>
-                <p className="mt-1 text-xs text-ink-muted">Maintenance signalée</p>
+                <p className="mt-1 text-xs text-ink-muted">{t("Maintenance signalée")}</p>
               </Card>
               <Card className="flex items-center gap-4">
                 {contract ? (
@@ -148,14 +150,14 @@ export default function TenantDashboardPage() {
                       <CalendarClock className="h-5 w-5 text-primary" />
                     </ProgressRing>
                     <div>
-                      <p className="text-sm text-ink-muted">Fin du bail</p>
+                      <p className="text-sm text-ink-muted">{t("Fin du bail")}</p>
                       <p className="text-2xl font-bold text-ink">
-                        <CountUp value={contract.daysLeft} /> <span className="text-sm font-medium text-ink-muted">jours</span>
+                        <CountUp value={contract.daysLeft} /> <span className="text-sm font-medium text-ink-muted">{t("jours")}</span>
                       </p>
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm text-ink-muted">Aucun bail actif.</p>
+                  <p className="text-sm text-ink-muted">{t("Aucun bail actif.")}</p>
                 )}
               </Card>
             </div>
@@ -164,7 +166,7 @@ export default function TenantDashboardPage() {
           <StaggerItem>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <Card className="lg:col-span-2">
-                <CardHeader title="Derniers paiements" subtitle="Vos dernières transactions" />
+                <CardHeader title={t("Derniers paiements")} subtitle={t("Vos dernières transactions")} />
                 {paymentList.length ? (
                   <ol className="relative space-y-4 border-l border-gray-200 pl-6">
                     {paymentList.slice(0, 5).map((p: any, i: number) => (
@@ -180,16 +182,16 @@ export default function TenantDashboardPage() {
                         />
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <p className="text-sm font-semibold text-ink">{formatXOF(Number(p.amount))}</p>
+                            <p className="text-sm font-semibold text-ink">{money(Number(p.amount))}</p>
                             <p className="text-xs text-ink-muted">
-                              {new Date(p.paymentDate).toLocaleDateString("fr-FR", { dateStyle: "medium" })}
+                              {new Date(p.paymentDate).toLocaleDateString(locale(), { dateStyle: "medium" })}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
                             <PaymentMethodBadge method={p.method} size="sm" />
                             <PaymentStatusBadge status={p.status} />
                             {p.receipt?.pdfUrl && (
-                              <DocumentLink path={p.receipt.pdfUrl} className="rounded-md p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary" aria-label="Télécharger la quittance">
+                              <DocumentLink path={p.receipt.pdfUrl} className="rounded-md p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary" aria-label={t("Télécharger la quittance")}>
                                 <Receipt className="h-4 w-4" />
                               </DocumentLink>
                             )}
@@ -199,21 +201,21 @@ export default function TenantDashboardPage() {
                     ))}
                   </ol>
                 ) : (
-                  <p className="text-sm text-ink-muted">Aucun paiement enregistré.</p>
+                  <p className="text-sm text-ink-muted">{t("Aucun paiement enregistré.")}</p>
                 )}
               </Card>
 
               <Card>
-                <CardHeader title="Raccourcis" />
+                <CardHeader title={t("Raccourcis")} />
                 <div className="space-y-2">
                   {[
-                    { href: "/tenant/lease", icon: FileText, label: "Mon contrat" },
-                    { href: "/tenant/payments", icon: Wallet, label: "Historique paiements" },
-                    { href: "/tenant/maintenance", icon: Wrench, label: "Mes demandes" },
+                    { href: "/tenant/lease", icon: FileText, label: t("Mon contrat") },
+                    { href: "/tenant/payments", icon: Wallet, label: t("Historique paiements") },
+                    { href: "/tenant/maintenance", icon: Wrench, label: t("Mes demandes") },
                   ].map((s, i) => (
                     <motion.div key={s.href} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.07 }}>
                       <Link href={s.href} className="group flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3 text-sm font-medium text-ink transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary">
-                        <span className="flex items-center gap-2"><s.icon className="h-4 w-4" /> {s.label}</span>
+                        <span className="flex items-center gap-2"><s.icon className="h-4 w-4" /> {t(s.label)}</span>
                         <ArrowRight className="h-4 w-4 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
                       </Link>
                     </motion.div>
@@ -225,7 +227,7 @@ export default function TenantDashboardPage() {
 
           <StaggerItem>
             <Card>
-              <CardHeader title="Mes demandes de maintenance" subtitle={`${openRequests.length} en cours`} />
+              <CardHeader title={t("Mes demandes de maintenance")} subtitle={t("{0} en cours", openRequests.length)} />
               {maintenance?.data?.length ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   {maintenance.data.slice(0, 4).map((m: any, i: number) => (
@@ -235,13 +237,13 @@ export default function TenantDashboardPage() {
                           <p className="line-clamp-1 text-sm font-medium text-ink">{m.description}</p>
                           <MaintenanceStatusBadge status={m.status} />
                         </div>
-                        <p className="mt-1 text-xs text-ink-muted">{new Date(m.createdAt).toLocaleDateString("fr-FR")}</p>
+                        <p className="mt-1 text-xs text-ink-muted">{new Date(m.createdAt).toLocaleDateString(locale())}</p>
                       </Link>
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-ink-muted">Aucune demande. Un souci dans le logement ? Signalez-le en deux clics.</p>
+                <p className="text-sm text-ink-muted">{t("Aucune demande. Un souci dans le logement ? Signalez-le en deux clics.")}</p>
               )}
             </Card>
           </StaggerItem>

@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { LeaseDetail } from "@/components/leases/lease-detail";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { FileText } from "lucide-react";
+import { t } from "@/lib/t-spaces";
 
 export default function OwnerLeaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,6 @@ export default function OwnerLeaseDetailPage() {
   });
 
   if (isLoading) return <LoadingState />;
-  if (isError || !lease) return <EmptyState icon={FileText} title="Contrat introuvable" />;
+  if (isError || !lease) return <EmptyState icon={FileText} title={t("Contrat introuvable")} />;
   return <LeaseDetail lease={lease} backHref="/owner/leases" />;
 }

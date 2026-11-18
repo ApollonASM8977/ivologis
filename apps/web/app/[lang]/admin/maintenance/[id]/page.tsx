@@ -14,6 +14,7 @@ import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
 import { MaintenanceStatusBadge } from "@/components/status-badges";
 import { MaintenancePhotos, MaintenanceThread, timeLabel } from "@/components/maintenance/maintenance-thread";
+import { t as tr } from "@/lib/t-spaces";
 
 interface UpdateForm {
   status: string;
@@ -50,7 +51,7 @@ export default function MaintenanceDetailPage() {
         finalCost: Number.isFinite(v.finalCost) ? v.finalCost : null,
       }),
     onSuccess: () => {
-      toast.success("Demande mise à jour. Le locataire est prévenu.");
+      toast.success(tr("Demande mise à jour. Le locataire est prévenu."));
       queryClient.invalidateQueries({ queryKey: ["maintenance"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -61,7 +62,7 @@ export default function MaintenanceDetailPage() {
   return (
     <div>
       <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Retour
+        <ArrowLeft className="h-4 w-4" />{" "}{tr("Retour")}
       </button>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -69,17 +70,17 @@ export default function MaintenanceDetailPage() {
           <Card>
             <div className="mb-2 flex items-center justify-between">
               <h1 className="text-lg font-semibold text-ink">
-                {MAINTENANCE_ISSUE_LABELS[request.issueType as keyof typeof MAINTENANCE_ISSUE_LABELS]}
+                {tr(MAINTENANCE_ISSUE_LABELS[request.issueType as keyof typeof MAINTENANCE_ISSUE_LABELS])}
               </h1>
               <MaintenanceStatusBadge status={request.status} />
             </div>
             <p className="text-sm text-ink-muted">
-              {request.property?.name} · Signalé par {request.tenant?.fullName} le {timeLabel(request.createdAt)} · Priorité{" "}
-              {MAINTENANCE_PRIORITY_LABELS[request.priority as keyof typeof MAINTENANCE_PRIORITY_LABELS]}
+              {tr("{0} · Signalé par {1} le {2} · Priorité", request.property?.name, request.tenant?.fullName, timeLabel(request.createdAt))}{" "}
+              {tr(MAINTENANCE_PRIORITY_LABELS[request.priority as keyof typeof MAINTENANCE_PRIORITY_LABELS])}
             </p>
             {request.tenant?.phone && (
               <a href={`tel:${request.tenant.phone}`} className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
-                <Phone className="h-3.5 w-3.5" /> Appeler le locataire ({request.tenant.phone})
+                <Phone className="h-3.5 w-3.5" />{" "}{tr("Appeler le locataire ({0})", request.tenant.phone)}
               </a>
             )}
             <p className="mt-4 whitespace-pre-line text-sm text-ink">{request.description}</p>
@@ -91,21 +92,21 @@ export default function MaintenanceDetailPage() {
 
         <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, delay: 0.1 }}>
         <Card>
-          <CardHeader title="Traitement" />
+          <CardHeader title={tr("Traitement")} />
           <form onSubmit={handleSubmit((v) => updateMutation.mutate(v))} className="space-y-3">
             <div>
-              <Label htmlFor="mt-status">Statut</Label>
+              <Label htmlFor="mt-status">{tr("Statut")}</Label>
               <Select id="mt-status" defaultValue={request.status} {...register("status")}>
-                <option value="RECU">Reçu</option>
-                <option value="EN_COURS">En cours</option>
-                <option value="RESOLU">Résolu</option>
-                <option value="REJETE">Rejeté</option>
+                <option value="RECU">{tr("Reçu")}</option>
+                <option value="EN_COURS">{tr("En cours")}</option>
+                <option value="RESOLU">{tr("Résolu")}</option>
+                <option value="REJETE">{tr("Rejeté")}</option>
               </Select>
             </div>
             <div>
-              <Label htmlFor="mt-tech">Technicien assigné</Label>
+              <Label htmlFor="mt-tech">{tr("Technicien assigné")}</Label>
               <Select id="mt-tech" defaultValue={request.technicianId ?? ""} {...register("technicianId")}>
-                <option value="">Aucun</option>
+                <option value="">{tr("Aucun")}</option>
                 {technicians?.map((t: any) => (
                   <option key={t.id} value={t.id}>
                     {t.fullName}
@@ -114,19 +115,19 @@ export default function MaintenanceDetailPage() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="mt-est">Coût estimé (FCFA)</Label>
+              <Label htmlFor="mt-est">{tr("Coût estimé (FCFA)")}</Label>
               <Input id="mt-est" type="number" min={0} defaultValue={request.estimatedCost ?? ""} {...register("estimatedCost", { valueAsNumber: true })} />
             </div>
             <div>
-              <Label htmlFor="mt-final">Coût final (FCFA)</Label>
+              <Label htmlFor="mt-final">{tr("Coût final (FCFA)")}</Label>
               <Input id="mt-final" type="number" min={0} defaultValue={request.finalCost ?? ""} {...register("finalCost", { valueAsNumber: true })} />
             </div>
             <div>
-              <Label htmlFor="mt-note">Note visible par le locataire et le propriétaire</Label>
+              <Label htmlFor="mt-note">{tr("Note visible par le locataire et le propriétaire")}</Label>
               <Textarea id="mt-note" rows={2} defaultValue={request.adminComment ?? ""} {...register("adminComment")} />
             </div>
             <Button type="submit" className="w-full" loading={updateMutation.isPending}>
-              Mettre à jour
+              {tr("Mettre à jour")}
             </Button>
           </form>
         </Card>

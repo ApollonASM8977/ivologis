@@ -7,7 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, Ruler, Tag, CalendarCheck, CheckCircle2, ShieldCheck, ShieldAlert, Scale } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
-import { formatXOF, PROPERTY_TYPE_LABELS, LAND_TITLE_TYPE_LABELS } from "@ivologis/shared";
+import { PROPERTY_TYPE_LABELS, LAND_TITLE_TYPE_LABELS } from "@ivologis/shared";
 import { useAuthStore } from "@/lib/auth-store";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import { LoadingState } from "@/components/ui/empty-state";
 import { CountUp } from "@/components/dashboard/count-up";
 import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel, PhotoGallery } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
+import { t } from "@/lib/t-catalog";
+import { money } from "@/lib/t";
 
 interface VisitForm {
   preferredDate?: string;
@@ -48,12 +50,12 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
-  if (isLoading || !property) return <LoadingState hint="Premier chargement : jusqu'à une minute si le site était inactif." />;
+  if (isLoading || !property) return <LoadingState hint={t("Premier chargement : jusqu'à une minute si le site était inactif.")} />;
 
   return (
     <div className="stagger-children">
       <Link href={basePath} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Retour au catalogue
+        <ArrowLeft className="h-4 w-4" />{" "}{t("Retour au catalogue")}
       </Link>
 
       {property.isDemo && <DemoNotice />}
@@ -69,12 +71,12 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-primary">
-            <CountUp value={Number(property.salePrice ?? 0)} format={formatXOF} />
+            <CountUp value={Number(property.salePrice ?? 0)} format={money} />
           </p>
           {property.landTitleVerified && !property.isDemo && (
             <p className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-success">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Titre vérifié · {LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS]}
+              {t("Titre vérifié · {0}", LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS])}
             </p>
           )}
         </div>
@@ -84,24 +86,24 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card>
-          <p className="text-xs uppercase text-ink-muted">Type</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{PROPERTY_TYPE_LABELS[property.type as keyof typeof PROPERTY_TYPE_LABELS]}</p>
+          <p className="text-xs uppercase text-ink-muted">{t("Type")}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{t(PROPERTY_TYPE_LABELS[property.type as keyof typeof PROPERTY_TYPE_LABELS])}</p>
         </Card>
         <Card>
           <p className="flex items-center gap-1 text-xs uppercase text-ink-muted">
-            <Ruler className="h-3.5 w-3.5" /> Surface
+            <Ruler className="h-3.5 w-3.5" />{" "}{t("Surface")}
           </p>
           <p className="mt-1 text-sm font-semibold text-ink">{property.surfaceM2 ? `${property.surfaceM2} m²` : "-"}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase text-ink-muted">Pièces</p>
+          <p className="text-xs uppercase text-ink-muted">{t("Pièces")}</p>
           <p className="mt-1 text-sm font-semibold text-ink">
-            {property.rooms ? `${property.rooms}${property.bedrooms ? ` dont ${property.bedrooms} ch.` : ""}` : "-"}
+            {property.rooms ? `${property.rooms}${property.bedrooms ? t(" dont {0} ch.", property.bedrooms) : ""}` : "-"}
           </p>
         </Card>
         <Card>
           <p className="flex items-center gap-1 text-xs uppercase text-ink-muted">
-            <Tag className="h-3.5 w-3.5" /> Repère
+            <Tag className="h-3.5 w-3.5" />{" "}{t("Repère")}
           </p>
           <p className="mt-1 text-sm font-semibold text-ink">{property.landmark ?? "-"}</p>
         </Card>
@@ -109,14 +111,14 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
 
       {property.description && (
         <Card className="mt-4">
-          <CardHeader title="Description" />
+          <CardHeader title={t("Description")} />
           <p className="text-sm leading-relaxed text-ink-muted">{property.description}</p>
         </Card>
       )}
 
       {!!property.amenities?.length && (
         <Card className="mt-4">
-          <CardHeader title="Équipements" />
+          <CardHeader title={t("Équipements")} />
           <div className="flex flex-wrap gap-2">
             {property.amenities.map((a: string) => (
               <span key={a} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
@@ -131,30 +133,28 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
       <VirtualTourCard url={property.virtualTourUrl} />
 
       <Card className="mt-4">
-        <CardHeader title="Avant d'acheter" />
+        <CardHeader title={t("Avant d'acheter")} />
         <ul className="space-y-2.5 text-sm text-ink-muted">
           {property.landTitleVerified && !property.isDemo && (
             <li className="flex items-start gap-2">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <span>
-                L&apos;agence a contrôlé le document foncier de ce bien ({LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS]}) avant publication. Les
-                pièces complètes vous sont présentées lors du rendez-vous.
+                {t("L'agence a contrôlé le document foncier de ce bien ({0}) avant publication. Les pièces complètes vous sont présentées lors du rendez-vous.", LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS])}
               </span>
             </li>
           )}
           <li className="flex items-start gap-2">
             <Scale className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <span>
-              Faites aussi vérifier le titre auprès de la Conservation foncière et passez par un notaire. Les frais d&apos;acquisition (enregistrement, notaire, géomètre) vous
-              seront chiffrés par le notaire.
+              {t("Faites aussi vérifier le titre auprès de la Conservation foncière et passez par un notaire. Les frais d'acquisition (enregistrement, notaire, géomètre) vous seront chiffrés par le notaire.")}
             </span>
           </li>
           <li className="flex items-start gap-2">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
             <span>
-              Ne versez jamais d&apos;argent avant la visite et la vérification des documents. Tout paiement se fait auprès de l&apos;agence, contre reçu, jamais à un intermédiaire.{" "}
+              {t("Ne versez jamais d'argent avant la visite et la vérification des documents. Tout paiement se fait auprès de l'agence, contre reçu, jamais à un intermédiaire.")}{" "}
               <Link href="/verification" className="font-medium text-primary hover:underline">
-                Comment nous vérifions les annonces
+                {t("Comment nous vérifions les annonces")}
               </Link>
             </span>
           </li>
@@ -162,9 +162,9 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
       </Card>
 
       <Button className="mt-6" onClick={() => setModalOpen(true)} disabled={property.isDemo}>
-        <CalendarCheck className="h-4 w-4" /> Prendre rendez-vous pour visiter
+        <CalendarCheck className="h-4 w-4" />{" "}{t("Prendre rendez-vous pour visiter")}
       </Button>
-      {property.isDemo && <p className="mt-2 text-xs text-ink-muted">Indisponible sur une annonce de démonstration.</p>}
+      {property.isDemo && <p className="mt-2 text-xs text-ink-muted">{t("Indisponible sur une annonce de démonstration.")}</p>}
 
       <Modal
         open={modalOpen}
@@ -172,49 +172,49 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
           setModalOpen(false);
           setReference(null);
         }}
-        title="Demande de visite"
+        title={t("Demande de visite")}
       >
         {reference ? (
           <div className="space-y-3 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
-            <p className="text-sm text-ink">Votre demande a bien été envoyée. L&apos;agence vous recontactera pour confirmer une date de visite.</p>
+            <p className="text-sm text-ink">{t("Votre demande a bien été envoyée. L'agence vous recontactera pour confirmer une date de visite.")}</p>
             <p className="rounded-lg bg-surface px-3 py-2 text-sm">
-              Référence à conserver : <span className="font-mono font-semibold text-ink">{reference}</span>
+              {t("Référence à conserver :")}{" "}<span className="font-mono font-semibold text-ink">{reference}</span>
             </p>
             <Button className="w-full" onClick={() => { setModalOpen(false); setReference(null); }}>
-              Fermer
+              {t("Fermer")}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
-            <p className="text-sm text-ink-muted">L&apos;agence vous recontactera pour confirmer une date de visite.</p>
+            <p className="text-sm text-ink-muted">{t("L'agence vous recontactera pour confirmer une date de visite.")}</p>
             <HoneypotField registration={register("website")} />
             {!user && (
               <>
                 <div>
-                  <Label>Nom complet</Label>
+                  <Label>{t("Nom complet")}</Label>
                   <Input {...register("guestName", { required: true })} />
                 </div>
                 <div>
-                  <Label>Téléphone</Label>
+                  <Label>{t("Téléphone")}</Label>
                   <Input {...register("guestPhone", { required: true })} />
                 </div>
                 <div>
-                  <Label>Email (optionnel)</Label>
+                  <Label>{t("Email (optionnel)")}</Label>
                   <Input type="email" {...register("guestEmail")} />
                 </div>
               </>
             )}
             <div>
-              <Label>Date souhaitée (optionnel)</Label>
+              <Label>{t("Date souhaitée (optionnel)")}</Label>
               <Input type="date" {...register("preferredDate")} />
             </div>
             <div>
-              <Label>Message (optionnel)</Label>
-              <Textarea rows={3} placeholder="Précisez vos disponibilités ou vos questions..." {...register("message")} />
+              <Label>{t("Message (optionnel)")}</Label>
+              <Textarea rows={3} placeholder={t("Précisez vos disponibilités ou vos questions...")} {...register("message")} />
             </div>
             <Button type="submit" className="w-full" loading={mutation.isPending}>
-              Envoyer la demande
+              {t("Envoyer la demande")}
             </Button>
           </form>
         )}

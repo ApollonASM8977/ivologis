@@ -5,13 +5,15 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Wallet, Receipt, Download } from "lucide-react";
 import { api, fileUrl, API_URL } from "@/lib/api";
-import { formatXOF, PaymentMethod } from "@ivologis/shared";
+import { PaymentMethod } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaymentStatusBadge } from "@/components/status-badges";
 import { PaymentMethodBadge } from "@/components/payment-method-badge";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 interface PaymentRow {
   id: string;
@@ -33,10 +35,10 @@ export default function OwnerPaymentsPage() {
   });
 
   const columns: Column<PaymentRow>[] = [
-    { header: "Date", cell: (r) => new Date(r.paymentDate).toLocaleDateString("fr-FR") },
+    { header: "Date", cell: (r) => new Date(r.paymentDate).toLocaleDateString(locale()) },
     { header: "Locataire", cell: (r) => r.tenant?.fullName },
     { header: "Bien", cell: (r) => r.property?.name },
-    { header: "Montant", cell: (r) => formatXOF(r.amount) },
+    { header: "Montant", cell: (r) => money(r.amount) },
     { header: "Moyen", cell: (r) => <PaymentMethodBadge method={r.method as PaymentMethod} size="sm" /> },
     { header: "Statut", cell: (r) => <PaymentStatusBadge status={r.status} /> },
     {
@@ -55,19 +57,19 @@ export default function OwnerPaymentsPage() {
   return (
     <div>
       <PageHeader
-        title="Paiements de mes biens"
-        subtitle="Historique des loyers perçus"
+        title={t("Paiements de mes biens")}
+        subtitle={t("Historique des loyers perçus")}
         action={
           <a href={`${API_URL}/api/payments/export`} target="_blank">
             <Button size="sm" variant="secondary">
-              <Download className="h-4 w-4" /> Exporter CSV
+              <Download className="h-4 w-4" />{" "}{t("Exporter CSV")}
             </Button>
           </a>
         }
       />
 
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={Wallet} title="Aucun paiement pour le moment" />
+        <EmptyState icon={Wallet} title={t("Aucun paiement pour le moment")} />
       ) : (
         <DataTable columns={columns} rows={data?.data ?? []} loading={isLoading} rowKey={(r) => r.id} page={page} limit={10} total={data?.total} onPageChange={setPage} />
       )}

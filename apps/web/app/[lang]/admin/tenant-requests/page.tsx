@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DocumentLink } from "@/components/document-link";
+import { t } from "@/lib/t-spaces";
+import { locale } from "@/lib/t";
 
 interface RequestRow {
   id: string;
@@ -49,7 +51,7 @@ export default function AdminTenantRequestsPage() {
     mutationFn: (values: { adminResponse: string }) =>
       api.patch(`/tenant-requests/${deciding?.row.id}`, { status: deciding?.status, adminResponse: values.adminResponse || undefined }),
     onSuccess: () => {
-      toast.success("Décision enregistrée. Le locataire est prévenu.");
+      toast.success(t("Décision enregistrée. Le locataire est prévenu."));
       setDeciding(null);
       form.reset({ adminResponse: "" });
       queryClient.invalidateQueries({ queryKey: ["tenant-requests"] });
@@ -60,25 +62,25 @@ export default function AdminTenantRequestsPage() {
   const columns: Column<RequestRow>[] = [
     { header: "Locataire", cell: (r) => <div><p className="font-medium text-ink">{r.tenant.fullName}</p><p className="text-xs text-ink-muted">{r.tenant.phone}</p></div> },
     { header: "Bien", cell: (r) => <span className="text-sm">{r.lease?.property.name ?? "-"}<br /><span className="text-xs text-ink-muted">{r.lease?.contractNumber}</span></span> },
-    { header: "Demande", cell: (r) => <div><p className="text-sm font-medium">{r.type === "RESILIATION" ? "Résiliation" : "Autre"}</p>{r.effectiveDate && <p className="text-xs text-ink-muted">Départ souhaité le {new Date(r.effectiveDate).toLocaleDateString("fr-FR")}</p>}</div> },
-    { header: "Reçue le", cell: (r) => new Date(r.createdAt).toLocaleDateString("fr-FR", { dateStyle: "medium" }) },
+    { header: "Demande", cell: (r) => <div><p className="text-sm font-medium">{r.type === "RESILIATION" ? t("Résiliation") : t("Autre")}</p>{r.effectiveDate && <p className="text-xs text-ink-muted">{t("Départ souhaité le {0}", new Date(r.effectiveDate).toLocaleDateString(locale()))}</p>}</div> },
+    { header: t("Reçue le"), cell: (r) => new Date(r.createdAt).toLocaleDateString(locale(), { dateStyle: "medium" }) },
     { header: "Statut", cell: (r) => <Badge color={STATUS_BADGE[r.status]?.color ?? "gray"}>{STATUS_BADGE[r.status]?.label ?? r.status}</Badge> },
     {
       header: "Actions",
       cell: (r) => (
         <div className="flex flex-wrap items-center gap-1">
           {r.attachmentUrl && (
-            <DocumentLink path={r.attachmentUrl} title="Pièce jointe" aria-label="Ouvrir la pièce jointe" className="rounded p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary">
+            <DocumentLink path={r.attachmentUrl} title={t("Pièce jointe")} aria-label={t("Ouvrir la pièce jointe")} className="rounded p-1.5 text-ink-muted hover:bg-gray-100 hover:text-primary">
               <Paperclip className="h-4 w-4" />
             </DocumentLink>
           )}
           {r.status === "EN_ATTENTE" && (
             <>
               <Button size="sm" variant="secondary" onClick={() => setDeciding({ row: r, status: "ACCEPTEE" })}>
-                <CheckCircle2 className="h-4 w-4" /> Accepter
+                <CheckCircle2 className="h-4 w-4" />{" "}{t("Accepter")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setDeciding({ row: r, status: "REFUSEE" })}>
-                <XCircle className="h-4 w-4" /> Refuser
+                <XCircle className="h-4 w-4" />{" "}{t("Refuser")}
               </Button>
             </>
           )}
@@ -89,35 +91,35 @@ export default function AdminTenantRequestsPage() {
 
   return (
     <div>
-      <PageHeader title="Demandes des locataires" subtitle="Résiliations et autres démarches à traiter" />
+      <PageHeader title={t("Demandes des locataires")} subtitle={t("Résiliations et autres démarches à traiter")} />
 
       <div className="mb-4 flex gap-3">
-        <Select aria-label="Filtrer par statut" className="w-56" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="EN_ATTENTE">À traiter</option>
-          <option value="ACCEPTEE">Acceptées</option>
-          <option value="REFUSEE">Refusées</option>
-          <option value="">Toutes</option>
+        <Select aria-label={t("Filtrer par statut")} className="w-56" value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <option value="EN_ATTENTE">{t("À traiter")}</option>
+          <option value="ACCEPTEE">{t("Acceptées")}</option>
+          <option value="REFUSEE">{t("Refusées")}</option>
+          <option value="">{t("Toutes")}</option>
         </Select>
       </div>
 
       {!isLoading && data?.length === 0 ? (
-        <EmptyState icon={Mail} title="Aucune demande" description="Les demandes envoyées par les locataires apparaîtront ici." />
+        <EmptyState icon={Mail} title={t("Aucune demande")} description={t("Les demandes envoyées par les locataires apparaîtront ici.")} />
       ) : (
         <DataTable columns={columns} rows={data ?? []} loading={isLoading} rowKey={(r) => r.id} />
       )}
 
-      <Modal open={!!deciding} onClose={() => setDeciding(null)} title={deciding?.status === "ACCEPTEE" ? "Accepter la demande" : "Refuser la demande"} width="max-w-lg">
+      <Modal open={!!deciding} onClose={() => setDeciding(null)} title={deciding?.status === "ACCEPTEE" ? t("Accepter la demande") : t("Refuser la demande")} width="max-w-lg">
         <form onSubmit={form.handleSubmit((v) => decide.mutate(v))} className="space-y-4">
           <p className="text-sm text-ink-muted">
             {deciding?.row.message}
           </p>
           <div>
-            <Label htmlFor="resp">Réponse au locataire (optionnel)</Label>
+            <Label htmlFor="resp">{t("Réponse au locataire (optionnel)")}</Label>
             <Textarea id="resp" rows={3} {...form.register("adminResponse", { maxLength: 1000 })} />
           </div>
-          <p className="text-xs text-ink-muted">Pour une résiliation acceptée, procédez ensuite à la résiliation du bail depuis sa fiche.</p>
+          <p className="text-xs text-ink-muted">{t("Pour une résiliation acceptée, procédez ensuite à la résiliation du bail depuis sa fiche.")}</p>
           <Button type="submit" className="w-full" loading={decide.isPending}>
-            Confirmer
+            {t("Confirmer")}
           </Button>
         </form>
       </Modal>

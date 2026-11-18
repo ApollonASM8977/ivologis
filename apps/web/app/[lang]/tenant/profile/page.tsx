@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/empty-state";
 import { TenantForm, TenantFormValues } from "@/components/tenants/tenant-form";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
 import { SecurityCard } from "@/components/profile/security-card";
+import { t } from "@/lib/t-spaces";
 
 export default function TenantProfilePage() {
   const queryClient = useQueryClient();
@@ -20,7 +21,7 @@ export default function TenantProfilePage() {
   const updateMutation = useMutation({
     mutationFn: (values: TenantFormValues) => api.patch(`/tenants/${tenant.id}`, values),
     onSuccess: () => {
-      toast.success("Profil mis à jour.");
+      toast.success(t("Profil mis à jour."));
       queryClient.invalidateQueries({ queryKey: ["tenants", "me"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -30,7 +31,7 @@ export default function TenantProfilePage() {
 
   return (
     <div>
-      <PageHeader title="Mon profil" subtitle="Vos informations personnelles" />
+      <PageHeader title={t("Mon profil")} subtitle={t("Vos informations personnelles")} />
       <Card className="mb-4 max-w-2xl">
         <AvatarUploader />
       </Card>
@@ -38,11 +39,11 @@ export default function TenantProfilePage() {
         <SecurityCard />
       </div>
       <Card className="max-w-2xl">
-        <CardHeader title="Informations" />
+        <CardHeader title={t("Informations")} />
         <TenantForm
           defaultValues={tenant}
           loading={updateMutation.isPending}
-          submitLabel="Enregistrer"
+          submitLabel={t("Enregistrer")}
           onSubmit={(values) => updateMutation.mutate(values)}
         />
       </Card>

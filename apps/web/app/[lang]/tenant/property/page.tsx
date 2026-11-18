@@ -7,12 +7,14 @@ import { motion, AnimatePresence } from "motion/react";
 import { MapPin, Home, Layers, CalendarDays, Sofa, Navigation, X, ChevronLeft, ChevronRight, Check, User, Phone } from "lucide-react";
 import { usePublicCompany } from "@/lib/use-company";
 import { api, fileUrl } from "@/lib/api";
-import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { t } from "@/lib/t-spaces";
+import { money } from "@/lib/t";
 
 function Fact({ icon: Icon, label, value }: { icon: typeof Home; label: string; value: React.ReactNode }) {
   return (
@@ -43,8 +45,8 @@ export default function TenantPropertyPage() {
   if (!property) {
     return (
       <div>
-        <PageHeader title="Mon logement" />
-        <EmptyState icon={Home} title="Aucun logement associé à votre compte" />
+        <PageHeader title={t("Mon logement")} />
+        <EmptyState icon={Home} title={t("Aucun logement associé à votre compte")} />
       </div>
     );
   }
@@ -60,7 +62,7 @@ export default function TenantPropertyPage() {
 
   return (
     <div>
-      <PageHeader title="Mon logement" subtitle={property.name} />
+      <PageHeader title={t("Mon logement")} subtitle={property.name} />
 
       <StaggerContainer className="space-y-4">
         {images.length > 0 && (
@@ -72,7 +74,7 @@ export default function TenantPropertyPage() {
                   whileHover={{ scale: 1.01 }}
                   onClick={() => setActive(images.indexOf(cover))}
                   className="relative col-span-2 row-span-2 min-h-[14rem] overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary"
-                  aria-label="Agrandir la photo de couverture"
+                  aria-label={t("Agrandir la photo de couverture")}
                 >
                   <Image src={fileUrl(cover.url) ?? ""} alt={property.name} fill sizes="(min-width: 768px) 50vw, 66vw" priority className="object-cover transition-transform duration-700 hover:scale-105" />
                 </motion.button>
@@ -90,7 +92,7 @@ export default function TenantPropertyPage() {
                     whileHover={{ scale: 1.03 }}
                     onClick={() => setActive(images.indexOf(img))}
                     className="relative min-h-[6.5rem] overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
-                    aria-label={`Agrandir la photo ${i + 2}`}
+                    aria-label={t("Agrandir la photo {0}", i + 2)}
                   >
                     <Image src={fileUrl(img.url) ?? ""} alt="" fill sizes="25vw" className="object-cover" />
                   </motion.button>
@@ -109,18 +111,18 @@ export default function TenantPropertyPage() {
                 </p>
                 {property.landmark && (
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
-                    <Navigation className="h-4 w-4" /> Repère : {property.landmark}
+                    <Navigation className="h-4 w-4" />{" "}{t("Repère : {0}", property.landmark)}
                   </p>
                 )}
               </div>
-              <Badge color="blue">{PROPERTY_TYPE_LABELS[property.type as keyof typeof PROPERTY_TYPE_LABELS]}</Badge>
+              <Badge color="blue">{t(PROPERTY_TYPE_LABELS[property.type as keyof typeof PROPERTY_TYPE_LABELS])}</Badge>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Fact icon={Home} label="Loyer mensuel" value={formatXOF(property.leases?.[0]?.rentAmount ?? property.rentAmount)} />
-              <Fact icon={Layers} label="Étage" value={property.floor ?? "-"} />
-              <Fact icon={CalendarDays} label="Année de construction" value={property.yearBuilt ?? "-"} />
-              <Fact icon={Sofa} label="Meublé" value={property.furnished ? "Oui" : "Non"} />
+              <Fact icon={Home} label={t("Loyer mensuel")} value={money(property.leases?.[0]?.rentAmount ?? property.rentAmount)} />
+              <Fact icon={Layers} label={t("Étage")} value={property.floor ?? "-"} />
+              <Fact icon={CalendarDays} label={t("Année de construction")} value={property.yearBuilt ?? "-"} />
+              <Fact icon={Sofa} label={t("Meublé")} value={property.furnished ? t("Oui") : t("Non")} />
             </div>
 
             {property.description && <p className="mt-5 text-sm leading-relaxed text-ink-muted">{property.description}</p>}
@@ -130,7 +132,7 @@ export default function TenantPropertyPage() {
         {amenities.length > 0 && (
           <StaggerItem>
             <Card>
-              <CardHeader title="Équipements" subtitle={`${amenities.length} équipement(s) dans le logement`} />
+              <CardHeader title={t("Équipements")} subtitle={t("{0} équipement(s) dans le logement", amenities.length)} />
               <ul className="flex flex-wrap gap-2">
                 {amenities.map((a, i) => (
                   <motion.li
@@ -155,13 +157,13 @@ export default function TenantPropertyPage() {
               <User className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-ink-muted">Votre interlocuteur</p>
-              <p className="font-semibold text-ink">{company?.companyName ?? "Votre agence"}</p>
-              <p className="text-sm text-ink-muted">Loyer, travaux, préavis : l&apos;agence gère tout pour le compte du propriétaire.</p>
+              <p className="text-xs text-ink-muted">{t("Votre interlocuteur")}</p>
+              <p className="font-semibold text-ink">{company?.companyName ?? t("Votre agence")}</p>
+              <p className="text-sm text-ink-muted">{t("Loyer, travaux, préavis : l'agence gère tout pour le compte du propriétaire.")}</p>
             </div>
             {company?.phone && (
               <a href={`tel:${company.phone}`} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
-                <Phone className="h-4 w-4" /> Appeler l&apos;agence
+                <Phone className="h-4 w-4" />{" "}{t("Appeler l'agence")}
               </a>
             )}
           </Card>
@@ -174,7 +176,7 @@ export default function TenantPropertyPage() {
             key="lightbox"
             role="dialog"
             aria-modal="true"
-            aria-label="Galerie photos"
+            aria-label={t("Galerie photos")}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -198,15 +200,15 @@ export default function TenantPropertyPage() {
               onClick={(e) => e.stopPropagation()}
               className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
             />
-            <button type="button" onClick={() => setActive(null)} aria-label="Fermer" className="absolute right-4 top-4 rounded-full bg-white/15 p-2 text-white hover:bg-white/25">
+            <button type="button" onClick={() => setActive(null)} aria-label={t("Fermer")} className="absolute right-4 top-4 rounded-full bg-white/15 p-2 text-white hover:bg-white/25">
               <X className="h-5 w-5" />
             </button>
             {images.length > 1 && (
               <>
-                <button type="button" onClick={(e) => { e.stopPropagation(); step(-1); }} aria-label="Photo précédente" className="absolute left-4 rounded-full bg-white/15 p-3 text-white hover:bg-white/25">
+                <button type="button" onClick={(e) => { e.stopPropagation(); step(-1); }} aria-label={t("Photo précédente")} className="absolute left-4 rounded-full bg-white/15 p-3 text-white hover:bg-white/25">
                   <ChevronLeft className="h-6 w-6" />
                 </button>
-                <button type="button" onClick={(e) => { e.stopPropagation(); step(1); }} aria-label="Photo suivante" className="absolute right-4 rounded-full bg-white/15 p-3 text-white hover:bg-white/25 sm:right-16">
+                <button type="button" onClick={(e) => { e.stopPropagation(); step(1); }} aria-label={t("Photo suivante")} className="absolute right-4 rounded-full bg-white/15 p-3 text-white hover:bg-white/25 sm:right-16">
                   <ChevronRight className="h-6 w-6" />
                 </button>
               </>

@@ -8,11 +8,8 @@ export const LANGS = ["fr", "en"] as const;
 export type Lang = (typeof LANGS)[number];
 export const DEFAULT_LANG: Lang = "fr";
 export const LANG_COOKIE = "ivologis_lang";
-/**
- * Sélecteur visible seulement quand TOUTES les zones sont traduites (site public, connexion, espaces, API, PDF) :
- * sinon un visiteur anglophone tomberait sur des espaces en français. En attendant, aperçu par l'adresse /en.
- */
-export const LANG_SWITCHER_ENABLED = false;
+/** Sélecteur FR/EN visible partout : toutes les zones sont traduites (site, connexion, espaces, API, PDF). */
+export const LANG_SWITCHER_ENABLED = true;
 
 export function isLang(value: unknown): value is Lang {
   return value === "fr" || value === "en";
@@ -40,6 +37,15 @@ export function formatMoney(amount: number | string | null | undefined, lang: La
 /** Remplace `{nom}` dans un texte traduit. */
 export function fill(text: string, values: Record<string, string | number>) {
   return text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ""));
+}
+
+/** Traducteur côté serveur (composants serveur, métadonnées) : même dictionnaire « texte français → anglais » que `t`. */
+export function translator(lang: Lang, ...dictionaries: Record<string, string>[]) {
+  const en: Record<string, string> = Object.assign({}, ...dictionaries);
+  return (fr: string, ...values: unknown[]) => {
+    const text = lang === "en" ? (en[fr] ?? fr) : fr;
+    return values.length ? text.replace(/\{(\d+)\}/g, (_, i) => String(values[Number(i)] ?? "")) : text;
+  };
 }
 
 /** Un texte par langue (`{ fr, en }`) : l'anglais doit avoir exactement les mêmes clés que le français. */

@@ -7,7 +7,9 @@ import { Download, Upload, CheckCircle2, AlertTriangle } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { t } from "@/lib/t-spaces";
 
+// i18n-ok : modèle CSV, colonnes lues par l'API (ne pas traduire)
 const TEMPLATE = "nom_complet;telephone;email;profession;nationalite;adresse\nAïcha Koné;+2250700000111;aicha@exemple.ci;Commerçante;Ivoirienne;Cocody Riviera\n";
 
 const HEADER_MAP: Record<string, string> = {
@@ -75,7 +77,7 @@ export function ImportTenantsDialog({ open, onClose }: { open: boolean; onClose:
     onSuccess: (data) => {
       setResult(data);
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
-      if (data.created) toast.success(`${data.created} locataire(s) importé(s).`);
+      if (data.created) toast.success(t("{0} locataire(s) importé(s).", data.created));
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -86,18 +88,18 @@ export function ImportTenantsDialog({ open, onClose }: { open: boolean; onClose:
   }
 
   return (
-    <Modal open={open} onClose={() => { reset(); onClose(); }} title="Importer des locataires" width="max-w-2xl">
+    <Modal open={open} onClose={() => { reset(); onClose(); }} title={t("Importer des locataires")} width="max-w-2xl">
       <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface p-4 text-sm">
-          <p className="text-ink-muted">Colonnes : nom_complet, telephone (obligatoires), email, profession, nationalite, adresse.</p>
+          <p className="text-ink-muted">{t("Colonnes : nom_complet, telephone (obligatoires), email, profession, nationalite, adresse.")}</p>
           <Button variant="ghost" size="sm" onClick={downloadTemplate}>
-            <Download className="h-4 w-4" /> Modèle CSV
+            <Download className="h-4 w-4" />{" "}{t("Modèle CSV")}
           </Button>
         </div>
 
         <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-gray-300 px-6 py-8 text-center text-sm text-ink-muted hover:border-primary hover:text-primary">
           <Upload className="h-6 w-6" />
-          <span>Choisir un fichier CSV (200 lignes au maximum)</span>
+          <span>{t("Choisir un fichier CSV (200 lignes au maximum)")}</span>
           <input
             type="file"
             accept=".csv,text/csv"
@@ -114,15 +116,15 @@ export function ImportTenantsDialog({ open, onClose }: { open: boolean; onClose:
 
         {rows.length > 0 && !result && (
           <div className="space-y-3">
-            <p className="text-sm font-medium text-ink">{rows.length} ligne(s) prête(s) à être importée(s)</p>
+            <p className="text-sm font-medium text-ink">{t("{0} ligne(s) prête(s) à être importée(s)", rows.length)}</p>
             <ul className="max-h-40 space-y-1 overflow-y-auto text-sm text-ink-muted">
               {rows.slice(0, 5).map((r, i) => (
-                <li key={i}>{r.fullName || "(sans nom)"} · {r.phone || "(sans téléphone)"}</li>
+                <li key={i}>{r.fullName || t("(sans nom)")} · {r.phone || t("(sans téléphone)")}</li>
               ))}
-              {rows.length > 5 && <li>… et {rows.length - 5} autre(s)</li>}
+              {rows.length > 5 && <li>{t("… et {0} autre(s)", rows.length - 5)}</li>}
             </ul>
             <Button onClick={() => submit.mutate()} loading={submit.isPending} className="w-full">
-              Importer {rows.length} locataire(s)
+              {t("Importer {0} locataire(s)", rows.length)}
             </Button>
           </div>
         )}
@@ -130,19 +132,19 @@ export function ImportTenantsDialog({ open, onClose }: { open: boolean; onClose:
         {result && (
           <div className="space-y-3" role="status">
             <p className="flex items-center gap-2 text-sm font-medium text-success">
-              <CheckCircle2 className="h-4 w-4" /> {result.created} locataire(s) créé(s)
+              <CheckCircle2 className="h-4 w-4" />{" "}{t("{0} locataire(s) créé(s)", result.created)}
             </p>
             {result.errors.length > 0 && (
               <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
-                <p className="mb-2 flex items-center gap-2 font-medium"><AlertTriangle className="h-4 w-4" /> {result.errors.length} ligne(s) non importée(s)</p>
+                <p className="mb-2 flex items-center gap-2 font-medium"><AlertTriangle className="h-4 w-4" />{" "}{t("{0} ligne(s) non importée(s)", result.errors.length)}</p>
                 <ul className="max-h-40 space-y-1 overflow-y-auto">
                   {result.errors.map((e) => (
-                    <li key={e.line}>Ligne {e.line} : {e.message}</li>
+                    <li key={e.line}>{t("Ligne {0} : {1}", e.line, e.message)}</li>
                   ))}
                 </ul>
               </div>
             )}
-            <Button variant="secondary" onClick={() => { reset(); onClose(); }} className="w-full">Terminer</Button>
+            <Button variant="secondary" onClick={() => { reset(); onClose(); }} className="w-full">{t("Terminer")}</Button>
           </div>
         )}
       </div>

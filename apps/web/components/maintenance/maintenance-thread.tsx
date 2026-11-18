@@ -12,6 +12,8 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
+import { t } from "@/lib/t-spaces";
+import { locale } from "@/lib/t";
 
 interface Comment {
   id: string;
@@ -29,7 +31,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export function timeLabel(dateStr: string) {
-  return new Date(dateStr).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(dateStr).toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" });
 }
 
 /** Photos jointes au signalement, cliquables pour les voir en grand. */
@@ -48,9 +50,9 @@ export function MaintenancePhotos({ photos }: { photos?: string[] }) {
           transition={{ delay: i * 0.05 }}
           whileHover={{ scale: 1.02 }}
           className="relative block h-28 overflow-hidden rounded-lg"
-          aria-label={`Voir la photo ${i + 1} en grand`}
+          aria-label={t("Voir la photo {0} en grand", i + 1)}
         >
-          <Image src={fileUrl(url) ?? ""} alt={`Photo ${i + 1} du problème`} fill sizes="33vw" className="object-cover" />
+          <Image src={fileUrl(url) ?? ""} alt={t("Photo {0} du problème", i + 1)} fill sizes="33vw" className="object-cover" />
         </motion.a>
       ))}
     </div>
@@ -75,12 +77,12 @@ export function MaintenanceThread({ requestId, comments, className }: { requestI
 
   return (
     <Card className={className}>
-      <CardHeader title="Échanges" subtitle={list.length ? `${list.length} message(s)` : undefined} />
+      <CardHeader title={t("Échanges")} subtitle={list.length ? `${list.length} message(s)` : undefined} />
       <div className="mb-4 max-h-[28rem] space-y-3 overflow-y-auto pr-1">
         <AnimatePresence initial={false}>
           {list.length === 0 && (
             <motion.p key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-6 text-center text-sm text-ink-muted">
-              Aucun message pour l&apos;instant. Posez vos questions ici.
+              {t("Aucun message pour l'instant. Posez vos questions ici.")}
             </motion.p>
           )}
           {list.map((c) => {
@@ -98,7 +100,7 @@ export function MaintenanceThread({ requestId, comments, className }: { requestI
                 <div className={`flex-1 rounded-xl px-3.5 py-2.5 ${mine ? "bg-primary/10" : "bg-gray-50"}`}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-ink">
-                      {mine ? "Vous" : c.author?.fullName ?? "Utilisateur"}
+                      {mine ? t("Vous") : c.author?.fullName ?? t("Utilisateur")}
                       {!mine && c.author?.role && <span className="ml-1.5 text-xs font-normal text-ink-muted">· {ROLE_LABEL[c.author.role] ?? ""}</span>}
                     </p>
                     <p className="text-[11px] text-ink-muted">{timeLabel(c.createdAt)}</p>
@@ -111,8 +113,8 @@ export function MaintenanceThread({ requestId, comments, className }: { requestI
         </AnimatePresence>
       </div>
       <form onSubmit={handleSubmit((v) => v.comment?.trim() && send.mutate(v.comment.trim()))} className="flex gap-2">
-        <Input aria-label="Votre message" placeholder="Écrire un message…" maxLength={2000} {...register("comment")} />
-        <Button type="submit" size="sm" loading={send.isPending} aria-label="Envoyer le message">
+        <Input aria-label={t("Votre message")} placeholder={t("Écrire un message…")} maxLength={2000} {...register("comment")} />
+        <Button type="submit" size="sm" loading={send.isPending} aria-label={t("Envoyer le message")}>
           <Send className="h-4 w-4" />
         </Button>
       </form>

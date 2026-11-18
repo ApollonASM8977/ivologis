@@ -4,10 +4,11 @@ import { useEffect, useRef } from "react";
 import { LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import { motion, useMotionValue, useTransform, animate } from "motion/react";
+import { locale } from "@/lib/t";
 
 function AnimatedNumber({ value }: { value: number }) {
   const motionValue = useMotionValue(0);
-  const rounded = useTransform(motionValue, (v) => Math.round(v).toLocaleString("fr-FR"));
+  const rounded = useTransform(motionValue, (v) => Math.round(v).toLocaleString(locale()));
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {

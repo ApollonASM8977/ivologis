@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
+import { t } from "@/lib/t-auth";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -23,7 +24,7 @@ function ResetPasswordForm() {
     setLoading(true);
     try {
       await api.post("/auth/reset-password", { token, newPassword: values.newPassword });
-      toast.success("Mot de passe réinitialisé. Vous pouvez vous connecter.");
+      toast.success(t("Mot de passe réinitialisé. Vous pouvez vous connecter."));
       router.push("/login");
     } catch (error) {
       toast.error(apiErrorMessage(error));
@@ -36,15 +37,15 @@ function ResetPasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)}>
       <StaggerContainer className="space-y-4">
         <StaggerItem>
-          <Label>Nouveau mot de passe</Label>
-          <Input type="password" placeholder="8 caractères minimum" {...register("newPassword", { required: true, minLength: 8 })} />
+          <Label>{t("Nouveau mot de passe")}</Label>
+          <Input type="password" placeholder={t("8 caractères minimum")} {...register("newPassword", { required: true, minLength: 8 })} />
           <PasswordStrengthMeter password={newPassword} />
         </StaggerItem>
         <StaggerItem>
           <Button type="submit" className="w-full" loading={loading} disabled={!token}>
-            Réinitialiser
+            {t("Réinitialiser")}
           </Button>
-          {!token && <p className="mt-2 text-xs text-danger">Lien invalide : jeton manquant.</p>}
+          {!token && <p className="mt-2 text-xs text-danger">{t("Lien invalide : jeton manquant.")}</p>}
         </StaggerItem>
       </StaggerContainer>
     </form>
@@ -53,7 +54,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <AuthLayout title="Nouveau mot de passe" subtitle="Choisissez un nouveau mot de passe">
+    <AuthLayout title={t("Nouveau mot de passe")} subtitle={t("Choisissez un nouveau mot de passe")}>
       <Suspense fallback={null}>
         <ResetPasswordForm />
       </Suspense>

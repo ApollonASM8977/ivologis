@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { api } from "@/lib/api";
-import { formatXOF, MARITAL_STATUS_LABELS } from "@ivologis/shared";
+import { MARITAL_STATUS_LABELS } from "@ivologis/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/empty-state";
 import { PaymentStatusBadge, LeaseStatusBadge, MaintenanceStatusBadge } from "@/components/status-badges";
 import { InviteCodeCard } from "@/components/invite-code-card";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 export function TenantDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -23,7 +25,7 @@ export function TenantDetail({ id }: { id: string }) {
   return (
     <div>
       <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Retour
+        <ArrowLeft className="h-4 w-4" />{" "}{t("Retour")}
       </button>
 
       <div className="mb-6 flex items-center gap-4">
@@ -41,38 +43,38 @@ export function TenantDetail({ id }: { id: string }) {
       <InviteCodeCard resource="tenants" id={id} userId={tenant.userId} pendingUntil={tenant.inviteExpiresAt} />
 
       <Card className="mb-4">
-        <CardHeader title="Informations complémentaires" />
+        <CardHeader title={t("Informations complémentaires")} />
         <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div>
-            <p className="text-ink-muted">Nationalité</p>
+            <p className="text-ink-muted">{t("Nationalité")}</p>
             <p className="font-medium text-ink">{tenant.nationality ?? "-"}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Date de naissance</p>
-            <p className="font-medium text-ink">{tenant.dateOfBirth ? new Date(tenant.dateOfBirth).toLocaleDateString("fr-FR") : "-"}</p>
+            <p className="text-ink-muted">{t("Date de naissance")}</p>
+            <p className="font-medium text-ink">{tenant.dateOfBirth ? new Date(tenant.dateOfBirth).toLocaleDateString(locale()) : "-"}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Situation matrimoniale</p>
+            <p className="text-ink-muted">{t("Situation matrimoniale")}</p>
             <p className="font-medium text-ink">{tenant.maritalStatus ? MARITAL_STATUS_LABELS[tenant.maritalStatus as keyof typeof MARITAL_STATUS_LABELS] : "-"}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Pièce d&apos;identité</p>
+            <p className="text-ink-muted">{t("Pièce d'identité")}</p>
             <p className="font-medium text-ink">{tenant.idDocumentNumber ?? "-"}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Employeur</p>
+            <p className="text-ink-muted">{t("Employeur")}</p>
             <p className="font-medium text-ink">{tenant.employer ?? "-"}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Revenu mensuel</p>
-            <p className="font-medium text-ink">{tenant.monthlyIncome ? formatXOF(tenant.monthlyIncome) : "-"}</p>
+            <p className="text-ink-muted">{t("Revenu mensuel")}</p>
+            <p className="font-medium text-ink">{tenant.monthlyIncome ? money(tenant.monthlyIncome) : "-"}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Contact d&apos;urgence</p>
+            <p className="text-ink-muted">{t("Contact d'urgence")}</p>
             <p className="font-medium text-ink">{tenant.emergencyContactName ? `${tenant.emergencyContactName} (${tenant.emergencyContactPhone ?? "-"})` : "-"}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Garant</p>
+            <p className="text-ink-muted">{t("Garant")}</p>
             <p className="font-medium text-ink">{tenant.guarantorName ? `${tenant.guarantorName} (${tenant.guarantorPhone ?? "-"})` : "-"}</p>
           </div>
         </div>
@@ -80,37 +82,37 @@ export function TenantDetail({ id }: { id: string }) {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Contrats" />
+          <CardHeader title={t("Contrats")} />
           {tenant.leases?.length ? (
             tenant.leases.map((l: any) => (
               <div key={l.id} className="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
                 <span>{l.property?.name}</span>
-                <span>{formatXOF(l.rentAmount)}</span>
+                <span>{money(l.rentAmount)}</span>
                 <LeaseStatusBadge status={l.status} />
               </div>
             ))
           ) : (
-            <p className="text-sm text-ink-muted">Aucun contrat.</p>
+            <p className="text-sm text-ink-muted">{t("Aucun contrat.")}</p>
           )}
         </Card>
 
         <Card>
-          <CardHeader title="Paiements récents" />
+          <CardHeader title={t("Paiements récents")} />
           {tenant.payments?.length ? (
             tenant.payments.map((p: any) => (
               <div key={p.id} className="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
-                <span>{new Date(p.paymentDate).toLocaleDateString("fr-FR")}</span>
-                <span>{formatXOF(p.amount)}</span>
+                <span>{new Date(p.paymentDate).toLocaleDateString(locale())}</span>
+                <span>{money(p.amount)}</span>
                 <PaymentStatusBadge status={p.status} />
               </div>
             ))
           ) : (
-            <p className="text-sm text-ink-muted">Aucun paiement.</p>
+            <p className="text-sm text-ink-muted">{t("Aucun paiement.")}</p>
           )}
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader title="Demandes de maintenance" />
+          <CardHeader title={t("Demandes de maintenance")} />
           {tenant.maintenanceRequests?.length ? (
             tenant.maintenanceRequests.map((m: any) => (
               <div key={m.id} className="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
@@ -119,7 +121,7 @@ export function TenantDetail({ id }: { id: string }) {
               </div>
             ))
           ) : (
-            <p className="text-sm text-ink-muted">Aucune demande.</p>
+            <p className="text-sm text-ink-muted">{t("Aucune demande.")}</p>
           )}
         </Card>
       </div>

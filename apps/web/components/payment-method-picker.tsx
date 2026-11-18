@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import clsx from "clsx";
 import { PAYMENT_METHOD_COLORS, PAYMENT_METHOD_LABELS, PaymentMethod } from "@ivologis/shared";
 import { PaymentLogo } from "./payment-logo";
+import { t } from "@/lib/t-spaces";
 
 export function PaymentMethodPicker({
   value,
@@ -42,7 +43,7 @@ export function PaymentMethodPicker({
               </motion.span>
             )}
             <PaymentLogo method={m} className="h-9 w-14" />
-            <span className="text-[11px] font-medium leading-tight text-ink">{PAYMENT_METHOD_LABELS[m]}</span>
+            <span className="text-[11px] font-medium leading-tight text-ink">{t(PAYMENT_METHOD_LABELS[m])}</span>
           </motion.button>
         );
       })}

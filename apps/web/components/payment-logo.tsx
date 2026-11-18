@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import { PaymentMethod } from "@ivologis/shared";
+import { t } from "@/lib/t-spaces";
 
 const LOGOS: Partial<Record<PaymentMethod, { src: string; alt: string }>> = {
   [PaymentMethod.ORANGE_MONEY]: { src: "/logos/orange-money.jpg", alt: "Orange Money" },
@@ -22,7 +25,7 @@ export function PaymentLogo({ method, className = "h-8 w-12" }: { method: Paymen
 
   return (
     <span className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-emerald-600 text-[10px] font-bold text-white ${className}`}>
-      Espèces
+      {t("Espèces")}
     </span>
   );
 }

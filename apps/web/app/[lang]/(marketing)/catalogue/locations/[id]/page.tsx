@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { toLang } from "@/lib/i18n";
+import { catalogMeta } from "@/messages/catalog-meta";
 import { RentalListingDetail } from "@/components/catalog/rental-listing-detail";
 import { fetchListing, listingMetadata, ListingJsonLd } from "@/lib/listing-seo";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string; lang: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const p = await fetchListing("rentals", (await params).id);
-  return p ? listingMetadata("rentals", p) : { title: "Logement à louer" };
+  const { id, lang } = await params;
+  const p = await fetchListing("rentals", id);
+  return p ? listingMetadata("rentals", p, toLang(lang)) : { title: catalogMeta[toLang(lang)].rentals.fallback };
 }
 
 export default async function PublicCatalogRentalDetailPage({ params }: Props) {

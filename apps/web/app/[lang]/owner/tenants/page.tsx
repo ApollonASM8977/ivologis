@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
+import { t } from "@/lib/t-spaces";
 
 interface TenantRow {
   id: string;
@@ -29,17 +30,17 @@ export default function OwnerTenantsPage() {
 
   const columns: Column<TenantRow>[] = [
     { header: "Nom", cell: (r) => <span className="font-medium text-ink">{r.fullName}</span> },
-    { header: "Téléphone", cell: (r) => r.phone },
+    { header: t("Téléphone"), cell: (r) => r.phone },
     { header: "Logement", cell: (r) => r.currentProperties?.[0]?.name ?? "-" },
     { header: "Contrat", cell: (r) => (r.leases?.[0] ? <LeaseStatusBadge status={r.leases[0].status} /> : "-") },
   ];
 
   return (
     <div>
-      <PageHeader title="Mes locataires" subtitle="Locataires occupant vos biens" />
+      <PageHeader title={t("Mes locataires")} subtitle={t("Locataires occupant vos biens")} />
 
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={UserRound} title="Aucun locataire pour le moment" />
+        <EmptyState icon={UserRound} title={t("Aucun locataire pour le moment")} />
       ) : (
         <DataTable
           columns={columns}

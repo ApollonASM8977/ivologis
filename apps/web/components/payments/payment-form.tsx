@@ -7,6 +7,7 @@ import { PaymentMethod } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { PaymentMethodPicker } from "@/components/payment-method-picker";
+import { t as tr } from "@/lib/t-spaces";
 
 export interface PaymentFormValues {
   tenantId: string;
@@ -41,9 +42,9 @@ export function PaymentForm({ loading, onSubmit }: { loading?: boolean; onSubmit
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label>Locataire</Label>
+        <Label>{tr("Locataire")}</Label>
         <Select {...register("tenantId", { required: true, onChange: (e) => onTenantChange(e.target.value) })}>
-          <option value="">Sélectionner...</option>
+          <option value="">{tr("Sélectionner...")}</option>
           {tenants?.data?.map((t: any) => (
             <option key={t.id} value={t.id}>
               {t.fullName} {t.currentProperties?.[0] ? `· ${t.currentProperties[0].name}` : ""}
@@ -54,33 +55,33 @@ export function PaymentForm({ loading, onSubmit }: { loading?: boolean; onSubmit
       </div>
 
       <div>
-        <Label>Moyen de paiement</Label>
+        <Label>{tr("Moyen de paiement")}</Label>
         <input type="hidden" {...register("method", { required: true })} />
         <PaymentMethodPicker value={selectedMethod} onChange={(m) => setValue("method", m)} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Montant (FCFA)</Label>
+          <Label>{tr("Montant (FCFA)")}</Label>
           <Input type="number" {...register("amount", { required: true, valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Mois concerné</Label>
+          <Label>{tr("Mois concerné")}</Label>
           <Input type="date" {...register("periodMonth", { required: true })} />
         </div>
         <div className="col-span-2">
-          <Label>Référence transaction</Label>
+          <Label>{tr("Référence transaction")}</Label>
           <Input {...register("transactionRef")} />
         </div>
       </div>
 
       <div>
-        <Label>Notes</Label>
+        <Label>{tr("Notes")}</Label>
         <Textarea rows={2} {...register("notes")} />
       </div>
 
       <Button type="submit" className="w-full" loading={loading}>
-        Enregistrer le paiement
+        {tr("Enregistrer le paiement")}
       </Button>
     </form>
   );

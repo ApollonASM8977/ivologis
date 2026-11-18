@@ -7,13 +7,15 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Building2, Users, UserRound, Wallet, AlertTriangle, Wrench, Plus, Download } from "lucide-react";
 import { api } from "@/lib/api";
-import { formatXOF } from "@ivologis/shared";
+
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { t } from "@/lib/t-spaces";
+import { money } from "@/lib/t";
 
 const RevenueAreaChart = dynamic(() => import("@/components/charts/revenue-area-chart"), {
   ssr: false,
@@ -42,18 +44,18 @@ export default function AdminDashboardPage() {
   return (
     <div>
       <PageHeader
-        title="Tableau de bord"
-        subtitle="Vue d'ensemble de l'activité IVOLOGIS"
+        title={t("Tableau de bord")}
+        subtitle={t("Vue d'ensemble de l'activité IVOLOGIS")}
         action={
           <div className="flex gap-2">
             <Link href="/admin/properties?new=1">
               <Button size="sm">
-                <Plus className="h-4 w-4" /> Ajouter un bien
+                <Plus className="h-4 w-4" />{" "}{t("Ajouter un bien")}
               </Button>
             </Link>
             <a href={`${process.env.NEXT_PUBLIC_API_URL}/api/payments/export`} target="_blank">
               <Button size="sm" variant="secondary">
-                <Download className="h-4 w-4" /> Exporter
+                <Download className="h-4 w-4" />{" "}{t("Exporter")}
               </Button>
             </a>
           </div>
@@ -65,33 +67,33 @@ export default function AdminDashboardPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Biens au total" value={data.totalProperties} icon={Building2} hint={`${data.occupied} loués · ${data.vacant} vacants`} />
-            <StatCard label="Revenus du mois" value={formatXOF(data.monthlyRevenue)} icon={Wallet} tone="success" />
-            <StatCard label="Paiements en retard" value={data.overdueCount} icon={AlertTriangle} tone="danger" />
-            <StatCard label="Maintenance ouverte" value={data.openMaintenanceCount} icon={Wrench} tone="warning" />
+            <StatCard label={t("Biens au total")} value={data.totalProperties} icon={Building2} hint={t("{0} loués · {1} vacants", data.occupied, data.vacant)} />
+            <StatCard label={t("Revenus du mois")} value={money(data.monthlyRevenue)} icon={Wallet} tone="success" />
+            <StatCard label={t("Paiements en retard")} value={data.overdueCount} icon={AlertTriangle} tone="danger" />
+            <StatCard label={t("Maintenance ouverte")} value={data.openMaintenanceCount} icon={Wrench} tone="warning" />
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Propriétaires" value={data.ownersCount} icon={Users} />
-            <StatCard label="Locataires" value={data.tenantsCount} icon={UserRound} />
-            <StatCard label="Taux d'occupation" value={`${data.occupancyRate}%`} icon={Building2} tone="primary" />
+            <StatCard label={t("Propriétaires")} value={data.ownersCount} icon={Users} />
+            <StatCard label={t("Locataires")} value={data.tenantsCount} icon={UserRound} />
+            <StatCard label={t("Taux d'occupation")} value={`${data.occupancyRate}%`} icon={Building2} tone="primary" />
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
-              <CardHeader title="Revenus mensuels" subtitle="6 derniers mois, paiements confirmés" />
+              <CardHeader title={t("Revenus mensuels")} subtitle={t("6 derniers mois, paiements confirmés")} />
               <div className="h-72">
                 <RevenueAreaChart data={data.revenueChart} gradientId="revenue" />
               </div>
             </Card>
 
             <Card>
-              <CardHeader title="Actions rapides" />
+              <CardHeader title={t("Actions rapides")} />
               <div className="space-y-2">
-                <Link href="/admin/properties?new=1"><Button variant="secondary" className="w-full justify-start">Ajouter un bien</Button></Link>
-                <Link href="/admin/owners?new=1"><Button variant="secondary" className="w-full justify-start">Ajouter un propriétaire</Button></Link>
-                <Link href="/admin/tenants?new=1"><Button variant="secondary" className="w-full justify-start">Ajouter un locataire</Button></Link>
-                <Link href="/admin/payments"><Button variant="secondary" className="w-full justify-start">Voir les transactions</Button></Link>
+                <Link href="/admin/properties?new=1"><Button variant="secondary" className="w-full justify-start">{t("Ajouter un bien")}</Button></Link>
+                <Link href="/admin/owners?new=1"><Button variant="secondary" className="w-full justify-start">{t("Ajouter un propriétaire")}</Button></Link>
+                <Link href="/admin/tenants?new=1"><Button variant="secondary" className="w-full justify-start">{t("Ajouter un locataire")}</Button></Link>
+                <Link href="/admin/payments"><Button variant="secondary" className="w-full justify-start">{t("Voir les transactions")}</Button></Link>
               </div>
             </Card>
           </div>

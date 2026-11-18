@@ -4,13 +4,15 @@ import { DocumentLink } from "@/components/document-link";
 import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, FileType as FileTypeIcon } from "lucide-react";
 import { api, fileUrl } from "@/lib/api";
-import { formatXOF, SIGNATURE_STATUS_LABELS, LEASE_TYPE_LABELS } from "@ivologis/shared";
+import { SIGNATURE_STATUS_LABELS, LEASE_TYPE_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 export default function TenantLeasePage() {
   const { data, isLoading } = useQuery({
@@ -24,55 +26,55 @@ export default function TenantLeasePage() {
   if (!lease) {
     return (
       <div>
-        <PageHeader title="Mon contrat" />
-        <EmptyState icon={FileText} title="Aucun contrat actif" />
+        <PageHeader title={t("Mon contrat")} />
+        <EmptyState icon={FileText} title={t("Aucun contrat actif")} />
       </div>
     );
   }
 
   return (
     <div>
-      <PageHeader title="Mon contrat de bail" subtitle={lease.contractNumber} />
+      <PageHeader title={t("Mon contrat de bail")} subtitle={lease.contractNumber} />
 
       <Card className="max-w-2xl">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <LeaseStatusBadge status={lease.status} />
-            <Badge color="blue">{LEASE_TYPE_LABELS[lease.type as keyof typeof LEASE_TYPE_LABELS]}</Badge>
+            <Badge color="blue">{t(LEASE_TYPE_LABELS[lease.type as keyof typeof LEASE_TYPE_LABELS])}</Badge>
           </div>
-          <span className="text-sm text-ink-muted">{SIGNATURE_STATUS_LABELS[lease.signatureStatus as keyof typeof SIGNATURE_STATUS_LABELS]}</span>
+          <span className="text-sm text-ink-muted">{t(SIGNATURE_STATUS_LABELS[lease.signatureStatus as keyof typeof SIGNATURE_STATUS_LABELS])}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-ink-muted">Bien</p>
+            <p className="text-ink-muted">{t("Bien")}</p>
             <p className="font-medium text-ink">{lease.property?.name}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Propriétaire</p>
+            <p className="text-ink-muted">{t("Propriétaire")}</p>
             <p className="font-medium text-ink">{lease.owner?.fullName}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Date de début</p>
-            <p className="font-medium text-ink">{new Date(lease.startDate).toLocaleDateString("fr-FR")}</p>
+            <p className="text-ink-muted">{t("Date de début")}</p>
+            <p className="font-medium text-ink">{new Date(lease.startDate).toLocaleDateString(locale())}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Date de fin</p>
-            <p className="font-medium text-ink">{new Date(lease.endDate).toLocaleDateString("fr-FR")}</p>
+            <p className="text-ink-muted">{t("Date de fin")}</p>
+            <p className="font-medium text-ink">{new Date(lease.endDate).toLocaleDateString(locale())}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Loyer mensuel</p>
-            <p className="font-medium text-ink">{formatXOF(lease.rentAmount)}</p>
+            <p className="text-ink-muted">{t("Loyer mensuel")}</p>
+            <p className="font-medium text-ink">{money(lease.rentAmount)}</p>
           </div>
           <div>
-            <p className="text-ink-muted">Caution</p>
-            <p className="font-medium text-ink">{formatXOF(lease.deposit)}</p>
+            <p className="text-ink-muted">{t("Caution")}</p>
+            <p className="font-medium text-ink">{money(lease.deposit)}</p>
           </div>
         </div>
 
         {lease.specialConditions && (
           <div className="mt-4">
-            <p className="text-sm text-ink-muted">Conditions particulières</p>
+            <p className="text-sm text-ink-muted">{t("Conditions particulières")}</p>
             <p className="text-sm text-ink">{lease.specialConditions}</p>
           </div>
         )}
@@ -82,14 +84,14 @@ export default function TenantLeasePage() {
             {lease.documentUrl && (
               <DocumentLink path={lease.documentUrl}>
                 <Button size="sm">
-                  <Download className="h-4 w-4" /> PDF
+                  <Download className="h-4 w-4" />{" "}{t("PDF")}
                 </Button>
               </DocumentLink>
             )}
             {lease.wordUrl && (
               <DocumentLink path={lease.wordUrl}>
                 <Button size="sm" variant="secondary">
-                  <FileTypeIcon className="h-4 w-4" /> Word
+                  <FileTypeIcon className="h-4 w-4" />{" "}{t("Word")}
                 </Button>
               </DocumentLink>
             )}

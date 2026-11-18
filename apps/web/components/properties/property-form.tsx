@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { t as tr } from "@/lib/t-spaces";
 
 export interface PropertyFormValues {
   name: string;
@@ -74,9 +75,9 @@ export function PropertyForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {showOwnerField && (
         <div>
-          <Label>Propriétaire</Label>
+          <Label>{tr("Propriétaire")}</Label>
           <Select {...register("ownerId", { required: true })}>
-            <option value="">Sélectionner...</option>
+            <option value="">{tr("Sélectionner...")}</option>
             {owners?.data?.map((o: any) => (
               <option key={o.id} value={o.id}>
                 {o.fullName}
@@ -87,33 +88,33 @@ export function PropertyForm({
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <SectionTitle>Informations générales</SectionTitle>
+        <SectionTitle>{tr("Informations générales")}</SectionTitle>
         <div className="col-span-2">
-          <Label>Nom du bien</Label>
-          <Input placeholder="Ex : Villa Riviera 3" {...register("name", { required: true })} />
+          <Label>{tr("Nom du bien")}</Label>
+          <Input placeholder={tr("Ex : Villa Riviera 3")} {...register("name", { required: true })} />
         </div>
         <div>
-          <Label>Type</Label>
+          <Label>{tr("Type")}</Label>
           <Select {...register("type", { required: true })}>
             {Object.values(PropertyType).map((t) => (
               <option key={t} value={t}>
-                {PROPERTY_TYPE_LABELS[t]}
+                {tr(PROPERTY_TYPE_LABELS[t])}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <Label>Année de construction</Label>
+          <Label>{tr("Année de construction")}</Label>
           <Input type="number" placeholder="Ex : 2018" {...register("yearBuilt", { valueAsNumber: true })} />
         </div>
         <div className="col-span-2">
-          <Label>Description</Label>
-          <Textarea rows={2} placeholder="Points forts, ambiance du quartier..." {...register("description")} />
+          <Label>{tr("Description")}</Label>
+          <Textarea rows={2} placeholder={tr("Points forts, ambiance du quartier...")} {...register("description")} />
         </div>
 
-        <SectionTitle>Localisation précise</SectionTitle>
+        <SectionTitle>{tr("Localisation précise")}</SectionTitle>
         <div>
-          <Label>Ville</Label>
+          <Label>{tr("Ville")}</Label>
           <Select {...register("city")}>
             {VILLES_CI.map((v) => (
               <option key={v} value={v}>
@@ -123,7 +124,7 @@ export function PropertyForm({
           </Select>
         </div>
         <div>
-          <Label>Commune</Label>
+          <Label>{tr("Commune")}</Label>
           {city === "Abidjan" ? (
             <Select {...register("commune", { required: true })}>
               {COMMUNES_ABIDJAN.map((c) => (
@@ -133,59 +134,59 @@ export function PropertyForm({
               ))}
             </Select>
           ) : (
-            <Input placeholder="Commune ou localité" {...register("commune", { required: true })} />
+            <Input placeholder={tr("Commune ou localité")} {...register("commune", { required: true })} />
           )}
         </div>
         <div>
-          <Label>Quartier</Label>
-          <Input placeholder="Ex : Riviera 3, Angré 8e Tranche, Zone 4" {...register("neighborhood")} />
+          <Label>{tr("Quartier")}</Label>
+          <Input placeholder={tr("Ex : Riviera 3, Angré 8e Tranche, Zone 4")} {...register("neighborhood")} />
         </div>
         <div>
-          <Label>Repère / point de repère</Label>
-          <Input placeholder="Ex : face à la pharmacie, derrière l'école..." {...register("landmark")} />
+          <Label>{tr("Repère / point de repère")}</Label>
+          <Input placeholder={tr("Ex : face à la pharmacie, derrière l'école...")} {...register("landmark")} />
         </div>
         <div className="col-span-2">
-          <Label>Adresse complète</Label>
-          <Input placeholder="Rue, lot, îlot..." {...register("address", { required: true })} />
+          <Label>{tr("Adresse complète")}</Label>
+          <Input placeholder={tr("Rue, lot, îlot...")} {...register("address", { required: true })} />
         </div>
         <div>
-          <Label>Latitude (optionnel)</Label>
+          <Label>{tr("Latitude (optionnel)")}</Label>
           <Input type="number" step="0.000001" placeholder="Ex : 5.363000" {...register("latitude", { valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Longitude (optionnel)</Label>
+          <Label>{tr("Longitude (optionnel)")}</Label>
           <Input type="number" step="0.000001" placeholder="Ex : -3.956000" {...register("longitude", { valueAsNumber: true })} />
         </div>
 
-        <SectionTitle>Caractéristiques</SectionTitle>
+        <SectionTitle>{tr("Caractéristiques")}</SectionTitle>
         <div>
-          <Label>Pièces</Label>
+          <Label>{tr("Pièces")}</Label>
           <Input type="number" {...register("rooms", { valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Chambres</Label>
+          <Label>{tr("Chambres")}</Label>
           <Input type="number" {...register("bedrooms", { valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Douches</Label>
+          <Label>{tr("Douches")}</Label>
           <Input type="number" {...register("bathrooms", { valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Surface (m²)</Label>
+          <Label>{tr("Surface (m²)")}</Label>
           <Input type="number" {...register("surfaceM2", { valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Étage</Label>
-          <Input type="number" placeholder="0 = rez-de-chaussée" {...register("floor", { valueAsNumber: true })} />
+          <Label>{tr("Étage")}</Label>
+          <Input type="number" placeholder={tr("0 = rez-de-chaussée")} {...register("floor", { valueAsNumber: true })} />
         </div>
         <div className="flex items-end pb-2.5">
           <label className="flex items-center gap-2 text-sm font-medium text-ink">
             <input type="checkbox" className="h-4 w-4 rounded border-gray-300" {...register("furnished")} />
-            Bien meublé
+            {tr("Bien meublé")}
           </label>
         </div>
 
-        <SectionTitle>Équipements</SectionTitle>
+        <SectionTitle>{tr("Équipements")}</SectionTitle>
         <div className="col-span-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {PROPERTY_AMENITIES.map((a) => (
             <label key={a} className="flex items-center gap-2 text-sm text-ink">
@@ -195,38 +196,38 @@ export function PropertyForm({
           ))}
         </div>
 
-        <SectionTitle>Finances</SectionTitle>
+        <SectionTitle>{tr("Finances")}</SectionTitle>
         <div>
-          <Label>Loyer mensuel (FCFA)</Label>
+          <Label>{tr("Loyer mensuel (FCFA)")}</Label>
           <Input type="number" {...register("rentAmount", { required: true, valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Caution (FCFA)</Label>
+          <Label>{tr("Caution (FCFA)")}</Label>
           <Input type="number" {...register("deposit", { valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Avance (FCFA)</Label>
+          <Label>{tr("Avance (FCFA)")}</Label>
           <Input type="number" {...register("advance", { valueAsNumber: true })} />
         </div>
 
-        <SectionTitle>Location courte durée</SectionTitle>
+        <SectionTitle>{tr("Location courte durée")}</SectionTitle>
         <div className="col-span-2 flex items-center gap-2">
           <label className="flex items-center gap-2 text-sm font-medium text-ink">
             <input type="checkbox" className="h-4 w-4 rounded border-gray-300" {...register("shortStayEnabled")} />
-            Proposer ce bien en courte durée (séjours à la nuitée)
+            {tr("Proposer ce bien en courte durée (séjours à la nuitée)")}
           </label>
         </div>
         {shortStayEnabled && (
           <div>
-            <Label>Tarif par nuitée (FCFA)</Label>
+            <Label>{tr("Tarif par nuitée (FCFA)")}</Label>
             <Input type="number" {...register("shortStayNightlyRate", { valueAsNumber: true })} />
           </div>
         )}
 
-        <SectionTitle>Visite virtuelle</SectionTitle>
+        <SectionTitle>{tr("Visite virtuelle")}</SectionTitle>
         <div className="col-span-2">
-          <Label>Lien visite virtuelle 360° (optionnel)</Label>
-          <Input placeholder="Lien Matterport, Kuula, ou autre visite 360°..." {...register("virtualTourUrl")} />
+          <Label>{tr("Lien visite virtuelle 360° (optionnel)")}</Label>
+          <Input placeholder={tr("Lien Matterport, Kuula, ou autre visite 360°...")} {...register("virtualTourUrl")} />
         </div>
 
         {isStaff && (
@@ -234,8 +235,8 @@ export function PropertyForm({
             <label className="flex items-start gap-2 text-sm text-ink">
               <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-gray-300" {...register("isDemo")} />
               <span>
-                Annonce de démonstration (bien fictif)
-                <span className="block text-xs text-ink-muted">Affiche un bandeau « Démo » et bloque toute demande de visite ou de réservation.</span>
+                {tr("Annonce de démonstration (bien fictif)")}
+                <span className="block text-xs text-ink-muted">{tr("Affiche un bandeau « Démo » et bloque toute demande de visite ou de réservation.")}</span>
               </span>
             </label>
           </div>
@@ -243,7 +244,7 @@ export function PropertyForm({
       </div>
 
       <Button type="submit" className="w-full" loading={loading}>
-        {submitLabel}
+        {tr(submitLabel)}
       </Button>
     </form>
   );

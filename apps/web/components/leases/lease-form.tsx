@@ -4,9 +4,11 @@ import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { api } from "@/lib/api";
-import { LeaseType, LEASE_TYPE_LABELS, LEASE_TYPE_DESCRIPTIONS, formatXOF } from "@ivologis/shared";
+import { LeaseType, LEASE_TYPE_LABELS, LEASE_TYPE_DESCRIPTIONS } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { t as tr } from "@/lib/t-spaces";
+import { money } from "@/lib/t";
 
 interface LeaseFormFields {
   type: LeaseType;
@@ -158,11 +160,11 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-4">
       <div>
-        <Label>Type de contrat</Label>
+        <Label>{tr("Type de contrat")}</Label>
         <Select {...register("type", { required: true })}>
           {Object.values(LeaseType).map((t) => (
             <option key={t} value={t}>
-              {LEASE_TYPE_LABELS[t]}
+              {tr(LEASE_TYPE_LABELS[t])}
             </option>
           ))}
         </Select>
@@ -170,9 +172,9 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
       </div>
 
       <div>
-        <Label>Bien (vacant uniquement)</Label>
+        <Label>{tr("Bien (vacant uniquement)")}</Label>
         <Select {...register("propertyId", { required: true, onChange: (e) => onPropertyChange(e.target.value) })}>
-          <option value="">Sélectionner...</option>
+          <option value="">{tr("Sélectionner...")}</option>
           {properties?.data?.map((p: any) => (
             <option key={p.id} value={p.id}>
               {p.name} · {p.commune}
@@ -181,9 +183,9 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
         </Select>
       </div>
       <div>
-        <Label>Locataire</Label>
+        <Label>{tr("Locataire")}</Label>
         <Select {...register("tenantId", { required: true })}>
-          <option value="">Sélectionner...</option>
+          <option value="">{tr("Sélectionner...")}</option>
           {tenants?.data?.map((t: any) => (
             <option key={t.id} value={t.id}>
               {t.fullName}
@@ -193,32 +195,32 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="lf-start">Date de début</Label>
+          <Label htmlFor="lf-start">{tr("Date de début")}</Label>
           <Input id="lf-start" type="date" {...register("startDate", { required: true })} />
         </div>
         <div>
-          <Label htmlFor="lf-end">Date de fin</Label>
+          <Label htmlFor="lf-end">{tr("Date de fin")}</Label>
           <Input
             id="lf-end"
             type="date"
             min={watch("startDate") || undefined}
             {...register("endDate", {
               required: true,
-              validate: (end) => !getValues("startDate") || end > getValues("startDate") || "La fin doit être après le début.",
+              validate: (end) => !getValues("startDate") || end > getValues("startDate") || tr("La fin doit être après le début."),
             })}
           />
           {formState.errors.endDate?.message && <p className="mt-1 text-xs text-danger">{formState.errors.endDate.message}</p>}
         </div>
         <div>
-          <Label>Loyer (FCFA)</Label>
+          <Label>{tr("Loyer (FCFA)")}</Label>
           <Input type="number" {...register("rentAmount", { required: true, valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Caution (FCFA)</Label>
+          <Label>{tr("Caution (FCFA)")}</Label>
           <Input type="number" {...register("deposit", { required: true, valueAsNumber: true })} />
         </div>
         <div className="col-span-2">
-          <Label>Avance (FCFA)</Label>
+          <Label>{tr("Avance (FCFA)")}</Label>
           <Input type="number" {...register("advance", { required: true, valueAsNumber: true })} />
         </div>
       </div>
@@ -228,12 +230,10 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <p>
             {depositExceeds && advanceExceeds
-              ? "La caution et l'avance dépassent toutes les deux 2 mois de loyer"
+              ? tr("La caution et l'avance dépassent toutes les deux 2 mois de loyer")
               : depositExceeds
-                ? "La caution dépasse 2 mois de loyer"
-                : "L'avance dépasse 2 mois de loyer"}{" "}
-            ({formatXOF(depositCeiling)} maximum par poste). Le Code de la construction et de l&apos;habitat (loi n° 2019-576)
-            plafonne la caution et l&apos;avance à 2 mois de loyer chacune pour un bail d&apos;habitation : le contrat ne pourra pas être enregistré.
+                ? tr("La caution dépasse 2 mois de loyer")
+                : tr("L'avance dépasse 2 mois de loyer")}{" "}{tr("({0} maximum par poste). Le Code de la construction et de l'habitat (loi n° 2019-576) plafonne la caution et l'avance à 2 mois de loyer chacune pour un bail d'habitation : le contrat ne pourra pas être enregistré.", money(depositCeiling))}
           </p>
         </div>
       )}
@@ -241,36 +241,36 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
       {/* --- Champs dynamiques selon le type de contrat --- */}
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-primary">
-          Détails spécifiques du bail ({LEASE_TYPE_LABELS[type]})
+          {tr("Détails spécifiques du bail ({0})", LEASE_TYPE_LABELS[type])}
         </p>
 
         {HABITATION_TYPES.includes(type) && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Nombre d&apos;occupants max.</Label>
+              <Label>{tr("Nombre d'occupants max.")}</Label>
               <Input type="number" {...register("occupantsCount", { valueAsNumber: true })} />
             </div>
             <div>
-              <Label>Préavis de résiliation (mois)</Label>
+              <Label>{tr("Préavis de résiliation (mois)")}</Label>
               <Input type="number" {...register("noticePeriodMonths", { valueAsNumber: true })} />
             </div>
             {type === LeaseType.HABITATION_MEUBLEE && (
               <div className="col-span-2">
-                <Label>Inventaire du mobilier</Label>
-                <Textarea rows={2} placeholder="Ex : salon complet, lit, climatiseur, cuisinière..." {...register("furnitureInventory")} />
+                <Label>{tr("Inventaire du mobilier")}</Label>
+                <Textarea rows={2} placeholder={tr("Ex : salon complet, lit, climatiseur, cuisinière...")} {...register("furnitureInventory")} />
               </div>
             )}
-            <p className="col-span-2 mt-1 text-xs font-medium text-ink-muted">Garant / caution solidaire (optionnel)</p>
+            <p className="col-span-2 mt-1 text-xs font-medium text-ink-muted">{tr("Garant / caution solidaire (optionnel)")}</p>
             <div className="col-span-2">
-              <Label>Nom du garant</Label>
+              <Label>{tr("Nom du garant")}</Label>
               <Input {...register("guarantorName")} />
             </div>
             <div>
-              <Label>Téléphone du garant</Label>
+              <Label>{tr("Téléphone du garant")}</Label>
               <Input {...register("guarantorPhone")} />
             </div>
             <div>
-              <Label>Adresse du garant</Label>
+              <Label>{tr("Adresse du garant")}</Label>
               <Input {...register("guarantorAddress")} />
             </div>
           </div>
@@ -279,20 +279,20 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
         {type === LeaseType.COMMERCIAL && (
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <Label>Activité commerciale exercée</Label>
-              <Input placeholder="Ex : vente de vêtements, restauration..." {...register("businessActivity", { required: true })} />
+              <Label>{tr("Activité commerciale exercée")}</Label>
+              <Input placeholder={tr("Ex : vente de vêtements, restauration...")} {...register("businessActivity", { required: true })} />
             </div>
             <div>
-              <Label>Enseigne commerciale</Label>
+              <Label>{tr("Enseigne commerciale")}</Label>
               <Input {...register("tradeName")} />
             </div>
             <div>
-              <Label>Droit au bail / pas-de-porte (FCFA)</Label>
+              <Label>{tr("Droit au bail / pas-de-porte (FCFA)")}</Label>
               <Input type="number" {...register("pasDePorte", { valueAsNumber: true })} />
             </div>
             <label className="col-span-2 flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" className="h-4 w-4 rounded border-gray-300" {...register("renewalTacite")} />
-              Renouvellement tacite (bail commercial 3-6-9)
+              {tr("Renouvellement tacite (bail commercial 3-6-9)")}
             </label>
           </div>
         )}
@@ -300,12 +300,12 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
         {type === LeaseType.PROFESSIONNEL && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Profession exercée</Label>
-              <Input placeholder="Ex : avocat, médecin, consultant..." {...register("profession", { required: true })} />
+              <Label>{tr("Profession exercée")}</Label>
+              <Input placeholder={tr("Ex : avocat, médecin, consultant...")} {...register("profession", { required: true })} />
             </div>
             <div>
-              <Label>Ordre professionnel / agrément</Label>
-              <Input placeholder="Optionnel" {...register("professionalOrder")} />
+              <Label>{tr("Ordre professionnel / agrément")}</Label>
+              <Input placeholder={tr("Optionnel")} {...register("professionalOrder")} />
             </div>
           </div>
         )}
@@ -313,27 +313,27 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
         {type === LeaseType.TERRAIN && (
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <Label>Usage prévu du terrain</Label>
-              <Input placeholder="Ex : construction résidentielle, stockage..." {...register("landUse", { required: true })} />
+              <Label>{tr("Usage prévu du terrain")}</Label>
+              <Input placeholder={tr("Ex : construction résidentielle, stockage...")} {...register("landUse", { required: true })} />
             </div>
             <div className="col-span-2">
-              <Label>Référence titre foncier / ACD / lettre d&apos;attribution</Label>
+              <Label>{tr("Référence titre foncier / ACD / lettre d'attribution")}</Label>
               <Input {...register("titleReference")} />
             </div>
             <label className="col-span-2 flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" className="h-4 w-4 rounded border-gray-300" {...register("constructionPermitRequired")} />
-              Autorisation de construire requise avant toute construction
+              {tr("Autorisation de construire requise avant toute construction")}
             </label>
           </div>
         )}
       </div>
 
       <div>
-        <Label>Conditions particulières</Label>
+        <Label>{tr("Conditions particulières")}</Label>
         <Textarea rows={2} {...register("specialConditions")} />
       </div>
       <Button type="submit" className="w-full" loading={loading}>
-        Créer le contrat
+        {tr("Créer le contrat")}
       </Button>
     </form>
   );

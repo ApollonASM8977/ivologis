@@ -12,6 +12,8 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Langue du site (pas celle du navigateur) : l'API répond et produit ses documents dans cette langue.
+  if (typeof document !== "undefined") config.headers["Accept-Language"] = document.documentElement.lang === "en" ? "en" : "fr";
   return config;
 });
 
@@ -35,7 +37,10 @@ export function apiErrorMessage(error: unknown): string {
     if (Array.isArray(message)) return message.join(" ");
     if (typeof message === "string") return message;
   }
-  return "Une erreur est survenue. Veuillez réessayer.";
+  // Pas de réponse (réseau coupé, serveur qui se réveille) : message dans la langue du site.
+  return typeof document !== "undefined" && document.documentElement.lang === "en"
+    ? "Something went wrong. Please try again."
+    : "Une erreur est survenue. Veuillez réessayer.";
 }
 
 export function fileUrl(path?: string | null): string | undefined {

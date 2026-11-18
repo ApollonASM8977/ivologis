@@ -3,6 +3,7 @@
 import { AlertTriangle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { t } from "@/lib/t-ui";
 
 export function ConfirmDialog({
   open,
@@ -37,10 +38,10 @@ export function ConfirmDialog({
       </div>
       <div className="mt-6 flex justify-end gap-2">
         <Button variant="ghost" onClick={onClose} disabled={loading}>
-          {cancelLabel}
+          {t(cancelLabel)}
         </Button>
         <Button variant={danger ? "danger" : "primary"} loading={loading} onClick={onConfirm}>
-          {confirmLabel}
+          {t(confirmLabel)}
         </Button>
       </div>
     </Modal>

@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
-import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { formatMoney, translator, type Lang } from "@/lib/i18n";
+import { LABELS_EN } from "@/messages/en/labels";
 import { siteUrl } from "@/lib/site";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export type ListingKind = "sales" | "rentals" | "short-stay";
 const ROUTE: Record<ListingKind, string> = { sales: "sales", rentals: "locations", "short-stay": "short-stay" };
-const DEAL: Record<ListingKind, string> = { sales: "à vendre", rentals: "à louer", "short-stay": "en location meublée" };
+const DEAL: Record<Lang, Record<ListingKind, string>> = {
+  fr: { sales: "à vendre", rentals: "à louer", "short-stay": "en location meublée" },
+  en: { sales: "for sale", rentals: "for rent", "short-stay": "furnished, short stay" },
+};
 
 /** Lecture serveur d'une annonce publique (sans compter de visite). null si l'API dort ou si l'annonce n'existe plus. */
 export async function fetchListing(kind: ListingKind, id: string): Promise<any | null> {
@@ -62,9 +67,9 @@ function price(kind: ListingKind, p: any) {
   return Number(p.shortStayNightlyRate ?? 0);
 }
 
-function priceText(kind: ListingKind, p: any) {
-  const suffix = kind === "rentals" ? " / mois" : kind === "short-stay" ? " / nuit" : "";
-  return `${formatXOF(price(kind, p))}${suffix}`;
+function priceText(kind: ListingKind, p: any, lang: Lang) {
+  const suffix = kind === "rentals" ? (lang === "en" ? " / month" : " / mois") : kind === "short-stay" ? (lang === "en" ? " / night" : " / nuit") : "";
+  return `${formatMoney(price(kind, p), lang)}${suffix}`;
 }
 
 function absoluteImage(url?: string) {
@@ -80,10 +85,13 @@ export function listingPath(kind: ListingKind, id: string) {
   return `/catalogue/${ROUTE[kind]}/${id}`;
 }
 
-export function listingMetadata(kind: ListingKind, p: any): Metadata {
-  const type = PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS] ?? "Bien";
-  const title = `${p.name} — ${priceText(kind, p)}`;
-  const summary = `${type} ${DEAL[kind]} à ${place(p)}${p.rooms ? `, ${p.rooms} pièces` : ""}${p.surfaceM2 ? `, ${Number(p.surfaceM2)} m²` : ""} : ${priceText(kind, p)}.`;
+export function listingMetadata(kind: ListingKind, p: any, lang: Lang): Metadata {
+  const tr = translator(lang, LABELS_EN);
+  const type = tr(PROPERTY_TYPE_LABELS[p.type as keyof typeof PROPERTY_TYPE_LABELS] ?? "Bien");
+  const title = `${p.name} — ${priceText(kind, p, lang)}`;
+  const rooms = p.rooms ? (lang === "en" ? `, ${p.rooms} rooms` : `, ${p.rooms} pièces`) : "";
+  const where = lang === "en" ? "in" : "à";
+  const summary = `${type} ${DEAL[lang][kind]} ${where} ${place(p)}${rooms}${p.surfaceM2 ? `, ${Number(p.surfaceM2)} m²` : ""}${lang === "en" ? ":" : " :"} ${priceText(kind, p, lang)}.`;
   const description = (p.description ? `${summary} ${p.description}` : summary).slice(0, 160);
   const cover = p.images?.find((i: any) => i.isCover) ?? p.images?.[0];
   const url = `${siteUrl}${listingPath(kind, p.id)}`;

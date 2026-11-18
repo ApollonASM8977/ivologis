@@ -1,9 +1,11 @@
 "use client";
 
 import { CalendarRange } from "lucide-react";
-import { formatXOF } from "@ivologis/shared";
+
 import { CatalogList } from "@/components/catalog/catalog-list";
 import type { CatalogPage } from "@/lib/listing-seo";
+import { t } from "@/lib/t-catalog";
+import { money } from "@/lib/t";
 
 export function ShortStayCatalog({ basePath, initialData, initialQs }: { basePath: string; initialData?: CatalogPage | null; initialQs?: string }) {
   return (
@@ -12,12 +14,12 @@ export function ShortStayCatalog({ basePath, initialData, initialQs }: { basePat
       basePath={basePath}
       initialData={initialData}
       initialQs={initialQs}
-      title="Résidences meublées en courte durée"
-      subtitle="Séjours à la nuitée, disponibilités en ligne, publication validée par l'agence"
+      title={t("Résidences meublées en courte durée")}
+      subtitle={t("Séjours à la nuitée, disponibilités en ligne, publication validée par l'agence")}
       icon={CalendarRange}
-      emptyTitle="Aucune résidence disponible pour le moment"
-      priceLabel="Prix / nuit"
-      price={(p) => (p.shortStayNightlyRate ? `${formatXOF(Number(p.shortStayNightlyRate))} / nuit` : "Tarif sur demande")}
+      emptyTitle={t("Aucune résidence disponible pour le moment")}
+      priceLabel={t("Prix / nuit")}
+      price={(p) => (p.shortStayNightlyRate ? `${money(Number(p.shortStayNightlyRate))} / nuit` : t("Tarif sur demande"))}
     />
   );
 }

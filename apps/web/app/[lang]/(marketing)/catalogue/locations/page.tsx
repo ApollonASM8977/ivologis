@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { toLang } from "@/lib/i18n";
+import { catalogMeta } from "@/messages/catalog-meta";
 import { fetchCatalogPage, toQueryString } from "@/lib/listing-seo";
 import { RentalsCatalog } from "@/components/catalog/rentals-catalog";
 
-export const metadata: Metadata = {
-  title: "Appartements et maisons à louer à Abidjan",
-  description: "Logements à louer au mois à Abidjan : loyer, avance et caution affichés, frais d'agence encadrés. Demandez une visite sans créer de compte.",
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const m = catalogMeta[toLang((await params).lang)].rentals;
+  return { title: m.title, description: m.description };
+}
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 

@@ -8,8 +8,10 @@ import { useAuthStore } from "@/lib/auth-store";
 import { USER_ROLE_LABELS } from "@ivologis/shared";
 import { MobileSidebar } from "./mobile-sidebar";
 import { NotificationPanel } from "./notification-panel";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { NavItem } from "./nav-config";
 import { Avatar } from "@/components/ui/avatar";
+import { t } from "@/lib/t-spaces";
 
 export function Topbar({ navItems }: { navItems: NavItem[] }) {
   const router = useRouter();
@@ -25,13 +27,14 @@ export function Topbar({ navItems }: { navItems: NavItem[] }) {
     <>
       <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-100 bg-white/80 px-4 backdrop-blur lg:px-8">
         <div className="flex items-center gap-3">
-          <button className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Ouvrir le menu">
+          <button className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label={t("Ouvrir le menu")}>
             <Menu className="h-5 w-5 text-ink" />
           </button>
-          <span className="text-base font-bold text-primary-dark lg:hidden">IVOLOGIS</span>
+          <span className="text-base font-bold text-primary-dark lg:hidden">{t("IVOLOGIS")}</span>
         </div>
 
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
           <NotificationPanel />
 
           <div className="hidden items-center gap-3 sm:flex">
@@ -47,7 +50,7 @@ export function Topbar({ navItems }: { navItems: NavItem[] }) {
             whileTap={{ scale: 0.92 }}
             onClick={logout}
             className="rounded-full p-2 text-ink-muted hover:bg-gray-50"
-            title="Déconnexion"
+            title={t("Déconnexion")}
           >
             <LogOut className="h-5 w-5" />
           </motion.button>

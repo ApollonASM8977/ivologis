@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useId } from "react";
+import { t } from "@/lib/t-ui";
 
 /** Fenêtre modale : fondu du fond et zoom du panneau en CSS (`ivo-fade-in`, `ivo-zoom-in`), sans bibliothèque. */
 export function Modal({
@@ -38,7 +39,7 @@ export function Modal({
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 id={titleId} className="text-lg font-semibold text-ink">{title}</h2>
-          <button type="button" onClick={onClose} aria-label="Fermer" className="rounded-full p-1 text-ink-muted transition hover:rotate-90 hover:bg-gray-100">
+          <button type="button" onClick={onClose} aria-label={t("Fermer")} className="rounded-full p-1 text-ink-muted transition hover:rotate-90 hover:bg-gray-100">
             <X className="h-5 w-5" />
           </button>
         </div>

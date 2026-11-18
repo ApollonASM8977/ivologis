@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/empty-state";
 import { OwnerForm, OwnerFormValues } from "@/components/owners/owner-form";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
 import { SecurityCard } from "@/components/profile/security-card";
+import { t } from "@/lib/t-spaces";
 
 export default function OwnerProfilePage() {
   const queryClient = useQueryClient();
@@ -20,7 +21,7 @@ export default function OwnerProfilePage() {
   const updateMutation = useMutation({
     mutationFn: (values: OwnerFormValues) => api.patch(`/owners/${owner.id}`, values),
     onSuccess: () => {
-      toast.success("Profil mis à jour.");
+      toast.success(t("Profil mis à jour."));
       queryClient.invalidateQueries({ queryKey: ["owners", "me"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -30,7 +31,7 @@ export default function OwnerProfilePage() {
 
   return (
     <div>
-      <PageHeader title="Mon profil" subtitle="Vos informations personnelles" />
+      <PageHeader title={t("Mon profil")} subtitle={t("Vos informations personnelles")} />
       <Card className="mb-4 max-w-xl">
         <AvatarUploader />
       </Card>
@@ -38,12 +39,12 @@ export default function OwnerProfilePage() {
         <SecurityCard />
       </div>
       <Card className="max-w-xl">
-        <CardHeader title="Informations" />
+        <CardHeader title={t("Informations")} />
         <OwnerForm
           defaultValues={owner}
           showPassword={false}
           loading={updateMutation.isPending}
-          submitLabel="Enregistrer"
+          submitLabel={t("Enregistrer")}
           onSubmit={(values) => updateMutation.mutate(values)}
         />
       </Card>

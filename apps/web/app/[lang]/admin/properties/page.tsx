@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Building2, MapPin } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
-import { formatXOF, PROPERTY_TYPE_LABELS, PropertyStatus } from "@ivologis/shared";
+import { PROPERTY_TYPE_LABELS, PropertyStatus } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PropertyStatusBadge } from "@/components/status-badges";
 import { PropertyForm, PropertyFormValues } from "@/components/properties/property-form";
+import { t } from "@/lib/t-spaces";
+import { money } from "@/lib/t";
 
 interface PropertyRow {
   id: string;
@@ -52,7 +54,7 @@ function AdminPropertiesPageContent() {
   const createMutation = useMutation({
     mutationFn: (values: PropertyFormValues) => api.post("/properties", values),
     onSuccess: () => {
-      toast.success("Bien ajouté avec succès.");
+      toast.success(t("Bien ajouté avec succès."));
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       setModalOpen(false);
     },
@@ -72,40 +74,40 @@ function AdminPropertiesPageContent() {
       ),
     },
     { header: "Type", cell: (row) => PROPERTY_TYPE_LABELS[row.type as keyof typeof PROPERTY_TYPE_LABELS] },
-    { header: "Propriétaire", cell: (row) => row.owner?.fullName },
+    { header: t("Propriétaire"), cell: (row) => row.owner?.fullName },
     { header: "Locataire", cell: (row) => row.currentTenant?.fullName ?? "-" },
-    { header: "Loyer", cell: (row) => formatXOF(row.rentAmount) },
+    { header: "Loyer", cell: (row) => money(row.rentAmount) },
     { header: "Statut", cell: (row) => <PropertyStatusBadge status={row.status} /> },
   ];
 
   return (
     <div>
       <PageHeader
-        title="Gestion des biens"
-        subtitle="Villas, appartements, studios, terrains et plus"
+        title={t("Gestion des biens")}
+        subtitle={t("Villas, appartements, studios, terrains et plus")}
         action={
           <Button size="sm" onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4" /> Ajouter un bien
+            <Plus className="h-4 w-4" />{" "}{t("Ajouter un bien")}
           </Button>
         }
       />
 
       <div className="mb-4 flex flex-wrap gap-3">
         <Select className="w-48" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Tous les statuts</option>
-          <option value="VACANT">Vacant</option>
-          <option value="LOUE">Loué</option>
-          <option value="MAINTENANCE">En maintenance</option>
-          <option value="SUSPENDU">Suspendu</option>
+          <option value="">{t("Tous les statuts")}</option>
+          <option value="VACANT">{t("Vacant")}</option>
+          <option value="LOUE">{t("Loué")}</option>
+          <option value="MAINTENANCE">{t("En maintenance")}</option>
+          <option value="SUSPENDU">{t("Suspendu")}</option>
         </Select>
       </div>
 
       {!isLoading && data?.data?.length === 0 ? (
         <EmptyState
           icon={Building2}
-          title="Aucun bien enregistré"
-          description="Commencez par ajouter votre premier bien immobilier."
-          action={<Button onClick={() => setModalOpen(true)}>Ajouter un bien</Button>}
+          title={t("Aucun bien enregistré")}
+          description={t("Commencez par ajouter votre premier bien immobilier.")}
+          action={<Button onClick={() => setModalOpen(true)}>{t("Ajouter un bien")}</Button>}
         />
       ) : (
         <DataTable
@@ -121,7 +123,7 @@ function AdminPropertiesPageContent() {
         />
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un bien" width="max-w-2xl">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("Ajouter un bien")} width="max-w-2xl">
         <PropertyForm
           showOwnerField
           loading={createMutation.isPending}

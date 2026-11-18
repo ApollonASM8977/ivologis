@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck, Inbox, LogIn } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { formatXOF, VISIT_REQUEST_STATUS_LABELS, VISIT_REQUEST_STATUS_COLORS, SHORT_STAY_STATUS_LABELS, SHORT_STAY_STATUS_COLORS } from "@ivologis/shared";
+import { VISIT_REQUEST_STATUS_LABELS, VISIT_REQUEST_STATUS_COLORS, SHORT_STAY_STATUS_LABELS, SHORT_STAY_STATUS_COLORS } from "@ivologis/shared";
 import { useAuthStore } from "@/lib/auth-store";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
+import { t } from "@/lib/t-catalog";
+import { locale, money } from "@/lib/t";
 
 export function MyRequests() {
   const user = useAuthStore((s) => s.user);
@@ -31,15 +33,14 @@ export function MyRequests() {
   if (!user) {
     return (
       <div>
-        <PageHeader title="Mes demandes" subtitle="Vos demandes de visite (vente) et de réservation (courte durée)" />
+        <PageHeader title={t("Mes demandes")} subtitle={t("Vos demandes de visite (vente) et de réservation (courte durée)")} />
         <Card className="text-center">
           <LogIn className="mx-auto h-8 w-8 text-ink-muted" />
           <p className="mt-3 text-sm text-ink-muted">
-            Sans compte, votre demande reste suivie par référence : conservez celle qui vous a été donnée après l&apos;envoi, l&apos;agence vous recontactera directement.
-            Connectez-vous pour retrouver vos demandes ici automatiquement.
+            {t("Sans compte, votre demande reste suivie par référence : conservez celle qui vous a été donnée après l'envoi, l'agence vous recontactera directement. Connectez-vous pour retrouver vos demandes ici automatiquement.")}
           </p>
           <Link href="/login" className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">
-            Se connecter
+            {t("Se connecter")}
           </Link>
         </Card>
       </div>
@@ -48,16 +49,16 @@ export function MyRequests() {
 
   return (
     <div>
-      <PageHeader title="Mes demandes" subtitle="Vos demandes de visite (vente) et de réservation (courte durée)" />
+      <PageHeader title={t("Mes demandes")} subtitle={t("Vos demandes de visite (vente) et de réservation (courte durée)")} />
 
       {isLoading ? (
         <LoadingState />
       ) : (
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Demandes de visite" />
+            <CardHeader title={t("Demandes de visite")} />
             {!visits?.length ? (
-              <EmptyState icon={CalendarCheck} title="Aucune demande" description="Vos demandes de visite sur un bien en vente apparaîtront ici." />
+              <EmptyState icon={CalendarCheck} title={t("Aucune demande")} description={t("Vos demandes de visite sur un bien en vente apparaîtront ici.")} />
             ) : (
               <div className="space-y-2">
                 {visits.map((v) => (
@@ -66,11 +67,11 @@ export function MyRequests() {
                       <p className="truncate font-medium text-ink">{v.property?.name}</p>
                       <p className="truncate text-xs text-ink-muted">
                         {v.property?.commune}
-                        {v.scheduledDate && ` · RDV le ${new Date(v.scheduledDate).toLocaleDateString("fr-FR")}`}
+                        {v.scheduledDate && t(" · RDV le {0}", new Date(v.scheduledDate).toLocaleDateString(locale()))}
                       </p>
                     </div>
                     <Badge color={VISIT_REQUEST_STATUS_COLORS[v.status as keyof typeof VISIT_REQUEST_STATUS_COLORS]}>
-                      {VISIT_REQUEST_STATUS_LABELS[v.status as keyof typeof VISIT_REQUEST_STATUS_LABELS]}
+                      {t(VISIT_REQUEST_STATUS_LABELS[v.status as keyof typeof VISIT_REQUEST_STATUS_LABELS])}
                     </Badge>
                   </div>
                 ))}
@@ -79,9 +80,9 @@ export function MyRequests() {
           </Card>
 
           <Card>
-            <CardHeader title="Demandes de réservation courte durée" />
+            <CardHeader title={t("Demandes de réservation courte durée")} />
             {!bookings?.length ? (
-              <EmptyState icon={Inbox} title="Aucune demande" description="Vos demandes de réservation en courte durée apparaîtront ici." />
+              <EmptyState icon={Inbox} title={t("Aucune demande")} description={t("Vos demandes de réservation en courte durée apparaîtront ici.")} />
             ) : (
               <div className="space-y-2">
                 {bookings.map((b) => (
@@ -89,11 +90,11 @@ export function MyRequests() {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-ink">{b.property?.name}</p>
                       <p className="truncate text-xs text-ink-muted">
-                        {new Date(b.checkIn).toLocaleDateString("fr-FR")} → {new Date(b.checkOut).toLocaleDateString("fr-FR")}, {formatXOF(Number(b.totalAmount))}
+                        {new Date(b.checkIn).toLocaleDateString(locale())} → {new Date(b.checkOut).toLocaleDateString(locale())}, {money(Number(b.totalAmount))}
                       </p>
                     </div>
                     <Badge color={SHORT_STAY_STATUS_COLORS[b.status as keyof typeof SHORT_STAY_STATUS_COLORS]}>
-                      {SHORT_STAY_STATUS_LABELS[b.status as keyof typeof SHORT_STAY_STATUS_LABELS]}
+                      {t(SHORT_STAY_STATUS_LABELS[b.status as keyof typeof SHORT_STAY_STATUS_LABELS])}
                     </Badge>
                   </div>
                 ))}

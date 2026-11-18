@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { Avatar } from "@/components/ui/avatar";
+import { t } from "@/lib/t-spaces";
 
 const MAX_BYTES = 3 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
@@ -25,7 +26,7 @@ export function AvatarUploader() {
     onSuccess: (updated) => {
       const current = useAuthStore.getState().user;
       if (current) useAuthStore.setState({ user: { ...current, avatarUrl: updated.avatarUrl } });
-      toast.success("Photo de profil mise à jour.");
+      toast.success(t("Photo de profil mise à jour."));
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
@@ -33,11 +34,11 @@ export function AvatarUploader() {
   function onPick(file?: File) {
     if (!file) return;
     if (!ACCEPTED.includes(file.type)) {
-      toast.error("Format non supporté. Utilisez JPG, PNG ou WebP.");
+      toast.error(t("Format non supporté. Utilisez JPG, PNG ou WebP."));
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast.error("Image trop lourde (3 Mo maximum).");
+      toast.error(t("Image trop lourde (3 Mo maximum)."));
       return;
     }
     mutation.mutate(file);
@@ -51,7 +52,7 @@ export function AvatarUploader() {
         whileTap={{ scale: 0.97 }}
         onClick={() => inputRef.current?.click()}
         className="group relative rounded-full"
-        aria-label="Changer la photo de profil"
+        aria-label={t("Changer la photo de profil")}
       >
         <Avatar src={user?.avatarUrl} name={user?.fullName} size="xl" />
         <motion.span
@@ -77,13 +78,13 @@ export function AvatarUploader() {
 
       <div>
         <p className="font-semibold text-ink">{user?.fullName}</p>
-        <p className="text-sm text-ink-muted">JPG, PNG ou WebP, 3 Mo maximum.</p>
+        <p className="text-sm text-ink-muted">{t("JPG, PNG ou WebP, 3 Mo maximum.")}</p>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           className="mt-2 text-sm font-medium text-primary hover:underline"
         >
-          Changer la photo
+          {t("Changer la photo")}
         </button>
       </div>
 

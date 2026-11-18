@@ -5,6 +5,7 @@ import { DocumentType, DOCUMENT_TYPE_LABELS } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
+import { t as tr } from "@/lib/t-spaces";
 
 export interface OwnerFormValues {
   fullName: string;
@@ -50,83 +51,83 @@ export function OwnerForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <SectionTitle>Identité</SectionTitle>
+        <SectionTitle>{tr("Identité")}</SectionTitle>
         <div className="col-span-2">
-          <Label>Nom complet</Label>
-          <Input placeholder="Ex : Kouadio Jean" {...register("fullName", { required: true })} />
+          <Label>{tr("Nom complet")}</Label>
+          <Input placeholder={tr("Ex : Kouadio Jean")} {...register("fullName", { required: true })} />
         </div>
         <div>
-          <Label>Téléphone</Label>
+          <Label>{tr("Téléphone")}</Label>
           <Input placeholder="+225 07 00 00 00 00" {...register("phone", { required: true })} />
         </div>
         <div>
-          <Label>Téléphone secondaire</Label>
-          <Input placeholder="Optionnel" {...register("secondaryPhone")} />
+          <Label>{tr("Téléphone secondaire")}</Label>
+          <Input placeholder={tr("Optionnel")} {...register("secondaryPhone")} />
         </div>
         <div>
-          <Label>Email</Label>
+          <Label>{tr("Email")}</Label>
           <Input type="email" {...register("email")} />
         </div>
         <div>
-          <Label>Nationalité</Label>
+          <Label>{tr("Nationalité")}</Label>
           <Input {...register("nationality")} />
         </div>
         <div className="col-span-2">
-          <Label>Adresse</Label>
+          <Label>{tr("Adresse")}</Label>
           <Input {...register("address")} />
         </div>
 
-        <SectionTitle>Pièce d&apos;identité</SectionTitle>
+        <SectionTitle>{tr("Pièce d'identité")}</SectionTitle>
         <div>
-          <Label>Type de document</Label>
+          <Label>{tr("Type de document")}</Label>
           <Select {...register("idDocumentType")}>
-            <option value="">Non renseigné</option>
+            <option value="">{tr("Non renseigné")}</option>
             {Object.values(DocumentType).map((t) => (
               <option key={t} value={t}>
-                {DOCUMENT_TYPE_LABELS[t]}
+                {tr(DOCUMENT_TYPE_LABELS[t])}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <Label>Numéro de document</Label>
+          <Label>{tr("Numéro de document")}</Label>
           <Input {...register("idDocumentNumber")} />
         </div>
 
-        <SectionTitle>Profession / Société</SectionTitle>
+        <SectionTitle>{tr("Profession / Société")}</SectionTitle>
         <div>
-          <Label>Profession</Label>
+          <Label>{tr("Profession")}</Label>
           <Input {...register("profession")} />
         </div>
         <div>
-          <Label>Société (si applicable)</Label>
+          <Label>{tr("Société (si applicable)")}</Label>
           <Input {...register("companyName")} />
         </div>
         <div className="col-span-2">
-          <Label>N° RCCM (si société)</Label>
+          <Label>{tr("N° RCCM (si société)")}</Label>
           <Input {...register("rccmNumber")} />
         </div>
 
-        <SectionTitle>Coordonnées bancaires (reversement loyers)</SectionTitle>
+        <SectionTitle>{tr("Coordonnées bancaires (reversement loyers)")}</SectionTitle>
         <div>
-          <Label>Banque</Label>
+          <Label>{tr("Banque")}</Label>
           <Input {...register("bankName")} />
         </div>
         <div>
-          <Label>N° de compte</Label>
+          <Label>{tr("N° de compte")}</Label>
           <Input {...register("bankAccountNumber")} />
         </div>
       </div>
 
       {showPassword && (
         <div>
-          <Label>Mot de passe (optionnel, crée un accès de connexion)</Label>
-          <Input type="password" placeholder="Laisser vide si aucun accès" {...register("password")} />
+          <Label>{tr("Mot de passe (optionnel, crée un accès de connexion)")}</Label>
+          <Input type="password" placeholder={tr("Laisser vide si aucun accès")} {...register("password")} />
           <PasswordStrengthMeter password={password ?? ""} />
         </div>
       )}
       <Button type="submit" className="w-full" loading={loading}>
-        {submitLabel}
+        {tr(submitLabel)}
       </Button>
     </form>
   );

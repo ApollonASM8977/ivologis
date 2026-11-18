@@ -13,6 +13,7 @@ import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { t } from "@/lib/t-auth";
 
 interface LoginForm {
   identifier: string;
@@ -63,7 +64,7 @@ export default function LoginPage() {
       if (data.requires2fa) {
         setNeeds2fa(true);
         setLoading(false);
-        toast.message("Saisissez le code affiché dans votre application d'authentification.");
+        toast.message(t("Saisissez le code affiché dans votre application d'authentification."));
         return;
       }
       if (data.requires2faSetup) {
@@ -81,25 +82,25 @@ export default function LoginPage() {
 
   if (setup) {
     return (
-      <AuthLayout title="Sécurisez votre compte" subtitle="La double authentification est obligatoire pour les équipes IVOLOGIS">
+      <AuthLayout title={t("Sécurisez votre compte")} subtitle={t("La double authentification est obligatoire pour les équipes IVOLOGIS")}>
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
           <div className="flex gap-3 rounded-xl bg-primary/5 p-4 text-sm text-ink">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <p>Ajoutez ce compte dans Google Authenticator, Microsoft Authenticator ou Authy, avec la clé ci-dessous.</p>
+            <p>{t("Ajoutez ce compte dans Google Authenticator, Microsoft Authenticator ou Authy, avec la clé ci-dessous.")}</p>
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 font-mono text-sm tracking-widest text-ink ring-1 ring-gray-200">
             <span className="flex-1 break-all">{setup.secret}</span>
-            <button type="button" aria-label="Copier la clé" onClick={() => navigator.clipboard?.writeText(setup.secret).then(() => toast.success("Clé copiée."))} className="rounded p-1 text-ink-muted hover:bg-gray-100 hover:text-primary">
+            <button type="button" aria-label={t("Copier la clé")} onClick={() => navigator.clipboard?.writeText(setup.secret).then(() => toast.success(t("Clé copiée.")))} className="rounded p-1 text-ink-muted hover:bg-gray-100 hover:text-primary">
               <Copy className="h-4 w-4" />
             </button>
           </div>
-          <a href={setup.otpauthUrl} className="inline-block text-sm font-medium text-primary hover:underline">Ouvrir directement dans mon application</a>
+          <a href={setup.otpauthUrl} className="inline-block text-sm font-medium text-primary hover:underline">{t("Ouvrir directement dans mon application")}</a>
           <form onSubmit={confirmForm.handleSubmit(confirmSetup)} className="space-y-4">
             <div>
-              <Label htmlFor="setup-code">Code à 6 chiffres affiché dans l&apos;application</Label>
+              <Label htmlFor="setup-code">{t("Code à 6 chiffres affiché dans l'application")}</Label>
               <Input id="setup-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456" autoFocus {...confirmForm.register("code", { required: true, pattern: /^\d{6}$/ })} />
             </div>
-            <Button type="submit" className="w-full" loading={loading}>Activer et me connecter</Button>
+            <Button type="submit" className="w-full" loading={loading}>{t("Activer et me connecter")}</Button>
           </form>
         </motion.div>
       </AuthLayout>
@@ -107,7 +108,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout title="Connexion" subtitle="Accédez à votre espace IVOLOGIS">
+    <AuthLayout title={t("Connexion")} subtitle={t("Accédez à votre espace IVOLOGIS")}>
       <div className="relative">
         <AnimatePresence>
           {success && (
@@ -125,7 +126,7 @@ export default function LoginPage() {
               >
                 <Check className="h-7 w-7 text-success" strokeWidth={2.5} />
               </motion.div>
-              <p className="text-sm font-medium text-ink">Connexion réussie</p>
+              <p className="text-sm font-medium text-ink">{t("Connexion réussie")}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -133,17 +134,17 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit(onSubmit)}>
           <StaggerContainer className="space-y-4">
             <StaggerItem>
-              <Label>Email ou téléphone</Label>
+              <Label>{t("Email ou téléphone")}</Label>
               <Input placeholder="vous@exemple.ci" {...register("identifier", { required: true })} />
             </StaggerItem>
             <StaggerItem>
-              <Label>Mot de passe</Label>
+              <Label>{t("Mot de passe")}</Label>
               <Input type="password" placeholder="••••••••" {...register("password", { required: true })} />
             </StaggerItem>
 
             <StaggerItem className="flex items-center justify-end">
               <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
-                Mot de passe oublié ?
+                {t("Mot de passe oublié ?")}
               </Link>
             </StaggerItem>
 
@@ -156,7 +157,7 @@ export default function LoginPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <Label>Code de vérification (6 chiffres)</Label>
+                  <Label>{t("Code de vérification (6 chiffres)")}</Label>
                   <Input
                     inputMode="numeric"
                     autoComplete="one-time-code"
@@ -171,7 +172,7 @@ export default function LoginPage() {
 
             <StaggerItem>
               <Button type="submit" className="w-full" loading={loading}>
-                {needs2fa ? "Valider le code" : "Se connecter"}
+                {needs2fa ? t("Valider le code") : t("Se connecter")}
               </Button>
             </StaggerItem>
           </StaggerContainer>
@@ -179,9 +180,9 @@ export default function LoginPage() {
       </div>
 
       <p className="mt-6 text-center text-sm text-ink-muted">
-        Propriétaire externe sans compte ?{" "}
+        {t("Propriétaire externe sans compte ?")}{" "}
         <Link href="/register" className="font-medium text-primary hover:underline">
-          Créer un compte
+          {t("Créer un compte")}
         </Link>
       </p>
     </AuthLayout>

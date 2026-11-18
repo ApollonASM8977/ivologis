@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Archive, MapPin, Pencil, Image as ImageIcon, X, Sofa } from "lucide-react";
 import { api, apiErrorMessage, fileUrl } from "@/lib/api";
-import { formatXOF, PROPERTY_TYPE_LABELS } from "@ivologis/shared";
+import { PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -20,6 +20,8 @@ import { SaleCard } from "@/components/properties/sale-card";
 import { RentListingCard } from "@/components/properties/rent-listing-card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuthStore } from "@/lib/auth-store";
+import { t } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 export function PropertyDetail({ id, listHref, canManage = true }: { id: string; listHref: string; canManage?: boolean }) {
   const router = useRouter();
@@ -37,7 +39,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
   const updateMutation = useMutation({
     mutationFn: (values: Partial<PropertyFormValues>) => api.patch(`/properties/${id}`, values),
     onSuccess: () => {
-      toast.success("Bien mis à jour.");
+      toast.success(t("Bien mis à jour."));
       queryClient.invalidateQueries({ queryKey: ["properties", id] });
       setEditOpen(false);
     },
@@ -47,7 +49,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
   const archiveMutation = useMutation({
     mutationFn: () => api.delete(`/properties/${id}`),
     onSuccess: () => {
-      toast.success("Bien archivé.");
+      toast.success(t("Bien archivé."));
       router.push(listHref);
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -66,7 +68,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
       }
     },
     onSuccess: () => {
-      toast.success("Photo(s) ajoutée(s).");
+      toast.success(t("Photo(s) ajoutée(s)."));
       queryClient.invalidateQueries({ queryKey: ["properties", id] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -85,7 +87,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
   return (
     <div>
       <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Retour
+        <ArrowLeft className="h-4 w-4" />{" "}{t("Retour")}
       </button>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -101,10 +103,10 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
         {canEdit && (
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>
-              <Pencil className="h-4 w-4" /> Modifier
+              <Pencil className="h-4 w-4" />{" "}{t("Modifier")}
             </Button>
             <Button size="sm" variant="danger" onClick={() => setArchiveOpen(true)}>
-              <Archive className="h-4 w-4" /> Archiver
+              <Archive className="h-4 w-4" />{" "}{t("Archiver")}
             </Button>
           </div>
         )}
@@ -112,44 +114,44 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Type</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{PROPERTY_TYPE_LABELS[property.type as keyof typeof PROPERTY_TYPE_LABELS]}</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Type")}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{t(PROPERTY_TYPE_LABELS[property.type as keyof typeof PROPERTY_TYPE_LABELS])}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Propriétaire</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Propriétaire")}</p>
           <p className="mt-1 text-sm font-semibold text-ink">{property.owner?.fullName}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Locataire actuel</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{property.currentTenant?.fullName ?? "Aucun"}</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Locataire actuel")}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.currentTenant?.fullName ?? t("Aucun")}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Loyer mensuel</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{formatXOF(property.rentAmount)}</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Loyer mensuel")}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{money(property.rentAmount)}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Caution</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{formatXOF(property.deposit)}</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Caution")}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{money(property.deposit)}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Surface</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Surface")}</p>
           <p className="mt-1 text-sm font-semibold text-ink">{property.surfaceM2 ? `${property.surfaceM2} m²` : "-"}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Étage</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{property.floor !== null && property.floor !== undefined ? (property.floor === 0 ? "Rez-de-chaussée" : `${property.floor}e étage`) : "-"}</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Étage")}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.floor !== null && property.floor !== undefined ? (property.floor === 0 ? t("Rez-de-chaussée") : t("{0}e étage", property.floor)) : "-"}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-ink-muted">Année de construction</p>
+          <p className="text-xs font-medium uppercase text-ink-muted">{t("Année de construction")}</p>
           <p className="mt-1 text-sm font-semibold text-ink">{property.yearBuilt ?? "-"}</p>
         </Card>
         <Card>
-          <p className="flex items-center gap-1 text-xs font-medium uppercase text-ink-muted"><Sofa className="h-3.5 w-3.5" /> Meublé</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{property.furnished ? "Oui" : "Non"}</p>
+          <p className="flex items-center gap-1 text-xs font-medium uppercase text-ink-muted"><Sofa className="h-3.5 w-3.5" />{" "}{t("Meublé")}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{property.furnished ? t("Oui") : t("Non")}</p>
         </Card>
         {property.landmark && (
           <Card className="sm:col-span-2 lg:col-span-3">
-            <p className="text-xs font-medium uppercase text-ink-muted">Repère</p>
+            <p className="text-xs font-medium uppercase text-ink-muted">{t("Repère")}</p>
             <p className="mt-1 text-sm font-semibold text-ink">{property.landmark}</p>
           </Card>
         )}
@@ -157,7 +159,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
 
       {!!property.amenities?.length && (
         <Card className="mt-4">
-          <CardHeader title="Équipements" />
+          <CardHeader title={t("Équipements")} />
           <div className="flex flex-wrap gap-2">
             {property.amenities.map((a: string) => (
               <Badge key={a} color="blue">{a}</Badge>
@@ -168,7 +170,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
 
       <Card className="mt-4">
         <CardHeader
-          title="Photos"
+          title={t("Photos")}
           action={
             <label className="cursor-pointer text-sm font-medium text-primary hover:underline">
               <input
@@ -178,7 +180,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
                 className="hidden"
                 onChange={(e) => e.target.files?.length && uploadMutation.mutate(e.target.files)}
               />
-              + Ajouter des photos
+              {t("+ Ajouter des photos")}
             </label>
           }
         />
@@ -189,13 +191,13 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
                 <Image src={fileUrl(img.url) ?? ""} alt={property.name} fill sizes="(min-width: 640px) 25vw, 50vw" className="object-cover" />
                 {img.isCover && (
                   <span className="absolute left-1.5 top-1.5 rounded bg-primary/90 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                    Couverture
+                    {t("Couverture")}
                   </span>
                 )}
                 <button
                   onClick={() => deleteImageMutation.mutate(img.id)}
                   className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                  title="Supprimer"
+                  title={t("Supprimer")}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -204,7 +206,7 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
           </div>
         ) : (
           <div className="flex items-center gap-2 text-sm text-ink-muted">
-            <ImageIcon className="h-4 w-4" /> Aucune photo pour ce bien.
+            <ImageIcon className="h-4 w-4" />{" "}{t("Aucune photo pour ce bien.")}
           </div>
         )}
       </Card>
@@ -224,24 +226,24 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Historique des paiements" />
+          <CardHeader title={t("Historique des paiements")} />
           <div className="space-y-2">
             {property.payments?.length ? (
               property.payments.map((p: any) => (
                 <div key={p.id} className="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
-                  <span>{new Date(p.paymentDate).toLocaleDateString("fr-FR")}</span>
-                  <span className="font-medium">{formatXOF(p.amount)}</span>
+                  <span>{new Date(p.paymentDate).toLocaleDateString(locale())}</span>
+                  <span className="font-medium">{money(p.amount)}</span>
                   <PaymentStatusBadge status={p.status} />
                 </div>
               ))
             ) : (
-              <p className="text-sm text-ink-muted">Aucun paiement enregistré.</p>
+              <p className="text-sm text-ink-muted">{t("Aucun paiement enregistré.")}</p>
             )}
           </div>
         </Card>
 
         <Card>
-          <CardHeader title="Historique de maintenance" />
+          <CardHeader title={t("Historique de maintenance")} />
           <div className="space-y-2">
             {property.maintenanceRequests?.length ? (
               property.maintenanceRequests.map((m: any) => (
@@ -251,17 +253,17 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
                 </div>
               ))
             ) : (
-              <p className="text-sm text-ink-muted">Aucune demande de maintenance.</p>
+              <p className="text-sm text-ink-muted">{t("Aucune demande de maintenance.")}</p>
             )}
           </div>
         </Card>
       </div>
 
-      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Modifier le bien" width="max-w-2xl">
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title={t("Modifier le bien")} width="max-w-2xl">
         <PropertyForm
           defaultValues={property}
           loading={updateMutation.isPending}
-          submitLabel="Mettre à jour"
+          submitLabel={t("Mettre à jour")}
           onSubmit={(values) => updateMutation.mutate(values)}
         />
       </Modal>
@@ -269,9 +271,9 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
       <ConfirmDialog
         open={archiveOpen}
         danger
-        title="Archiver ce bien ?"
-        message={`« ${property.name} » disparaîtra de la liste des biens et de toutes les annonces publiques. Son historique (baux, paiements, quittances) est conservé.`}
-        confirmLabel="Archiver"
+        title={t("Archiver ce bien ?")}
+        message={t("« {0} » disparaîtra de la liste des biens et de toutes les annonces publiques. Son historique (baux, paiements, quittances) est conservé.", property.name)}
+        confirmLabel={t("Archiver")}
         loading={archiveMutation.isPending}
         onConfirm={() => archiveMutation.mutate()}
         onClose={() => setArchiveOpen(false)}

@@ -7,7 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, CalendarCheck, CheckCircle2 } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
-import { formatXOF } from "@ivologis/shared";
+
 import { useAuthStore } from "@/lib/auth-store";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import { LoadingState } from "@/components/ui/empty-state";
 import { CountUp } from "@/components/dashboard/count-up";
 import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel, PhotoGallery } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
+import { t } from "@/lib/t-catalog";
+import { locale, money } from "@/lib/t";
 
 interface RequestForm {
   checkIn: string;
@@ -57,10 +59,10 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
-  if (isLoading || !property) return <LoadingState hint="Premier chargement : jusqu'à une minute si le site était inactif." />;
+  if (isLoading || !property) return <LoadingState hint={t("Premier chargement : jusqu'à une minute si le site était inactif.")} />;
 
   const bookings: any[] = property.shortStayBookings ?? [];
-  const monthLabel = monthCursor.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const monthLabel = monthCursor.toLocaleDateString(locale(), { month: "long", year: "numeric" });
   const firstDay = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
   const startOffset = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 0).getDate();
@@ -83,7 +85,7 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
   return (
     <div className="stagger-children">
       <Link href={basePath} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Retour au catalogue
+        <ArrowLeft className="h-4 w-4" />{" "}{t("Retour au catalogue")}
       </Link>
 
       {property.isDemo && <DemoNotice />}
@@ -98,7 +100,7 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
           </p>
         </div>
         <p className="text-2xl font-bold text-primary">
-          <CountUp value={Number(property.shortStayNightlyRate ?? 0)} format={formatXOF} />/nuit
+          <CountUp value={Number(property.shortStayNightlyRate ?? 0)} format={money} />{t("/nuit")}
         </p>
       </div>
 
@@ -106,7 +108,7 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
 
       {property.description && (
         <Card className="mt-4">
-          <CardHeader title="Description" />
+          <CardHeader title={t("Description")} />
           <p className="text-sm leading-relaxed text-ink-muted">{property.description}</p>
         </Card>
       )}
@@ -115,7 +117,7 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
       <VirtualTourCard url={property.virtualTourUrl} />
 
       <Card className="mt-4">
-        <CardHeader title="Disponibilités" />
+        <CardHeader title={t("Disponibilités")} />
         <div className="mb-3 flex items-center justify-between">
           <button type="button" onClick={() => setMonthCursor((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))} className="rounded p-1 text-ink-muted hover:bg-gray-100">
             ‹
@@ -147,25 +149,25 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
         </div>
         <div className="mt-3 flex gap-4 text-xs text-ink-muted">
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-danger/80" /> Réservé
+            <span className="h-2.5 w-2.5 rounded-full bg-danger/80" />{" "}{t("Réservé")}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-warning/70" /> Demande en attente
+            <span className="h-2.5 w-2.5 rounded-full bg-warning/70" />{" "}{t("Demande en attente")}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-gray-200" /> Libre
+            <span className="h-2.5 w-2.5 rounded-full bg-gray-200" />{" "}{t("Libre")}
           </span>
         </div>
       </Card>
 
       <Button className="mt-6" onClick={() => setModalOpen(true)} disabled={property.isDemo}>
-        <CalendarCheck className="h-4 w-4" /> Demander une réservation
+        <CalendarCheck className="h-4 w-4" />{" "}{t("Demander une réservation")}
       </Button>
-      {property.isDemo && <p className="mt-2 text-xs text-ink-muted">Indisponible sur une annonce de démonstration.</p>}
+      {property.isDemo && <p className="mt-2 text-xs text-ink-muted">{t("Indisponible sur une annonce de démonstration.")}</p>}
       <p className="mt-3 text-xs text-ink-muted">
-        Ne payez rien avant la confirmation écrite de l&apos;agence, et uniquement à l&apos;agence.{" "}
+        {t("Ne payez rien avant la confirmation écrite de l'agence, et uniquement à l'agence.")}{" "}
         <Link href="/verification" className="font-medium text-primary hover:underline">
-          Comment nous vérifions les annonces
+          {t("Comment nous vérifions les annonces")}
         </Link>
       </p>
 
@@ -175,63 +177,63 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
           setModalOpen(false);
           setReference(null);
         }}
-        title="Demande de réservation"
+        title={t("Demande de réservation")}
       >
         {reference ? (
           <div className="space-y-3 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
-            <p className="text-sm text-ink">Votre demande a bien été envoyée. Vous serez prévenu dès confirmation par l&apos;agence ou le propriétaire.</p>
+            <p className="text-sm text-ink">{t("Votre demande a bien été envoyée. Vous serez prévenu dès confirmation par l'agence ou le propriétaire.")}</p>
             <p className="rounded-lg bg-surface px-3 py-2 text-sm">
-              Référence à conserver : <span className="font-mono font-semibold text-ink">{reference}</span>
+              {t("Référence à conserver :")}{" "}<span className="font-mono font-semibold text-ink">{reference}</span>
             </p>
             <Button className="w-full" onClick={() => { setModalOpen(false); setReference(null); }}>
-              Fermer
+              {t("Fermer")}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
             <p className="text-sm text-ink-muted">
-              Vous recevrez une confirmation une fois la demande validée par l&apos;agence ou le propriétaire. Le paiement n&apos;est pas en ligne : les modalités vous seront communiquées à la confirmation.
+              {t("Vous recevrez une confirmation une fois la demande validée par l'agence ou le propriétaire. Le paiement n'est pas en ligne : les modalités vous seront communiquées à la confirmation.")}
             </p>
             <HoneypotField registration={register("website")} />
             {!user && (
               <>
                 <div>
-                  <Label>Nom complet</Label>
+                  <Label>{t("Nom complet")}</Label>
                   <Input {...register("guestName", { required: true })} />
                 </div>
                 <div>
-                  <Label>Téléphone</Label>
+                  <Label>{t("Téléphone")}</Label>
                   <Input {...register("guestPhone", { required: true })} />
                 </div>
                 <div>
-                  <Label>Email (optionnel)</Label>
+                  <Label>{t("Email (optionnel)")}</Label>
                   <Input type="email" {...register("guestEmail")} />
                 </div>
               </>
             )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Arrivée</Label>
+                <Label>{t("Arrivée")}</Label>
                 <Input type="date" {...register("checkIn", { required: true })} />
               </div>
               <div>
-                <Label>Départ</Label>
+                <Label>{t("Départ")}</Label>
                 <Input type="date" {...register("checkOut", { required: true })} />
               </div>
             </div>
             {!!user && (
               <div>
-                <Label>Téléphone (optionnel)</Label>
+                <Label>{t("Téléphone (optionnel)")}</Label>
                 <Input {...register("guestPhone")} />
               </div>
             )}
             <div>
-              <Label>Message (optionnel)</Label>
+              <Label>{t("Message (optionnel)")}</Label>
               <Textarea rows={2} {...register("notes")} />
             </div>
             <Button type="submit" className="w-full" loading={mutation.isPending}>
-              Envoyer la demande
+              {t("Envoyer la demande")}
             </Button>
           </form>
         )}

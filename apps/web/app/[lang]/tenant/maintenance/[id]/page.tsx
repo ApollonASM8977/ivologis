@@ -12,6 +12,7 @@ import { LoadingState } from "@/components/ui/empty-state";
 import { MaintenanceStatusBadge } from "@/components/status-badges";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 import { MaintenancePhotos, MaintenanceThread, timeLabel } from "@/components/maintenance/maintenance-thread";
+import { t } from "@/lib/t-spaces";
 
 export default function TenantMaintenanceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,15 +25,15 @@ export default function TenantMaintenanceDetailPage() {
   if (isLoading || !request) return <LoadingState />;
 
   const steps = [
-    { done: true, icon: Clock, label: "Demande reçue par l'agence", date: request.createdAt },
-    { done: !!request.technician || request.status !== "RECU", icon: HardHat, label: request.technician ? `Intervenant : ${request.technician.fullName}` : "Prise en charge", date: null },
-    { done: request.status === "RESOLU", icon: CheckCircle2, label: request.status === "REJETE" ? "Demande non retenue" : "Problème résolu", date: request.resolvedAt },
+    { done: true, icon: Clock, label: t("Demande reçue par l'agence"), date: request.createdAt },
+    { done: !!request.technician || request.status !== "RECU", icon: HardHat, label: request.technician ? `Intervenant : ${request.technician.fullName}` : t("Prise en charge"), date: null },
+    { done: request.status === "RESOLU", icon: CheckCircle2, label: request.status === "REJETE" ? t("Demande non retenue") : t("Problème résolu"), date: request.resolvedAt },
   ];
 
   return (
     <div>
       <Link href="/tenant/maintenance" className="mb-4 inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Mes demandes
+        <ArrowLeft className="h-4 w-4" />{" "}{t("Mes demandes")}
       </Link>
 
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
@@ -41,10 +42,10 @@ export default function TenantMaintenanceDetailPage() {
             <div>
               <h1 className="flex items-center gap-2 text-xl font-semibold text-ink">
                 <Wrench className="h-5 w-5 text-primary" />
-                {MAINTENANCE_ISSUE_LABELS[request.issueType as keyof typeof MAINTENANCE_ISSUE_LABELS]}
+                {t(MAINTENANCE_ISSUE_LABELS[request.issueType as keyof typeof MAINTENANCE_ISSUE_LABELS])}
               </h1>
               <p className="mt-1 text-sm text-ink-muted">
-                {request.property?.name} · Priorité {MAINTENANCE_PRIORITY_LABELS[request.priority as keyof typeof MAINTENANCE_PRIORITY_LABELS]?.toLowerCase()}
+                {t("{0} · Priorité {1}", request.property?.name, MAINTENANCE_PRIORITY_LABELS[request.priority as keyof typeof MAINTENANCE_PRIORITY_LABELS]?.toLowerCase())}
               </p>
             </div>
             <MaintenanceStatusBadge status={request.status} />
@@ -60,7 +61,7 @@ export default function TenantMaintenanceDetailPage() {
         <StaggerContainer className="space-y-4">
           <StaggerItem>
             <Card>
-              <CardHeader title="Suivi" />
+              <CardHeader title={t("Suivi")} />
               <ol className="relative space-y-4 border-l border-gray-200 pl-6">
                 {steps.map((s, i) => (
                   <motion.li key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.08 }} className="relative">
@@ -69,7 +70,7 @@ export default function TenantMaintenanceDetailPage() {
                     >
                       <s.icon className="h-3 w-3" />
                     </span>
-                    <p className={`text-sm font-medium ${s.done ? "text-ink" : "text-ink-muted"}`}>{s.label}</p>
+                    <p className={`text-sm font-medium ${s.done ? "text-ink" : "text-ink-muted"}`}>{t(s.label)}</p>
                     {s.date && <p className="text-xs text-ink-muted">{timeLabel(s.date)}</p>}
                   </motion.li>
                 ))}
@@ -79,7 +80,7 @@ export default function TenantMaintenanceDetailPage() {
           {request.adminComment && (
             <StaggerItem>
               <Card className="bg-primary/5">
-                <p className="text-xs font-semibold text-primary">Note de l&apos;agence</p>
+                <p className="text-xs font-semibold text-primary">{t("Note de l'agence")}</p>
                 <p className="mt-1 whitespace-pre-line text-sm text-ink">{request.adminComment}</p>
               </Card>
             </StaggerItem>

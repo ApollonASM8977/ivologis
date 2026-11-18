@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { Input, Label } from "@/components/ui/input";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
+import { t as tr } from "@/lib/t-spaces";
 
 interface Technician {
   id: string;
@@ -41,7 +42,7 @@ export default function AdminTechniciansPage() {
   const createMutation = useMutation({
     mutationFn: (values: TechnicianForm) => api.post("/technicians", values),
     onSuccess: () => {
-      toast.success("Technicien ajouté.");
+      toast.success(tr("Technicien ajouté."));
       queryClient.invalidateQueries({ queryKey: ["technicians"] });
       setOpen(false);
       reset();
@@ -52,11 +53,11 @@ export default function AdminTechniciansPage() {
   return (
     <div>
       <PageHeader
-        title="Techniciens"
-        subtitle="Prestataires disponibles pour les interventions de maintenance"
+        title={tr("Techniciens")}
+        subtitle={tr("Prestataires disponibles pour les interventions de maintenance")}
         action={
           <Button size="sm" onClick={() => setOpen(true)}>
-            <Plus className="h-4 w-4" /> Ajouter un technicien
+            <Plus className="h-4 w-4" />{" "}{tr("Ajouter un technicien")}
           </Button>
         }
       />
@@ -64,7 +65,7 @@ export default function AdminTechniciansPage() {
       {isLoading ? (
         <LoadingState />
       ) : data?.length === 0 ? (
-        <EmptyState icon={HardHat} title="Aucun technicien enregistré" action={<Button onClick={() => setOpen(true)}>Ajouter un technicien</Button>} />
+        <EmptyState icon={HardHat} title={tr("Aucun technicien enregistré")} action={<Button onClick={() => setOpen(true)}>{tr("Ajouter un technicien")}</Button>} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data?.map((t, i) => (
@@ -97,22 +98,22 @@ export default function AdminTechniciansPage() {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Ajouter un technicien">
+      <Modal open={open} onClose={() => setOpen(false)} title={tr("Ajouter un technicien")}>
         <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} className="space-y-4">
           <div>
-            <Label>Nom complet</Label>
+            <Label>{tr("Nom complet")}</Label>
             <Input {...register("fullName", { required: true })} />
           </div>
           <div>
-            <Label>Téléphone</Label>
+            <Label>{tr("Téléphone")}</Label>
             <Input placeholder="+225 07 00 00 00 00" {...register("phone", { required: true })} />
           </div>
           <div>
-            <Label>Spécialité</Label>
-            <Input placeholder="Ex : Plomberie, Électricité..." {...register("specialty")} />
+            <Label>{tr("Spécialité")}</Label>
+            <Input placeholder={tr("Ex : Plomberie, Électricité...")} {...register("specialty")} />
           </div>
           <Button type="submit" className="w-full" loading={createMutation.isPending}>
-            Ajouter
+            {tr("Ajouter")}
           </Button>
         </form>
       </Modal>

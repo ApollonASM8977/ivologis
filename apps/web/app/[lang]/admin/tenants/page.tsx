@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LeaseStatusBadge } from "@/components/status-badges";
 import { TenantForm, TenantFormValues } from "@/components/tenants/tenant-form";
 import { SearchInput, useDebouncedValue } from "@/components/ui/search-input";
+import { t } from "@/lib/t-spaces";
 
 interface TenantRow {
   id: string;
@@ -50,7 +51,7 @@ function AdminTenantsPageContent() {
   const createMutation = useMutation({
     mutationFn: (values: TenantFormValues) => api.post("/tenants", values),
     onSuccess: () => {
-      toast.success("Locataire ajouté.");
+      toast.success(t("Locataire ajouté."));
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       setModalOpen(false);
     },
@@ -59,8 +60,8 @@ function AdminTenantsPageContent() {
 
   const columns: Column<TenantRow>[] = [
     { header: "Nom", cell: (r) => <span className="font-medium text-ink">{r.fullName}</span> },
-    { header: "Téléphone", cell: (r) => r.phone },
-    { header: "Logement actuel", cell: (r) => r.currentProperties?.[0]?.name ?? "Aucun" },
+    { header: t("Téléphone"), cell: (r) => r.phone },
+    { header: t("Logement actuel"), cell: (r) => r.currentProperties?.[0]?.name ?? "Aucun" },
     {
       header: "Contrat",
       cell: (r) => (r.leases?.[0] ? <LeaseStatusBadge status={r.leases[0].status} /> : "-"),
@@ -70,15 +71,15 @@ function AdminTenantsPageContent() {
   return (
     <div>
       <PageHeader
-        title="Locataires"
-        subtitle="Tous les locataires gérés par IVOLOGIS"
+        title={t("Locataires")}
+        subtitle={t("Tous les locataires gérés par IVOLOGIS")}
         action={
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4" /> Importer CSV
+              <Upload className="h-4 w-4" />{" "}{t("Importer CSV")}
             </Button>
             <Button size="sm" onClick={() => setModalOpen(true)}>
-              <Plus className="h-4 w-4" /> Ajouter un locataire
+              <Plus className="h-4 w-4" />{" "}{t("Ajouter un locataire")}
             </Button>
           </div>
         }
@@ -91,12 +92,12 @@ function AdminTenantsPageContent() {
             setSearch(v);
             setPage(1);
           }}
-          placeholder="Rechercher par nom ou téléphone…"
+          placeholder={t("Rechercher par nom ou téléphone…")}
         />
       </div>
 
       {!isLoading && data?.data?.length === 0 ? (
-        <EmptyState icon={UserRound} title={debouncedSearch ? "Aucun résultat" : "Aucun locataire"} description={debouncedSearch ? `Aucun locataire ne correspond à « ${debouncedSearch} ».` : undefined} action={<Button onClick={() => setModalOpen(true)}>Ajouter un locataire</Button>} />
+        <EmptyState icon={UserRound} title={debouncedSearch ? t("Aucun résultat") : t("Aucun locataire")} description={debouncedSearch ? t("Aucun locataire ne correspond à « {0} ».", debouncedSearch) : undefined} action={<Button onClick={() => setModalOpen(true)}>{t("Ajouter un locataire")}</Button>} />
       ) : (
         <DataTable
           columns={columns}
@@ -113,7 +114,7 @@ function AdminTenantsPageContent() {
 
       <ImportTenantsDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un locataire" width="max-w-2xl">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("Ajouter un locataire")} width="max-w-2xl">
         <TenantForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
       </Modal>
     </div>

@@ -7,17 +7,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { Phone, MessageCircle, Check, X as XIcon, CalendarCheck, CalendarRange, Inbox } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
-import {
-  formatXOF,
-  SHORT_STAY_STATUS_COLORS,
-  SHORT_STAY_STATUS_LABELS,
-  VISIT_REQUEST_STATUS_COLORS,
-  VISIT_REQUEST_STATUS_LABELS,
-} from "@ivologis/shared";
+import { SHORT_STAY_STATUS_COLORS, SHORT_STAY_STATUS_LABELS, VISIT_REQUEST_STATUS_COLORS, VISIT_REQUEST_STATUS_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
+import { t as tr } from "@/lib/t-spaces";
+import { locale, money } from "@/lib/t";
 
 type Tab = "visits" | "bookings";
 const VISIT_FILTERS = [
@@ -31,13 +27,13 @@ const waNumber = (phone: string) => {
   const digits = phone.replace(/\D/g, "");
   return digits.length === 10 ? `225${digits}` : digits;
 };
-const day = (d?: string | null) => (d ? new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }) : null);
+const day = (d?: string | null) => (d ? new Date(d).toLocaleDateString(locale(), { day: "2-digit", month: "short" }) : null);
 
 function ContactButtons({ phone, text }: { phone?: string | null; text: string }) {
   if (!phone) return null;
   return (
     <div className="flex gap-1.5">
-      <a href={`tel:${phone.replace(/\s/g, "")}`} title="Appeler" className="rounded-lg border border-gray-200 p-1.5 text-ink-muted hover:border-primary/40 hover:text-primary">
+      <a href={`tel:${phone.replace(/\s/g, "")}`} title={tr("Appeler")} className="rounded-lg border border-gray-200 p-1.5 text-ink-muted hover:border-primary/40 hover:text-primary">
         <Phone className="h-4 w-4" />
       </a>
       <a
@@ -76,7 +72,7 @@ export default function AdminRequestsPage() {
   const decideVisit = useMutation({
     mutationFn: ({ id, accept }: { id: string; accept: boolean }) => api.patch(`/visit-requests/${id}/${accept ? "confirm" : "refuse"}`, {}),
     onSuccess: (_r, { accept }) => {
-      toast.success(accept ? "Visite confirmée. Pensez à appeler le client pour fixer l'heure." : "Demande refusée.");
+      toast.success(accept ? tr("Visite confirmée. Pensez à appeler le client pour fixer l'heure.") : tr("Demande refusée."));
       queryClient.invalidateQueries({ queryKey: ["visit-requests"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -84,20 +80,20 @@ export default function AdminRequestsPage() {
   const decideBooking = useMutation({
     mutationFn: ({ id, accept }: { id: string; accept: boolean }) => api.patch(`/short-stay-bookings/${id}/${accept ? "confirm" : "refuse"}`, {}),
     onSuccess: (_r, { accept }) => {
-      toast.success(accept ? "Réservation confirmée." : "Demande de réservation refusée.");
+      toast.success(accept ? tr("Réservation confirmée.") : tr("Demande de réservation refusée."));
       queryClient.invalidateQueries({ queryKey: ["short-stay-bookings"] });
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
 
   const tabs: { key: Tab; label: string; icon: typeof Inbox; count: number }[] = [
-    { key: "visits", label: "Demandes de visite", icon: CalendarCheck, count: pendingVisits.data?.length ?? 0 },
-    { key: "bookings", label: "Réservations", icon: CalendarRange, count: pendingBookings },
+    { key: "visits", label: tr("Demandes de visite"), icon: CalendarCheck, count: pendingVisits.data?.length ?? 0 },
+    { key: "bookings", label: tr("Réservations"), icon: CalendarRange, count: pendingBookings },
   ];
 
   return (
     <div>
-      <PageHeader title="Demandes clients" subtitle="Visites et réservations envoyées depuis le site public, à traiter rapidement" />
+      <PageHeader title={tr("Demandes clients")} subtitle={tr("Visites et réservations envoyées depuis le site public, à traiter rapidement")} />
 
       <div role="tablist" className="mb-5 flex gap-2 border-b border-gray-200">
         {tabs.map((t) => (
@@ -109,7 +105,7 @@ export default function AdminRequestsPage() {
             className={`relative flex items-center gap-2 px-4 pb-3 pt-2 text-sm font-semibold transition-colors ${tab === t.key ? "text-primary" : "text-ink-muted hover:text-ink"}`}
           >
             <t.icon className="h-4 w-4" />
-            {t.label}
+            {tr(t.label)}
             <AnimatePresence>
               {t.count > 0 && (
                 <motion.span
@@ -136,14 +132,14 @@ export default function AdminRequestsPage() {
                 onClick={() => setStatus(f.value)}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${status === f.value ? "bg-primary text-white" : "bg-white text-ink-muted ring-1 ring-gray-200 hover:text-ink"}`}
               >
-                {f.label}
+                {tr(f.label)}
               </button>
             ))}
           </div>
           {visits.isLoading ? (
             <LoadingState />
           ) : !visits.data?.length ? (
-            <EmptyState icon={Inbox} title="Aucune demande ici" description="Les demandes de visite envoyées depuis le catalogue apparaîtront ici, avec une notification." />
+            <EmptyState icon={Inbox} title={tr("Aucune demande ici")} description={tr("Les demandes de visite envoyées depuis le catalogue apparaîtront ici, avec une notification.")} />
           ) : (
             <StaggerContainer key={status} className="space-y-3">
               {visits.data.map((v) => {
@@ -155,26 +151,26 @@ export default function AdminRequestsPage() {
                       <div className="min-w-0">
                         <p className="font-semibold text-ink">
                           {name}
-                          {!v.user && <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-muted">sans compte</span>}
+                          {!v.user && <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-muted">{tr("sans compte")}</span>}
                         </p>
                         <p className="mt-0.5 text-sm text-ink-muted">
                           <Link href={`/admin/properties/${v.property.id}`} className="font-medium text-primary hover:underline">
                             {v.property.name}
                           </Link>{" "}
-                          · {v.property.commune} · {v.property.forSale ? "Vente" : "Location"}
-                          {v.property.isDemo && " · démo"}
+                          · {v.property.commune} · {v.property.forSale ? tr("Vente") : tr("Location")}
+                          {v.property.isDemo && tr(" · démo")}
                         </p>
                         <p className="mt-1 text-xs text-ink-muted">
-                          Reçue le {day(v.createdAt)}
-                          {v.preferredDate && ` · souhaitée le ${day(v.preferredDate)}`} · réf. {v.reference}
+                          {tr("Reçue le")}{" "}{day(v.createdAt)}
+                          {v.preferredDate && tr(" · souhaitée le {0}", day(v.preferredDate))}{" "}{tr("· réf. {0}", v.reference)}
                         </p>
                         {v.message && <p className="mt-1.5 rounded-lg bg-surface px-3 py-2 text-sm text-ink">« {v.message} »</p>}
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <Badge color={VISIT_REQUEST_STATUS_COLORS[v.status as keyof typeof VISIT_REQUEST_STATUS_COLORS]}>
-                          {VISIT_REQUEST_STATUS_LABELS[v.status as keyof typeof VISIT_REQUEST_STATUS_LABELS]}
+                          {tr(VISIT_REQUEST_STATUS_LABELS[v.status as keyof typeof VISIT_REQUEST_STATUS_LABELS])}
                         </Badge>
-                        <ContactButtons phone={phone} text={`Bonjour ${name}, c'est l'agence IVOLOGIS au sujet de votre demande de visite (réf. ${v.reference}) pour « ${v.property.name} ».`} />
+                        <ContactButtons phone={phone} text={tr("Bonjour {0}, c'est l'agence IVOLOGIS au sujet de votre demande de visite (réf. {1}) pour « {2} ».", name, v.reference, v.property.name)} />
                         {v.status === "EN_ATTENTE" && (
                           <div className="flex gap-1.5">
                             <button
@@ -182,14 +178,14 @@ export default function AdminRequestsPage() {
                               disabled={decideVisit.isPending}
                               className="flex items-center gap-1 rounded-lg bg-success/10 px-2.5 py-1 text-xs font-semibold text-success hover:bg-success/20 disabled:opacity-50"
                             >
-                              <Check className="h-3.5 w-3.5" /> Confirmer
+                              <Check className="h-3.5 w-3.5" />{" "}{tr("Confirmer")}
                             </button>
                             <button
                               onClick={() => decideVisit.mutate({ id: v.id, accept: false })}
                               disabled={decideVisit.isPending}
                               className="flex items-center gap-1 rounded-lg bg-danger/10 px-2.5 py-1 text-xs font-semibold text-danger hover:bg-danger/20 disabled:opacity-50"
                             >
-                              <XIcon className="h-3.5 w-3.5" /> Refuser
+                              <XIcon className="h-3.5 w-3.5" />{" "}{tr("Refuser")}
                             </button>
                           </div>
                         )}
@@ -207,7 +203,7 @@ export default function AdminRequestsPage() {
         (bookings.isLoading ? (
           <LoadingState />
         ) : !bookings.data?.length ? (
-          <EmptyState icon={CalendarRange} title="Aucune réservation à venir" description="Les demandes de séjour envoyées depuis le catalogue apparaîtront ici." />
+          <EmptyState icon={CalendarRange} title={tr("Aucune réservation à venir")} description={tr("Les demandes de séjour envoyées depuis le catalogue apparaîtront ici.")} />
         ) : (
           <StaggerContainer className="space-y-3">
             {bookings.data.map((b) => (
@@ -219,16 +215,16 @@ export default function AdminRequestsPage() {
                       <Link href={`/admin/properties/${b.property.id}`} className="font-medium text-primary hover:underline">
                         {b.property.name}
                       </Link>{" "}
-                      · du {day(b.checkIn)} au {day(b.checkOut)} · {formatXOF(Number(b.totalAmount))}
+                      · du {day(b.checkIn)} au {day(b.checkOut)} · {money(Number(b.totalAmount))}
                     </p>
-                    <p className="mt-1 text-xs text-ink-muted">réf. {b.reference}</p>
+                    <p className="mt-1 text-xs text-ink-muted">{tr("réf. {0}", b.reference)}</p>
                     {b.notes && <p className="mt-1.5 rounded-lg bg-surface px-3 py-2 text-sm text-ink">« {b.notes} »</p>}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <Badge color={SHORT_STAY_STATUS_COLORS[b.status as keyof typeof SHORT_STAY_STATUS_COLORS]}>
-                      {SHORT_STAY_STATUS_LABELS[b.status as keyof typeof SHORT_STAY_STATUS_LABELS]}
+                      {tr(SHORT_STAY_STATUS_LABELS[b.status as keyof typeof SHORT_STAY_STATUS_LABELS])}
                     </Badge>
-                    <ContactButtons phone={b.guestPhone} text={`Bonjour ${b.guestName}, c'est l'agence IVOLOGIS au sujet de votre demande de réservation (réf. ${b.reference}).`} />
+                    <ContactButtons phone={b.guestPhone} text={tr("Bonjour {0}, c'est l'agence IVOLOGIS au sujet de votre demande de réservation (réf. {1}).", b.guestName, b.reference)} />
                     {b.status === "EN_ATTENTE" && (
                       <div className="flex gap-1.5">
                         <button
@@ -236,14 +232,14 @@ export default function AdminRequestsPage() {
                           disabled={decideBooking.isPending}
                           className="flex items-center gap-1 rounded-lg bg-success/10 px-2.5 py-1 text-xs font-semibold text-success hover:bg-success/20 disabled:opacity-50"
                         >
-                          <Check className="h-3.5 w-3.5" /> Confirmer
+                          <Check className="h-3.5 w-3.5" />{" "}{tr("Confirmer")}
                         </button>
                         <button
                           onClick={() => decideBooking.mutate({ id: b.id, accept: false })}
                           disabled={decideBooking.isPending}
                           className="flex items-center gap-1 rounded-lg bg-danger/10 px-2.5 py-1 text-xs font-semibold text-danger hover:bg-danger/20 disabled:opacity-50"
                         >
-                          <XIcon className="h-3.5 w-3.5" /> Refuser
+                          <XIcon className="h-3.5 w-3.5" />{" "}{tr("Refuser")}
                         </button>
                       </div>
                     )}

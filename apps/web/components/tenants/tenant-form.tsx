@@ -5,6 +5,7 @@ import { DocumentType, DOCUMENT_TYPE_LABELS, MaritalStatus, MARITAL_STATUS_LABEL
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
+import { t as tr } from "@/lib/t-spaces";
 
 export interface TenantFormValues {
   fullName: string;
@@ -53,109 +54,109 @@ export function TenantForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <SectionTitle>Identité</SectionTitle>
+        <SectionTitle>{tr("Identité")}</SectionTitle>
         <div className="col-span-2">
-          <Label>Nom complet</Label>
+          <Label>{tr("Nom complet")}</Label>
           <Input {...register("fullName", { required: true })} />
         </div>
         <div>
-          <Label>Téléphone</Label>
+          <Label>{tr("Téléphone")}</Label>
           <Input placeholder="+225 07 00 00 00 00" {...register("phone", { required: true })} />
         </div>
         <div>
-          <Label>Email</Label>
+          <Label>{tr("Email")}</Label>
           <Input type="email" {...register("email")} />
         </div>
         <div>
-          <Label>Date de naissance</Label>
+          <Label>{tr("Date de naissance")}</Label>
           <Input type="date" {...register("dateOfBirth")} />
         </div>
         <div>
-          <Label>Lieu de naissance</Label>
+          <Label>{tr("Lieu de naissance")}</Label>
           <Input {...register("placeOfBirth")} />
         </div>
         <div>
-          <Label>Nationalité</Label>
+          <Label>{tr("Nationalité")}</Label>
           <Input {...register("nationality")} />
         </div>
         <div>
-          <Label>Situation matrimoniale</Label>
+          <Label>{tr("Situation matrimoniale")}</Label>
           <Select {...register("maritalStatus")}>
-            <option value="">Non renseignée</option>
+            <option value="">{tr("Non renseignée")}</option>
             {Object.values(MaritalStatus).map((m) => (
               <option key={m} value={m}>
-                {MARITAL_STATUS_LABELS[m]}
+                {tr(MARITAL_STATUS_LABELS[m])}
               </option>
             ))}
           </Select>
         </div>
         <div className="col-span-2">
-          <Label>Adresse actuelle</Label>
+          <Label>{tr("Adresse actuelle")}</Label>
           <Input {...register("address")} />
         </div>
 
-        <SectionTitle>Pièce d&apos;identité</SectionTitle>
+        <SectionTitle>{tr("Pièce d'identité")}</SectionTitle>
         <div>
-          <Label>Type de document</Label>
+          <Label>{tr("Type de document")}</Label>
           <Select {...register("idDocumentType")}>
-            <option value="">Non renseigné</option>
+            <option value="">{tr("Non renseigné")}</option>
             {Object.values(DocumentType).map((t) => (
               <option key={t} value={t}>
-                {DOCUMENT_TYPE_LABELS[t]}
+                {tr(DOCUMENT_TYPE_LABELS[t])}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <Label>Numéro de document</Label>
+          <Label>{tr("Numéro de document")}</Label>
           <Input {...register("idDocumentNumber")} />
         </div>
 
-        <SectionTitle>Situation professionnelle</SectionTitle>
+        <SectionTitle>{tr("Situation professionnelle")}</SectionTitle>
         <div>
-          <Label>Profession</Label>
+          <Label>{tr("Profession")}</Label>
           <Input {...register("profession")} />
         </div>
         <div>
-          <Label>Employeur</Label>
+          <Label>{tr("Employeur")}</Label>
           <Input {...register("employer")} />
         </div>
         <div>
-          <Label>Revenu mensuel (FCFA)</Label>
+          <Label>{tr("Revenu mensuel (FCFA)")}</Label>
           <Input type="number" {...register("monthlyIncome", { valueAsNumber: true })} />
         </div>
         <div>
-          <Label>Mot de passe (optionnel)</Label>
+          <Label>{tr("Mot de passe (optionnel)")}</Label>
           <Input type="password" {...register("password")} />
           <PasswordStrengthMeter password={password ?? ""} />
         </div>
 
-        <SectionTitle>Contact d&apos;urgence</SectionTitle>
+        <SectionTitle>{tr("Contact d'urgence")}</SectionTitle>
         <div>
-          <Label>Nom</Label>
+          <Label>{tr("Nom")}</Label>
           <Input {...register("emergencyContactName")} />
         </div>
         <div>
-          <Label>Téléphone</Label>
+          <Label>{tr("Téléphone")}</Label>
           <Input {...register("emergencyContactPhone")} />
         </div>
 
-        <SectionTitle>Garant / Caution solidaire</SectionTitle>
+        <SectionTitle>{tr("Garant / Caution solidaire")}</SectionTitle>
         <div className="col-span-2">
-          <Label>Nom du garant</Label>
-          <Input placeholder="Optionnel" {...register("guarantorName")} />
+          <Label>{tr("Nom du garant")}</Label>
+          <Input placeholder={tr("Optionnel")} {...register("guarantorName")} />
         </div>
         <div>
-          <Label>Téléphone du garant</Label>
+          <Label>{tr("Téléphone du garant")}</Label>
           <Input {...register("guarantorPhone")} />
         </div>
         <div>
-          <Label>Adresse du garant</Label>
+          <Label>{tr("Adresse du garant")}</Label>
           <Input {...register("guarantorAddress")} />
         </div>
       </div>
       <Button type="submit" className="w-full" loading={loading}>
-        {submitLabel}
+        {tr(submitLabel)}
       </Button>
     </form>
   );

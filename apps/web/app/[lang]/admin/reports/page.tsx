@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { t } from "@/lib/t-spaces";
 
 const AdminFinancialCharts = dynamic(() => import("@/components/charts/admin-financial-charts"), {
   ssr: false,
@@ -28,7 +29,7 @@ export default function AdminReportsPage() {
 
   return (
     <div>
-      <PageHeader title="Statistiques" subtitle="Analyse financière globale de la plateforme" />
+      <PageHeader title={t("Statistiques")} subtitle={t("Analyse financière globale de la plateforme")} />
       <AdminFinancialCharts data={data} />
     </div>
   );

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { toLang } from "@/lib/i18n";
+import { catalogMeta } from "@/messages/catalog-meta";
 import { fetchCatalogPage, toQueryString } from "@/lib/listing-seo";
 import { SalesCatalog } from "@/components/catalog/sales-catalog";
 
-export const metadata: Metadata = {
-  title: "Terrains et maisons à vendre en Côte d'Ivoire",
-  description: "Terrains, villas et appartements à vendre à Abidjan et en Côte d'Ivoire, publiés après contrôle du document foncier (ACD, titre foncier).",
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const m = catalogMeta[toLang((await params).lang)].sales;
+  return { title: m.title, description: m.description };
+}
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
