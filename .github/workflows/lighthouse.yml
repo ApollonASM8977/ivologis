@@ -16,6 +16,9 @@ on:
       runs:
         description: "Passages par page"
         default: "5"
+      preset:
+        description: "mobile ou desktop"
+        default: "mobile"
 
 permissions:
   contents: read
@@ -28,6 +31,7 @@ jobs:
       TARGET: ${{ inputs.target }}
       PATHS: ${{ inputs.paths }}
       RUNS: ${{ inputs.runs }}
+      PRESET: ${{ inputs.preset }}
       PROD_WEB: https://ivologis-web.onrender.com
       PROD_API: https://ivologis-api.onrender.com
     steps:
@@ -72,7 +76,8 @@ jobs:
           for p in $PATHS; do
             i=$((i+1))
             for n in $(seq 1 "$RUNS"); do
-              lighthouse "$BASE$p" --quiet --chrome-flags="--headless=new --no-sandbox" \
+              EXTRA=""; [ "$PRESET" = "desktop" ] && EXTRA="--preset=desktop"
+              lighthouse "$BASE$p" --quiet $EXTRA --chrome-flags="--headless=new --no-sandbox" \
                 --only-categories=performance,accessibility,best-practices,seo \
                 --output=json --output-path="rapports/page$i-$n.json" || true
             done
@@ -91,7 +96,7 @@ jobs:
           }
           const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
           const pct = (r, k) => Math.round(r.categories[k].score * 100);
-          let out = `Cible : ${process.env.TARGET}\n\n| Page | Perf (médiane) | Passages | A11y | BP | SEO | LCP | TBT | CLS | Indice machine |\n|---|---|---|---|---|---|---|---|---|---|\n`;
+          let out = `Cible : ${process.env.TARGET} · ${process.env.PRESET}\n\n| Page | Perf (médiane) | Passages | A11y | BP | SEO | LCP | TBT | CLS | Indice machine |\n|---|---|---|---|---|---|---|---|---|---|\n`;
           for (const [url, runs] of Object.entries(byPage)) {
             const p = runs.map((r) => pct(r, "performance"));
             const lcp = med(runs.map((r) => r.audits["largest-contentful-paint"].numericValue / 1000)).toFixed(2);
