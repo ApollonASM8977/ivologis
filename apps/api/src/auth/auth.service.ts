@@ -16,6 +16,8 @@ import { publicUser } from "../common/utils/public-user";
 import { hashInviteCode } from "../common/utils/invite-code.util";
 import { requestLang } from "../common/i18n/i18n";
 
+/** Version des conditions générales et de la politique de confidentialité : à changer à chaque modification des textes. */
+const TERMS_VERSION = "2026-11-18";
 const SELF_REGISTER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.TENANT];
 const INTERNAL_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT];
 // Désactivé temporairement pendant la phase de test (demande du 2026-10-07) : la 2FA reste
@@ -125,6 +127,8 @@ export class AuthService {
       action: "REGISTER",
       entityType: "User",
       entityId: user.id,
+      // Preuve de l'acceptation : date et version des textes en vigueur.
+      metadata: { termsAcceptedAt: new Date().toISOString(), termsVersion: TERMS_VERSION },
     });
 
     const accessToken = await this.issueToken(user, meta);

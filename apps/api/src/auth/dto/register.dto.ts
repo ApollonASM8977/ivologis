@@ -1,5 +1,6 @@
 import { UserRole } from "@prisma/client";
 import {
+  Equals,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -32,4 +33,8 @@ export class RegisterDto {
   @IsString()
   @MaxLength(20)
   inviteCode?: string;
+
+  /** Conditions générales et politique de confidentialité acceptées (case cochée, date enregistrée au journal). */
+  @Equals(true, { message: "Acceptez les conditions générales et la politique de confidentialité pour créer votre compte." })
+  acceptTerms: boolean;
 }

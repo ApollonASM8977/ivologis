@@ -22,14 +22,15 @@ interface RegisterForm {
   password: string;
   role: UserRole;
   inviteCode?: string;
+  acceptTerms: boolean;
 }
 
 export default function RegisterPage() {
   const router = useRouter();
   const setSession = useAuthStore((s) => s.setSession);
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, watch } = useForm<RegisterForm>({
-    defaultValues: { role: UserRole.OWNER },
+  const { register, handleSubmit, watch, formState } = useForm<RegisterForm>({
+    defaultValues: { role: UserRole.OWNER, acceptTerms: false },
   });
   const password = watch("password");
   const isTenant = watch("role") === UserRole.TENANT;
@@ -90,6 +91,30 @@ export default function RegisterPage() {
             <Label>{t("Mot de passe")}</Label>
             <Input type="password" placeholder={t("8 caractères minimum")} {...register("password", { required: true, minLength: 8 })} />
             <PasswordStrengthMeter password={password} />
+          </StaggerItem>
+
+          <StaggerItem>
+            <label htmlFor="accept-terms" className="flex items-start gap-2.5 text-sm text-ink">
+              <input
+                id="accept-terms"
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                aria-invalid={formState.errors.acceptTerms ? true : undefined}
+                aria-describedby={formState.errors.acceptTerms ? "accept-terms-error" : undefined}
+                {...register("acceptTerms", { required: true })}
+              />
+              <span>
+                {t("J'accepte les")}{" "}
+                <Link href="/conditions-generales" target="_blank" className="font-medium text-primary hover:underline">{t("conditions générales")}</Link>{" "}
+                {t("et la")}{" "}
+                <Link href="/confidentialite" target="_blank" className="font-medium text-primary hover:underline">{t("politique de confidentialité")}</Link>.
+              </span>
+            </label>
+            {formState.errors.acceptTerms && (
+              <p id="accept-terms-error" role="alert" className="mt-1 text-xs text-danger">
+                {t("Acceptez les conditions générales et la politique de confidentialité pour créer votre compte.")}
+              </p>
+            )}
           </StaggerItem>
 
           <StaggerItem>

@@ -29,7 +29,7 @@ async function createUserB(kind) {
   const profile = must(await call("POST", `/${kind}`, T.admin, { fullName, phone: tel, email }), `fiche ${kind}`);
   const invite = must(await call("POST", `/${kind}/${profile.id}/invite`, T.admin), `invitation ${kind}`);
   const password = `Qa-B-${suffix}-Mot2passe`;
-  const reg = await call("POST", "/auth/register", null, { fullName, email, phone: tel, password, role: kind === "tenants" ? "TENANT" : "OWNER", inviteCode: invite.code });
+  const reg = await call("POST", "/auth/register", null, { fullName, email, phone: tel, password, role: kind === "tenants" ? "TENANT" : "OWNER", inviteCode: invite.code, acceptTerms: true });
   must(reg, `inscription ${kind}`);
   const login = must(await call("POST", "/auth/login", null, { identifier: email, password }), `connexion ${kind}`);
   return login.accessToken ?? login.token;

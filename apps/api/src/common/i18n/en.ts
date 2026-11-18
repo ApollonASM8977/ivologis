@@ -109,6 +109,7 @@ export const EN: Record<string, string> = {
   "Ce locataire n'a pas de compte de connexion à notifier.": "This tenant has no sign-in account to notify.",
   "Ce propriétaire a déjà un compte.": "This owner already has an account.",
   "Ce rôle ne peut pas être créé par inscription publique.": "This role cannot be created through public sign-up.",
+  "Acceptez les conditions générales et la politique de confidentialité pour créer votre compte.": "Accept the terms of use and the privacy policy to create your account.",
   "Célibataire": "Single",
   "Ces dates chevauchent une réservation déjà confirmée pour ce bien.": "These dates overlap a booking already confirmed for this property.",
   "Ces dates ne sont plus disponibles pour ce bien.": "These dates are no longer available for this property.",
