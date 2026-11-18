@@ -1,3 +1,4 @@
+import { Throttle } from "@nestjs/throttler";
 import {
   BadRequestException,
   Body,
@@ -30,6 +31,7 @@ import { PropertiesService } from "./properties.service";
 import { CreatePropertyDto } from "./dto/create-property.dto";
 import { UpdatePropertyDto } from "./dto/update-property.dto";
 import { PropertyFilterDto } from "./dto/property-filter.dto";
+import { ImageUploadDto } from "../common/dto/body.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller("properties")
@@ -51,6 +53,8 @@ export class PropertiesController {
     return this.propertiesService.findAll(filter, user);
   }
 
+  // Déclenche la traduction automatique (API payante) : limité.
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
@@ -70,6 +74,8 @@ export class PropertiesController {
     return property;
   }
 
+  // Déclenche la traduction automatique (API payante) : limité.
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Patch(":id")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
@@ -104,7 +110,7 @@ export class PropertiesController {
   async uploadImage(
     @Param("id") id: string,
     @UploadedFile() file: Express.Multer.File,
-    @Body("isCover") isCover: string,
+    @Body() { isCover }: ImageUploadDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     if (!file) throw new BadRequestException("Aucune image reçue.");

@@ -25,6 +25,8 @@ import { hideTenantPrivate } from "../common/interceptors/agency-privacy.interce
 import { TenantsService } from "./tenants.service";
 import { CreateTenantDto } from "./dto/create-tenant.dto";
 import { UpdateTenantDto } from "./dto/update-tenant.dto";
+import { UpdateStatusDto } from "../users/dto/update-profile.dto";
+import { ImportRowsDto } from "../common/dto/body.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller("tenants")
@@ -60,7 +62,7 @@ export class TenantsController {
   @Post("import")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.TENANTS_MANAGE)
-  importRows(@Body("rows") rows: unknown[]) {
+  importRows(@Body() { rows }: ImportRowsDto) {
     if (!Array.isArray(rows) || rows.length === 0 || rows.length > 200) {
       throw new BadRequestException("Importez entre 1 et 200 locataires à la fois.");
     }
@@ -94,8 +96,8 @@ export class TenantsController {
   @Patch(":id/status")
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @RequirePermissions(PERMISSION_KEYS.TENANTS_MANAGE)
-  updateStatus(@Param("id") id: string, @Body("status") status: AccountStatus) {
-    return this.tenantsService.updateStatus(id, status);
+  updateStatus(@Param("id") id: string, @Body() dto: UpdateStatusDto) {
+    return this.tenantsService.updateStatus(id, dto.status);
   }
 
   @Post(":id/invite")

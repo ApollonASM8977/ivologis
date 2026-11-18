@@ -7,6 +7,7 @@ import { Roles } from "../common/decorators/roles.decorator";
 import { PaginationDto } from "../common/dto/pagination.dto";
 import { ContactService } from "./contact.service";
 import { CreateContactDto } from "./dto/create-contact.dto";
+import { MarkHandledDto } from "../common/dto/body.dto";
 
 @Controller("contact-requests")
 export class ContactController {
@@ -30,7 +31,7 @@ export class ContactController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
   @Patch(":id")
-  markHandled(@Param("id") id: string, @Body("handled") handled: boolean) {
-    return this.contactService.markHandled(id, handled);
+  markHandled(@Param("id") id: string, @Body() dto: MarkHandledDto) {
+    return this.contactService.markHandled(id, dto.handled);
   }
 }

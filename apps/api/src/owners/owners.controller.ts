@@ -14,6 +14,7 @@ import { OwnersService } from "./owners.service";
 import { CreateOwnerDto } from "./dto/create-owner.dto";
 import { UpdateOwnerDto } from "./dto/update-owner.dto";
 import { CreatePayoutDto } from "./dto/create-payout.dto";
+import { UpdateStatusDto } from "../users/dto/update-profile.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller("owners")
@@ -69,8 +70,8 @@ export class OwnersController {
 
   @Patch(":id/status")
   @Roles(UserRole.SUPER_ADMIN)
-  updateStatus(@Param("id") id: string, @Body("status") status: AccountStatus) {
-    return this.ownersService.updateStatus(id, status);
+  updateStatus(@Param("id") id: string, @Body() dto: UpdateStatusDto) {
+    return this.ownersService.updateStatus(id, dto.status);
   }
 
   @Post(":id/invite")

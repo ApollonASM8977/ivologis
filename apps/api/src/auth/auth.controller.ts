@@ -101,12 +101,16 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  // Vérifie un code à 6 chiffres : limité contre l'essai de toutes les combinaisons.
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post("2fa/enable")
   enableTwoFactor(@Body() dto: TwoFactorCodeDto, @CurrentUser() user: AuthenticatedUser) {
     return this.authService.enableTwoFactor(user.id, dto.code);
   }
 
   @UseGuards(JwtAuthGuard)
+  // Vérifie un code à 6 chiffres : limité contre l'essai de toutes les combinaisons.
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post("2fa/disable")
   disableTwoFactor(@Body() dto: TwoFactorCodeDto, @CurrentUser() user: AuthenticatedUser) {
     return this.authService.disableTwoFactor(user.id, dto.code);

@@ -16,7 +16,9 @@ export class SettingsController {
     return this.settingsService.getPublic();
   }
 
+  // Paramètres complets (taux de commission, modèles de documents) : réservés à l'agence ; les clients lisent /settings/public.
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
   @Get()
   get() {
     return this.settingsService.get();
