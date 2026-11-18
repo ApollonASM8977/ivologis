@@ -1,6 +1,6 @@
 # 07 — Audit sécurité
 
-Dernière mise à jour : 2026-11-17 (Phase 1, audit par lecture du code + requêtes en lecture seule sur la base de prod).
+Dernière mise à jour : 2026-11-18 soir (revue d'avant lancement, `16_PRE_LANCEMENT.md` : S-09, S-15, S-22, S-23). Première version : 2026-11-17 (Phase 1, audit par lecture du code + requêtes en lecture seule sur la base de prod).
 Statuts : `OUVERT` · `EN COURS` · `CORRIGÉ` (avec commit) · `ACCEPTÉ` (risque assumé, justifié).
 Sévérité : CRITIQUE > ÉLEVÉ > MOYEN > FAIBLE.
 
@@ -16,13 +16,13 @@ Sévérité : CRITIQUE > ÉLEVÉ > MOYEN > FAIBLE.
 | S-06 | ÉLEVÉ | 2FA obligatoire des comptes internes **désactivée** (`ENFORCE_MANDATORY_2FA = false`, demande utilisateur du 2026-10-07 pour la phase de test). | `auth.service.ts` l.19-22 | Remettre à `true` avant ouverture au public (décision utilisateur, voir `05_DECISIONS.md` D-03). | OUVERT |
 | S-07 | ÉLEVÉ | **Rate limiting faussé derrière le proxy Render** : Express n'a pas `trust proxy` → `req.ip` = IP du proxy Render pour tous les visiteurs. La limite « 5 connexions/min » s'applique donc **à tout le monde en même temps** (déni de service facile du login) et les IP des sessions/audit sont fausses. | `apps/api/src/main.ts` (pas de `app.set("trust proxy", …)`) | `app.set("trust proxy", 1)` en production. | CORRIGÉ (P0-07, `d63bf57`) — **à confirmer en prod** : après déploiement, vérifier dans Profil → Sessions que l'IP affichée est celle du visiteur et non une IP interne Render ; si Render ajoute un second proxy, passer à 2. |
 | S-08 | MOYEN | Jeton JWT stocké dans un cookie **lisible par JavaScript** (`js-cookie`), valable 7 jours → volé par toute faille XSS. Atténuation existante : sessions révocables + `tokenVersion`. | `apps/web/lib/auth-store.ts`, `apps/web/lib/api.ts` | Cookie `httpOnly` posé par l'API (attention : `onrender.com` est sur la Public Suffix List → web et API sont cross-site, donc `SameSite=None; Secure` + protection CSRF) ou domaine personnalisé commun. P1. | OUVERT |
-| S-09 | MOYEN | Pas d'en-têtes de sécurité côté web (CSP, `X-Frame-Options`/`frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`). | `apps/web/next.config.js` | Ajouter `headers()` dans `next.config.js`. | CORRIGÉ (P0-11) : HSTS, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Reste : CSP `script-src` (à faire avec inventaire des iframes). |
+| S-09 | MOYEN | Pas d'en-têtes de sécurité côté web (CSP, `X-Frame-Options`/`frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`). | `apps/web/next.config.js` | Ajouter `headers()` dans `next.config.js`. | CORRIGÉ (P0-11) : HSTS, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. **CSP complète en production + `X-Powered-By` retiré : CORRIGÉ (`1c9f6bc`, 2026-11-18, local — à déployer)**. Preuves : 0 violation sur 57 pages dans Chrome 157 (publiques + 3 espaces), carte OSM et visite 360° affichées (`08_QA_CHECKLIST.md`) ; Wapiti : la CSP est présente. `script-src 'unsafe-inline'` ACCEPTÉ (Next.js insère ses données en ligne) → nonce en P2. |
 | S-10 | MOYEN | `next/image` accepte **n'importe quel hôte https** (`hostname: "**"`) → l'optimiseur d'images du site peut servir de proxy gratuit (abus de bande passante sur le plan gratuit). | `apps/web/next.config.js` | Restreindre à l'hôte de l'API (+ `images.unsplash.com` tant que les données de démo existent). | CORRIGÉ (P0-11). Testé : hôte quelconque → 400, Unsplash (démo) → 200. |
 | S-11 | MOYEN | Formulaires publics (demande de visite, demande de réservation, contact) protégés seulement par la limite globale 120 req/min → spam de fausses demandes, pollution du back-office. Pas de honeypot. | `sales.controller.ts`, `short-stay.controller.ts`, `contact.controller.ts` | `@Throttle` 5/min sur ces routes + champ honeypot. | CORRIGÉ (P0-09). Testé : champ piège rempli → réponse de succès, aucune ligne créée ; 6e requête/min → 429. |
 | S-12 | FAIBLE | Énumération de comptes : le login révèle « compte suspendu / en attente » avant de vérifier le mot de passe, et répond plus vite quand l'utilisateur n'existe pas (pas de bcrypt). | `auth.service.ts` l.147-165 | Vérifier le mot de passe d'abord, comparaison factice si utilisateur absent. | CORRIGÉ (P0-10). Testé : compte inconnu et mauvais mot de passe → même 401 « Identifiants incorrects. », 431-462 ms dans les deux cas. |
 | S-13 | FAIBLE | `confirmPayment` ne vérifie pas le statut courant : on peut « confirmer » un paiement annulé et générer une quittance. | `payments.service.ts` l.133 | Refuser si statut ≠ `PENDING`/`LATE`. | CORRIGÉ (P0-02) |
 | S-14 | FAIBLE | Uploads : type MIME déclaré par le client (pas de vérification des octets magiques), fichiers stockés en `bytea` dans Postgres (base Neon limitée à 1 Go). Les images sont servies sans authentification par UUID (non devinable). | `common/image-upload`, `storage/storage.service.ts` | Vérifier la signature binaire ; stockage objet externe (R2/S3) en P1. | OUVERT |
-| S-15 | FAIBLE | NestJS 10 / multer : avis de sécurité (DoS) corrigés seulement en NestJS 12 (noté dans le README). | `README.md` §10 | `npm audit` + plan de montée de version. | OUVERT |
+| S-15 | FAIBLE | NestJS 10 / multer : avis de sécurité (DoS) corrigés seulement en NestJS 12 (noté dans le README). | `README.md` §10 | `npm audit` + plan de montée de version. | EN COURS. `1c9f6bc` : `overrides` multer 2.5.0, body-parser 1.20.9, qs 6.17.1, lodash 4.18.1, postcss 8.5.33 ; `uuid` inutilisé retiré. `npm audit` du 2026-11-18 : **exécution 5** (4 modérées, 1 élevée, 0 critique) ; 13 autres = outils de développement (`@nestjs/cli`). Reste : retirer `zod` (déclaré dans le web, importé nulle part : supprime l'alerte élevée GHSA-mrhx-c7xc-m3w5) ; NestJS 12 pour `@nestjs/core` (GHSA-36xv-jgw5-4q75) et `platform-express` ; `npm audit fix` sans changement majeur pour `@nestjs/common` / `file-type` ; activer Dependabot. |
 
 | S-17 | FAIBLE | Les images non publiques (photos de maintenance, pièces jointes image des demandes locataires, p. ex. une CNI en JPG) sont servies comme les photos d'annonces : sans signature, protégées seulement par un UUID non devinable. | `storage.controller.ts` (`serve` ne signe que PDF/Word) | Signer aussi les images rattachées à une demande ou un dossier. | OUVERT |
 | S-18 | FAIBLE | `photos` d'une demande de maintenance acceptait n'importe quelle chaîne (lien externe de pistage affiché à l'agence). | `maintenance/dto/create-maintenance.dto.ts` | Uniquement `/api/files/<uuid>`, 5 max. | CORRIGÉ (audit espaces, M-05) |
@@ -30,12 +30,20 @@ Sévérité : CRITIQUE > ÉLEVÉ > MOYEN > FAIBLE.
 | S-20 | FAIBLE | Une erreur imprévue (base de données) renvoyait son message technique au navigateur. | `common/filters/http-exception.filter.ts` | Message neutre, détail journalisé côté serveur. | CORRIGÉ |
 | S-21 | MOYEN | Un super admin pouvait suspendre son propre compte (agence bloquée s'il est le seul) ; statut de compte non validé. | `users.controller.ts` | Refus sur soi-même, DTO validé. | CORRIGÉ |
 | S-16 | MOYEN | Un propriétaire ayant reçu la permission `properties.manage` pouvait publier une résidence « courte durée » dans le catalogue public sans aucune validation, et y intégrer n'importe quelle URL en iframe (`virtualTourUrl`, y compris `javascript:` ou une fausse page de connexion). | `properties.service.ts` (`update` appliquait le DTO tel quel), `catalog.service.ts` | Validation par l'agence + `https` obligatoire. | CORRIGÉ (P0-18). Note : un propriétaire inscrit seul n'a pas cette permission (création → 403). |
+| S-22 | FAIBLE | Le cookie de langue `ivologis_lang` est posé par JavaScript sans attribut `Secure` (ni `HttpOnly`, qu'il ne peut pas avoir puisque le script le lit). Valeur non sensible (`fr`/`en`). | `apps/web/lib/i18n-client.tsx:27` ; Wapiti `cookieflags` (2026-11-18) | Ajouter `; secure` quand la page est en https. P2. | OUVERT |
+| S-23 | MOYEN | Sur le poste de développement (mini-PC), `apps/api/.env` vise la base de **production** (point d'accès Neon `ep-snowy-sound-…`, branche `main`). Une API ou un script lancé « en local » écrit donc en prod. | Comparaison des points d'accès `.env` / `qa.env` avec l'outil Neon (2026-11-18) | Pointer le `.env` local vers `audit-qa` (ou une branche de développement) ; garder les accès prod hors du poste. En attendant : `_RESSOURCES/outils-session/csp/run-api-qa.ps1` (refuse de démarrer hors `audit-qa`, dossier sans `.env`). | OUVERT (décision utilisateur) |
 
 ## Preuves par test (2026-11-17, API locale sur la branche Neon `audit-qa` = copie de la prod)
 - **S-01 confirmé** : `POST /api/auth/login` avec les identifiants du README → jeton obtenu pour `admin@ivologis.ci` (SUPER_ADMIN), un locataire et un propriétaire. Les mots de passe de prod sont donc ceux publiés.
 - **S-02 confirmé** : l'agence crée un dossier locataire (sans compte) avec le téléphone X ; un inconnu s'inscrit avec le téléphone X → `GET /tenants/me` lui renvoie le nom, le n° de pièce d'identité et le garant de la victime.
 - **S-03 confirmé** : `POST /payments/pay-rent` (locataire, `method: WAVE`) → `status=PAID`, `transactionRef=SIM-…`, quittance `QUIT-2026-…` émise pour 350 000 FCFA, aucun encaissement.
 - **S-04 confirmé** : `GET /api/catalog/sales` (sans authentification) renvoie 46 champs dont `saleBuyerName`, `saleBuyerPhone`, `saleCommissionRate`, `currentTenantId`, `rentAmount`. Après finalisation d'une vente, `GET /api/catalog/sales/:id` (public) renvoie `saleStatus=VENDU` + nom et téléphone de l'acheteur.
+
+## Preuves par test (2026-11-18, mini-PC, code commité `1c9f6bc`, API locale sur `audit-qa`)
+- `test/qa-securite.mjs` : **41/41** (jetons falsifiés, accès par rôle, isolation, masquage des coordonnées, injection SQL, élévation de rôle, CORS, en-têtes).
+- `test/qa-ab.mjs` : **16/16** tentatives de l'utilisateur B refusées (403/404) ; A lit les siennes (200).
+- Tests unitaires : 28/28. Contrôle CSP navigateur : 0 violation / 57 pages. Wapiti 3.2.3 (modules passifs `csp`, `http_headers`, `cookieflags`) : CSP présente ; remarques restantes = `unsafe-inline` (accepté) et S-22.
+- XSS : un seul `dangerouslySetInnerHTML` dans le site, JSON-LD avec `<` échappé (`apps/web/lib/listing-seo.tsx:129`).
 
 ## Points déjà solides (vérifiés dans le code)
 - Mots de passe : bcrypt 12 tours. Validation globale des DTO (`whitelist` + `forbidNonWhitelisted`).
@@ -52,14 +60,14 @@ Sévérité : CRITIQUE > ÉLEVÉ > MOYEN > FAIBLE.
 | OTP SMS téléphone | ABSENT (S-02) |
 | Autorisation par rôle sur chaque endpoint | OK (à re-vérifier route par route en Phase 6) |
 | Validation serveur | OK |
-| CSRF / XSS / injection | Prisma paramétré (OK) ; XSS : à auditer (aucun `dangerouslySetInnerHTML` vérifié encore) |
+| CSRF / XSS / injection | Prisma paramétré (OK, test d'injection SQL) ; XSS : OK (un seul `dangerouslySetInnerHTML`, JSON-LD échappé) + CSP ; CSRF : jeton en en-tête `Authorization` (pas envoyé automatiquement par le navigateur) — à revoir avec S-08 |
 | Rate limiting / anti-bruteforce | PARTIEL (S-07, S-11) |
 | Upload sécurisé | PARTIEL (S-14) |
 | Secrets en variables d'env | OK (`.env` ignoré par git) — mais mots de passe de test publics (S-01) |
-| En-têtes de sécurité | PARTIEL (S-09) |
+| En-têtes de sécurité | OK (S-09, CSP 2026-11-18 ; nonce en P2) |
 | HTTPS | OK (Render) |
 | Logs d'audit | OK |
 | Sauvegardes | Procédure dans `docs/PROCEDURE-SAUVEGARDE.md` (à vérifier) |
-| Données personnelles (loi ivoirienne / ARTCI) | À FAIRE (Phase 2 + 6) |
+| Données personnelles (loi ivoirienne / ARTCI) | EN COURS : acceptation des CGU journalisée (date + version) ; autorisation ARTCI, transfert hors CEDEAO ⚖️, droits des personnes et durées de conservation à faire (`16_PRE_LANCEMENT.md` § 6) |
 | Chiffrement des pièces d'identité | ABSENT |
 | Webhooks de paiement signés et idempotents | SANS OBJET (aucun paiement réel) |
