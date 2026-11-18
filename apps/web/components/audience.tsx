@@ -26,6 +26,7 @@ export function Audience() {
   const [choice, setChoice] = useState<string | null | undefined>(undefined);
   const [interacted, setInteracted] = useState(false);
   const first = useRef(true);
+  const counted = useRef<string | null>(null); // une seule page vue par page affichée (le choix du bandeau relance l'effet)
 
   useEffect(() => {
     try {
@@ -43,16 +44,18 @@ export function Audience() {
 
   useEffect(() => {
     if (choice === undefined || choice === "refused" || navigator.doNotTrack === "1") return;
-    if (/^\/(admin|owner|tenant)(\/|$)/.test(path)) return;
+    if (/^\/(admin|owner|tenant)(\/|$)/.test(path) || counted.current === path) return;
     const referrer = first.current ? document.referrer || undefined : undefined;
-    first.current = false;
-    const send = () =>
+    const send = () => {
+      counted.current = path;
+      first.current = false;
       fetch(`${API}/api/analytics/pageview`, {
         method: "POST",
         keepalive: true,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ path, lang, device: device(), referrer }),
       }).catch(() => undefined);
+    };
     if ("requestIdleCallback" in window) {
       const id = window.requestIdleCallback(send, { timeout: 4000 });
       return () => window.cancelIdleCallback(id);
