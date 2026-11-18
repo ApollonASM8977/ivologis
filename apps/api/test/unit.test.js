@@ -311,3 +311,23 @@ test("échéance des baux (AD-06) : alertes 90/60/30 jours, reconduction tacite,
   assert.equal(calls.updates[0].data.expiryNoticeDays, 0);
   assert.match(calls.staff[0].title, /décision à prendre/);
 });
+
+test("bilingue de l'API : messages exacts, gabarits imbriqués, dates et montants à l'anglaise", () => {
+  const { translateText, runWithLang, tr } = require("../dist/src/common/i18n/i18n.js");
+  assert.equal(translateText("Contrat introuvable.", "en"), "Contract not found.");
+  assert.equal(translateText("Contrat introuvable.", "fr"), "Contrat introuvable.");
+  // Validation : le libellé du champ est lui-même traduit.
+  assert.equal(translateText("Le montant est obligatoire.", "en"), "The amount is required.");
+  assert.equal(translateText("Le champ « foo » est obligatoire.", "en"), "The field “foo” is required.");
+  // Notification composée : fragment traduit + date française convertie.
+  assert.equal(
+    translateText("Pour le bail de « Villa A » (fin le 1 novembre 2026), l'agence a prévu une reconduction tacite de 12 mois.", "en"),
+    "For the lease of “Villa A” (ending on 1 November 2026), the agency has planned a tacit renewal of 12 months.",
+  );
+  assert.equal(translateText("Votre paiement de 150 000 FCFA pour novembre 2026 a été confirmé.", "en"), "Your payment of 150,000 FCFA for November 2026 has been confirmed.");
+  // Message inconnu : renvoyé tel quel (jamais d'erreur).
+  assert.equal(translateText("Texte inconnu", "en"), "Texte inconnu");
+  // Documents : langue fixée pour la génération (ex. quittance du locataire anglophone).
+  assert.equal(runWithLang("en", () => tr("QUITTANCE DE LOYER")), "RENT RECEIPT");
+  assert.equal(runWithLang("fr", () => tr("Émise le {0}", "1 mai")), "Émise le 1 mai");
+});

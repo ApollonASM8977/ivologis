@@ -7,6 +7,7 @@ import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { frenchValidationException } from "./common/validation/validation-messages";
 import { AgencyPrivacyInterceptor } from "./common/interceptors/agency-privacy.interceptor";
+import { langMiddleware } from "./common/i18n/i18n";
 
 async function bootstrap() {
   if (!process.env.JWT_SECRET) {
@@ -17,6 +18,8 @@ async function bootstrap() {
   // Derrière le proxy Render : sans cela, req.ip est l'IP du proxy pour tout le monde (limitation de débit commune, IP fausses dans les sessions).
   if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
 
+  // Langue de la requête (en-tête Accept-Language du site) pour les messages et les documents.
+  app.use(langMiddleware);
   app.use(
     helmet({
       crossOriginResourcePolicy: false,

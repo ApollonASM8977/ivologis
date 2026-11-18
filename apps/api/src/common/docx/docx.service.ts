@@ -13,6 +13,7 @@ import {
 } from "docx";
 import { ContractBlock, ContractDocumentData, buildContractBlocks } from "../documents/contract-builder";
 import { StorageService } from "../../storage/storage.service";
+import { locale, tr } from "../i18n/i18n";
 
 const BRAND_BLUE = "0B5FFF";
 const BRAND_DARK = "0B1F3A";

@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Request, Response } from "express";
+import { translateText } from "../i18n/i18n";
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -34,11 +35,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
           ? exception.message
           : "Une erreur inattendue est survenue. Réessayez dans un instant ; si le problème persiste, contactez l'agence.";
 
+    // Limitation de débit : le message de la bibliothèque est en anglais technique (« ThrottlerException: Too Many Requests »).
+    const text = status === HttpStatus.TOO_MANY_REQUESTS ? "Trop de tentatives. Patientez une minute puis réessayez." : message;
+    // Messages rédigés en français dans le code, traduits si le site est en anglais (en-tête Accept-Language).
+    const translated = Array.isArray(text)
+      ? text.map((m) => (typeof m === "string" ? translateText(m) : m))
+      : typeof text === "string"
+        ? translateText(text)
+        : text;
+
     response.status(status).json({
       statusCode: status,
       path: request.url,
       timestamp: new Date().toISOString(),
-      message,
+      message: translated,
     });
   }
 }

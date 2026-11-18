@@ -11,6 +11,7 @@ import { SettingsService } from "../settings/settings.service";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 import { PaymentFilterDto } from "./dto/payment-filter.dto";
 import { PayRentDto } from "./dto/pay-rent.dto";
+import { Lang, requestLang, runWithLang, tr } from "../common/i18n/i18n";
 
 function generateReceiptNumber() {
   const year = new Date().getFullYear();
@@ -233,7 +234,11 @@ export class PaymentsService {
     const previous = await this.prisma.receipt.findUnique({ where: { paymentId } });
     await this.storage.deleteByUrl(previous?.pdfUrl);
 
-    const pdfUrl = await this.pdfService.generateReceiptPdf({
+    // Quittance dans la langue du locataire s'il a un compte, sinon dans celle de la personne qui l'émet.
+    const tenantUser = payment.tenant.userId
+      ? await this.prisma.user.findUnique({ where: { id: payment.tenant.userId }, select: { language: true } })
+      : null;
+    const pdfUrl = await runWithLang((tenantUser?.language as Lang | undefined) ?? requestLang(), () => this.pdfService.generateReceiptPdf({
       receiptNumber,
       companyName: company.companyName,
       companyAddress: company.address,
@@ -246,7 +251,7 @@ export class PaymentsService {
       periodMonth: payment.periodMonth,
       paymentDate: payment.paymentDate,
       method: PAYMENT_METHOD_LABELS[payment.method as keyof typeof PAYMENT_METHOD_LABELS] ?? payment.method,
-    });
+    }));
 
     return this.prisma.receipt.upsert({
       where: { paymentId },
@@ -319,7 +324,7 @@ export class PaymentsService {
 
   async exportCsv(filter: PaymentFilterDto, scope: { ownerId?: string; tenantId?: string }) {
     const { data } = await this.findAll({ ...filter, page: 1, limit: 1000 }, scope);
-    const header = "Date,Locataire,Bien,Montant,Methode,Statut,Reference\n";
+    const header = tr("Date,Locataire,Bien,Montant,Methode,Statut,Reference") + "\n";
     const rows = data
       .map((p) =>
         [

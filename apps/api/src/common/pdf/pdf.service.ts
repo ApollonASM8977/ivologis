@@ -2,13 +2,14 @@ import { Injectable } from "@nestjs/common";
 import PDFDocument from "pdfkit";
 import { ContractBlock, ContractDocumentData, buildContractBlocks } from "../documents/contract-builder";
 import { StorageService } from "../../storage/storage.service";
+import { locale, tr } from "../i18n/i18n";
 
 function formatXOF(amount: number | string) {
-  return `${new Intl.NumberFormat("fr-FR").format(Math.round(Number(amount)))} FCFA`;
+  return `${new Intl.NumberFormat(locale()).format(Math.round(Number(amount)))} FCFA`;
 }
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(date);
+  return new Intl.DateTimeFormat(locale(), { dateStyle: "long" }).format(date);
 }
 
 const BRAND_PRIMARY = "#0B5FFF";
@@ -77,7 +78,7 @@ export class PdfService {
         .font("Helvetica")
         .fillOpacity(0.75)
         .fillColor("#FFFFFF")
-        .text(params.companyAddress || "Abidjan, Côte d'Ivoire", MARGIN + 46, 56, { width: contentWidth - 250 });
+        .text(params.companyAddress || tr("Abidjan, Côte d'Ivoire"), MARGIN + 46, 56, { width: contentWidth - 250 });
       doc.fillOpacity(1);
 
       const rightColWidth = 220;
@@ -93,7 +94,7 @@ export class PdfService {
         .fillOpacity(0.75)
         .fillColor("#FFFFFF")
         .text(`N° ${params.receiptNumber}`, rightColX, 52, { width: rightColWidth, align: "right" })
-        .text(`Émise le ${formatDate(new Date())}`, rightColX, 65, { width: rightColWidth, align: "right" });
+        .text(tr("Émise le {0}", formatDate(new Date())), rightColX, 65, { width: rightColWidth, align: "right" });
       doc.fillOpacity(1);
 
       // --- Carte d'informations ---
@@ -101,11 +102,11 @@ export class PdfService {
       const cardPad = 20;
       const rowGap = 30;
       const rows: [string, string][] = [
-        ["Locataire", params.tenantName],
-        ["Bien concerné", `${params.propertyName}, ${params.propertyAddress}`],
-        ["Période concernée", formatDate(params.periodMonth)],
-        ["Date de paiement", formatDate(params.paymentDate)],
-        ["Moyen de paiement", params.method],
+        [tr("Locataire"), params.tenantName],
+        [tr("Bien concerné"), `${params.propertyName}, ${params.propertyAddress}`],
+        [tr("Période concernée"), formatDate(params.periodMonth)],
+        [tr("Date de paiement"), formatDate(params.paymentDate)],
+        [tr("Moyen de paiement"), tr(params.method)],
       ];
       const cardH = cardPad * 2 + rowGap * rows.length - 10;
       doc.roundedRect(MARGIN, cardY, contentWidth, cardH, 10).fillAndStroke("#F8FAFC", BORDER);
@@ -132,7 +133,7 @@ export class PdfService {
         .fontSize(9)
         .font("Helvetica-Bold")
         .fillColor(SUCCESS)
-        .text("MONTANT PAYÉ EN TOTALITÉ", MARGIN, amountY + 16, { width: contentWidth, align: "center", characterSpacing: 0.6 });
+        .text(tr("MONTANT PAYÉ EN TOTALITÉ"), MARGIN, amountY + 16, { width: contentWidth, align: "center", characterSpacing: 0.6 });
       doc
         .fontSize(22)
         .font("Helvetica-Bold")
@@ -152,7 +153,7 @@ export class PdfService {
         .fontSize(8)
         .fillColor(INK_MUTED)
         .text(
-          "Ce document atteste du paiement du loyer pour la période mentionnée ci-dessus. Document généré automatiquement.",
+          tr("Ce document atteste du paiement du loyer pour la période mentionnée ci-dessus. Document généré automatiquement."),
           MARGIN,
           footerY + 26,
           { width: contentWidth, align: "center" },

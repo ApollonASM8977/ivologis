@@ -5,6 +5,7 @@ import {
   PaymentMethod,
 } from "@ivologis/shared";
 import { renderPdf } from "../common/pdf/pdf.service";
+import { locale, tr } from "../common/i18n/i18n";
 
 export interface OwnerStatement {
   owner: { fullName: string } | null;
@@ -33,10 +34,10 @@ export interface OwnerStatement {
   generatedAt: Date;
 }
 
-const methodLabel = (m: string) => PAYMENT_METHOD_LABELS[m as PaymentMethod] ?? m;
-const issueLabel = (t: string) => MAINTENANCE_ISSUE_LABELS[t as keyof typeof MAINTENANCE_ISSUE_LABELS] ?? t;
-const statusLabel = (s: string) => MAINTENANCE_STATUS_LABELS[s as keyof typeof MAINTENANCE_STATUS_LABELS] ?? s;
-const fr = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
+const methodLabel = (m: string) => tr(PAYMENT_METHOD_LABELS[m as PaymentMethod]) ?? m;
+const issueLabel = (t: string) => tr(MAINTENANCE_ISSUE_LABELS[t as keyof typeof MAINTENANCE_ISSUE_LABELS]) ?? t;
+const statusLabel = (s: string) => tr(MAINTENANCE_STATUS_LABELS[s as keyof typeof MAINTENANCE_STATUS_LABELS]) ?? s;
+const fr = (n: number) => new Intl.NumberFormat(locale()).format(Math.round(n));
 const date = (d: Date) => new Date(d).toLocaleDateString("fr-FR");
 
 function csvCell(value: unknown) {
@@ -46,18 +47,18 @@ function csvCell(value: unknown) {
 
 export function ownerStatementCsv(st: OwnerStatement): Buffer {
   const rows: unknown[][] = [
-    ["Relevé financier", st.companyName],
-    ["Propriétaire", st.owner?.fullName ?? ""],
-    ["Généré le", new Date(st.generatedAt).toLocaleString("fr-FR")],
+    [tr("Relevé financier"), st.companyName],
+    [tr("Propriétaire"), st.owner?.fullName ?? ""],
+    [tr("Généré le"), new Date(st.generatedAt).toLocaleString("fr-FR")],
     [],
-    ["Synthèse"],
-    ["Revenus encaissés (FCFA)", Math.round(st.summary.totalRevenue)],
+    [tr("Synthèse")],
+    [tr("Revenus encaissés (FCFA)"), Math.round(st.summary.totalRevenue)],
     [`Commission ${st.companyName} (${st.commissionRate} %)`, Math.round(st.summary.commission)],
-    ["Dépenses de maintenance (FCFA)", Math.round(st.summary.maintenanceCosts)],
-    ["Solde net (FCFA)", Math.round(st.summary.netBalance)],
+    [tr("Dépenses de maintenance (FCFA)"), Math.round(st.summary.maintenanceCosts)],
+    [tr("Solde net (FCFA)"), Math.round(st.summary.netBalance)],
     [],
-    ["Encaissements"],
-    ["Date", "Bien", "Locataire", "Moyen", "Montant (FCFA)"],
+    [tr("Encaissements")],
+    [tr("Date"), tr("Bien"), tr("Locataire"), tr("Moyen"), tr("Montant (FCFA)")],
     ...st.payments.map((p) => [
       date(p.paymentDate),
       p.property?.name,
@@ -66,8 +67,8 @@ export function ownerStatementCsv(st: OwnerStatement): Buffer {
       Math.round(Number(p.amount)),
     ]),
     [],
-    ["Maintenance"],
-    ["Date", "Bien", "Nature", "Statut", "Coût final (FCFA)"],
+    [tr("Maintenance")],
+    [tr("Date"), tr("Bien"), tr("Nature"), tr("Statut"), tr("Coût final (FCFA)")],
     ...st.maintenance.map((m) => [
       date(m.createdAt),
       m.property?.name,
@@ -89,18 +90,18 @@ export function ownerStatementPdf(st: OwnerStatement): Promise<Buffer> {
     const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
     doc.fontSize(20).fillColor("#0B5FFF").font("Helvetica-Bold").text(st.companyName);
-    doc.fontSize(13).fillColor("#111827").text("Relevé financier propriétaire");
+    doc.fontSize(13).fillColor("#111827").text(tr("Relevé financier propriétaire"));
     doc.moveDown(0.3);
     doc.font("Helvetica").fontSize(9).fillColor("#6B7280");
-    doc.text(`Propriétaire : ${st.owner?.fullName ?? "-"}`);
-    doc.text(`Généré le ${new Date(st.generatedAt).toLocaleString("fr-FR")}`);
+    doc.text(tr("Propriétaire : {0}", st.owner?.fullName ?? "-"));
+    doc.text(tr("Généré le {0}", new Date(st.generatedAt).toLocaleString("fr-FR")));
     doc.moveDown(1);
 
     const cards: [string, string][] = [
-      ["Revenus encaissés", money(st.summary.totalRevenue)],
+      [tr("Revenus encaissés"), money(st.summary.totalRevenue)],
       [`Commission (${st.commissionRate} %)`, money(st.summary.commission)],
-      ["Maintenance", money(st.summary.maintenanceCosts)],
-      ["Solde net", money(st.summary.netBalance)],
+      [tr("Maintenance"), money(st.summary.maintenanceCosts)],
+      [tr("Solde net"), money(st.summary.netBalance)],
     ];
     const cardWidth = (width - 3 * 10) / 4;
     const cardTop = doc.y;
@@ -129,13 +130,13 @@ export function ownerStatementPdf(st: OwnerStatement): Promise<Buffer> {
         doc.y = y + 16;
       };
       drawRow(headers, true, "#F3F4F6");
-      if (rows.length === 0) drawRow(["Aucune opération sur la période."], false);
+      if (rows.length === 0) drawRow([tr("Aucune opération sur la période.")], false);
       rows.forEach((r) => drawRow(r, false));
     };
 
     table(
-      "Encaissements",
-      ["Date", "Bien", "Locataire", "Moyen", "Montant"],
+      tr("Encaissements"),
+      [tr("Date"), tr("Bien"), tr("Locataire"), tr("Moyen"), tr("Montant")],
       [70, 170, 150, 90, width - 480],
       st.payments.map((p) => [
         date(p.paymentDate),
@@ -147,8 +148,8 @@ export function ownerStatementPdf(st: OwnerStatement): Promise<Buffer> {
     );
 
     table(
-      "Maintenance",
-      ["Date", "Bien", "Nature", "Statut", "Coût final"],
+      tr("Maintenance"),
+      [tr("Date"), tr("Bien"), tr("Nature"), tr("Statut"), tr("Coût final")],
       [70, 170, 150, 90, width - 480],
       st.maintenance.map((m) => [
         date(m.createdAt),

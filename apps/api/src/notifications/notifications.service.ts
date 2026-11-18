@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { AccountStatus, NotificationChannel, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto, toSkipTake } from "../common/dto/pagination.dto";
+import { translateText } from "../common/i18n/i18n";
 
 @Injectable()
 export class NotificationsService {
@@ -14,6 +15,7 @@ export class NotificationsService {
     message: string;
     channel?: NotificationChannel;
   }) {
+    // Enregistrée en français (langue source) ; traduite à la lecture dans la langue de l'utilisateur (findForUser).
     return this.prisma.notification.create({
       data: {
         userId: params.userId,
@@ -49,7 +51,9 @@ export class NotificationsService {
       this.prisma.notification.count({ where: { userId } }),
       this.prisma.notification.count({ where: { userId, read: false } }),
     ]);
-    return { data, total, unreadCount, page: pagination.page, limit: pagination.limit };
+    // Traduites dans la langue du site : changer de langue convertit aussi les notifications déjà reçues.
+    const translated = data.map((n) => ({ ...n, title: translateText(n.title), message: translateText(n.message) }));
+    return { data: translated, total, unreadCount, page: pagination.page, limit: pagination.limit };
   }
 
   async markRead(id: string, userId: string) {

@@ -1,7 +1,12 @@
 import { AccountStatus } from "@prisma/client";
-import { IsEnum, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsEnum, IsIn, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 export class UpdateProfileDto {
+  /** Langue de l'interface : notifications et quittances de l'utilisateur dans cette langue. */
+  @IsOptional()
+  @IsIn(["fr", "en"], { message: "Langue non prise en charge." })
+  language?: string;
+
   @IsOptional()
   @IsString()
   @MinLength(2, { message: "Le nom est trop court." })

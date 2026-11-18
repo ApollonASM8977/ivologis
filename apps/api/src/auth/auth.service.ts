@@ -14,6 +14,7 @@ import { AuditService } from "../audit/audit.service";
 import { authenticator } from "otplib";
 import { publicUser } from "../common/utils/public-user";
 import { hashInviteCode } from "../common/utils/invite-code.util";
+import { requestLang } from "../common/i18n/i18n";
 
 const SELF_REGISTER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.TENANT];
 const INTERNAL_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT];
@@ -95,6 +96,7 @@ export class AuthService {
           fullName: dto.fullName,
           email: dto.email,
           phone: dto.phone,
+          language: requestLang(),
           passwordHash,
           role,
           status: AccountStatus.ACTIVE,
@@ -163,7 +165,7 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: { lastLoginAt: new Date(), language: requestLang() },
     });
 
     await this.audit.log({
