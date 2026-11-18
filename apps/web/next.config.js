@@ -16,7 +16,13 @@ const nextConfig = {
   // Métadonnées (titre, description, Open Graph) toujours dans <head>, pour tous les visiteurs et robots :
   // sinon Next 15 les diffuse en différé dans <body> sur les pages dynamiques (catalogue, fiches) et le SEO les perd.
   htmlLimitedBots: /.*/,
+  experimental: {
+    // CSS intégré à la page : l'affichage n'attend plus un fichier CSS séparé, il a lieu avant l'exécution du JavaScript.
+    inlineCss: true,
+  },
   images: {
+    // AVIF d'abord (~30 % plus léger que WebP), WebP pour les navigateurs plus anciens.
+    formats: ["image/avif", "image/webp"],
     // Liste fermée : sinon l'optimiseur d'images sert de proxy gratuit vers n'importe quel site.
     remotePatterns: [
       { protocol: "http", hostname: "localhost" },
