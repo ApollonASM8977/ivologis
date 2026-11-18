@@ -25,6 +25,7 @@ const fr = {
     verification: "Vérification des annonces",
     legalNotice: "Mentions légales",
     privacy: "Confidentialité",
+    terms: "Conditions générales",
     rights: "Tous droits réservés.",
   },
 };
@@ -55,6 +56,7 @@ export const marketingMessages: Messages<typeof fr> = {
       verification: "Listing verification",
       legalNotice: "Legal notice",
       privacy: "Privacy",
+      terms: "Terms of use",
       rights: "All rights reserved.",
     },
   },

@@ -34,6 +34,7 @@ export function SiteFooter({ lang }: { lang: Lang }) {
             <li><Link href="/verification" className="hover:text-primary">{m.footer.verification}</Link></li>
             <li><Link href="/mentions-legales" className="hover:text-primary">{m.footer.legalNotice}</Link></li>
             <li><Link href="/confidentialite" className="hover:text-primary">{m.footer.privacy}</Link></li>
+            <li><Link href="/conditions-generales" className="hover:text-primary">{m.footer.terms}</Link></li>
           </ul>
         </div>
       </div>

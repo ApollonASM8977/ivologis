@@ -4,7 +4,7 @@ import { fetchPublishedListings, listingPath, type ListingKind } from "@/lib/lis
 
 export const revalidate = 3600;
 
-const STATIC_PAGES = ["", "/catalogue", "/catalogue/locations", "/catalogue/sales", "/catalogue/short-stay", "/verification", "/securite", "/mentions-legales", "/confidentialite"];
+const STATIC_PAGES = ["", "/catalogue", "/catalogue/locations", "/catalogue/sales", "/catalogue/short-stay", "/verification", "/securite", "/mentions-legales", "/confidentialite", "/conditions-generales"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
