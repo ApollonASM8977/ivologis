@@ -23,7 +23,9 @@ Démarche : testeur UI/UX sur téléphone (375-412 px) et ordinateur, visiteur +
 | Connexion | 88 | 82 | 82 |
 JavaScript initial : accueil 215 → 117 kB, catalogue 208 → 155 kB, fiche 233 → 180 kB. LCP prod : 4-5 s → 2,4-2,6 s.
 
-**Ce qui empêche encore 96+** (honnêtement) :
+**Mise à jour du 2026-11-18 — mesure de référence sur Linux** (workflow GitHub `Lighthouse`, mobile, médiane de 5, production d'avant la session) : accueil **97**, sécurité **100**, connexion **99**, catalogue 93 ; accessibilité, bonnes pratiques et SEO à 100. Les chiffres locaux ci-dessus (Windows) sont pessimistes : sur ce poste, la première mise en page coûte ~110 ms même pour une page vide, multipliés par 4 par Lighthouse (D-15). Le catalogue perdait des points parce que **l'API dormait** pendant la mesure (service gratuit distinct) : le site la réveille désormais dès son démarrage (`instrumentation.ts`).
+
+**Ce qui empêchait 96+** (analyse du 2026-11-17, en partie dépassée) :
 1. 🔴 **Hébergement gratuit Render** : le serveur s'endort ; le premier visiteur attend jusqu'à une minute (le site l'annonce même : « Premier chargement : jusqu'à une minute »). Aucun réglage de code ne compense. → Instance payante (≈ 7 $/mois par service) ou ping régulier. Prérequis à toute mesure sérieuse.
 2. 🟠 Socle React/Next (≈ 100 kB compressés) exécuté avant l'interactivité : sur un téléphone d'entrée de gamme simulé, 250-550 ms de blocage. Pistes restantes : retirer React Query du socle commun (le mettre seulement où il sert), découper davantage, page d'accueil statique pure. Au-delà, viser 96+ en mobile demanderait une vitrine sans React (ex. HTML statique/Astro) — à décider.
 3. 🟡 Mesures locales bruitées (±10 points) : la référence officielle est PageSpeed Insights sur la prod (quota anonyme épuisé le 2026-11-17 ; une clé API gratuite Google permettrait un suivi quotidien).

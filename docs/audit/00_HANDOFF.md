@@ -14,6 +14,13 @@
 
 **Déployé** : `d339b1a` (espaces locataire/propriétaire) en prod le 2026-11-17 16:50 UTC, design d'origine vérifié en prod. Ensuite : audit admin en profondeur (chaîne bien → bail → paiement → quittance → relevé, équipe, paramètres, import CSV, messages en français partout) — voir `12_AUDIT_ESPACES.md`.
 
+**Session du 2026-11-18 (D-13, D-14, D-15)** — poussé sur GitHub, **PAS ENCORE DÉPLOYÉ** (le déclenchement Render a été bloqué par la politique de sécurité : à faire par l'utilisateur ou avec son accord explicite ; API d'abord, elle applique la migration `20261118090000_lease_expiry`, puis web) :
+- ✅ AD-06 échéance des baux (`9f4e045`) : voir `12_AUDIT_ESPACES.md` et D-13. Test unitaire + 7 contrôles d'API sur `audit-qa` (script scratchpad `ad06.mjs`).
+- ✅ Perf : React Query + notifications retirés de l'accueil/pages légales (`Providers` seulement dans `(auth)`, `catalogue`, espaces, et le formulaire de contact chargé à l'approche) ; `instrumentation.ts` réveille l'API au démarrage du site puis la garde éveillée.
+- ✅ Mesure de référence **Linux** : workflow `.github/workflows/lighthouse.yml` (Actions → Lighthouse → cible `production` ou `build`). Prod avant cette session : accueil **97**, sécurité **100**, connexion **99**, catalogue 93 (l'API dormait pendant la mesure : annonces jamais affichées). Les mesures locales Windows sont pessimistes (D-15).
+- 🟡 I (bilingue, D-14) : socle fait (`lib/i18n.ts`, `lib/i18n-client.tsx` avec `useLang`/`usePath`/`switchLang`, `middleware.ts`, `app/[lang]/…`, `messages/*.ts`). Traduits : accueil, en-tête, pied de page, contact, sécurité, vérification, mentions légales, confidentialité. **Reste, dans l'ordre** : catalogue (liste, fiches, demandes, `listing-seo`, libellés partagés → `messages/labels.ts`), connexion/inscription/mot de passe, espaces locataire → propriétaire → admin, page hors ligne, messages de l'API (`Accept-Language`), PDF. Puis `LANG_SWITCHER_ENABLED = true`. ⚠️ Dans les composants, utiliser `usePath()` (pas `usePathname()`, qui renvoie `/fr/...` au rendu serveur → erreur React #418).
+- Avis D-11 donné à l'utilisateur (masquage + leviers contractuels et financiers) ; propositions en attente : bon de visite numérique, masquage des numéros dans les commentaires, clause de non-contournement dans le mandat.
+
 **Demande du 2026-11-17 soir (D-11, D-12)** — lots dans cet ordre :
 - ✅ D-11 « tout passe par l'agence » (`3971512`) ; animations au doigt ; Next 15.5.29 ; suite `apps/api/test/qa-securite.mjs` (41/41 sur `audit-qa`).
 - ✅ **P lots 1-2** (`74c2c13`, `2c41c47`) : cause principale trouvée = `app/template.tsx` (toutes les pages à opacité 0 + flou jusqu'au JS). Pages publiques sans bibliothèque d'animation (CSS `ivo-*` dans `globals.css`, composants `css-motion.tsx`, `home-islands.tsx`), données du catalogue/fiches rendues côté serveur, pied de page légal côté serveur, métadonnées dans `<head>` (`htmlLimitedBots`). Mesures et limites restantes : `13_REVUE_UX.md` § 2. Outils : test de fumée 41 pages (scratchpad `smoke.cjs`), lint rules-of-hooks ponctuel (scratchpad `lint/`). ⚠️ Ne jamais lancer `next dev` pendant un `next start` : il écrase `.next`.
@@ -26,7 +33,7 @@
 - **I** : i18n FR/EN intégral (web + messages API + PDF), sélecteur de langue ; gros chantier, à découper par espace.
 - Sécurité restante : NestJS 10 → 12 (S-15, 13 alertes npm restantes dont multer/body-parser), zod 4, Dependabot désactivé sur GitHub (à activer par l'utilisateur), S-14 octets magiques des images, S-17.
 
-**Prochaine action exacte** : lot P (voir ci-dessus). Ensuite : parcourir à la main les écrans admin restants (création de bail dans l'interface, Paiements, Ventes, Courte durée, Statistiques) ; puis décisions A-02/A-03/AD-06, S-17, P1-07, P1-08, P1-14, performance (LCP).
+**Prochaine action exacte** : (1) déploiement par l'utilisateur (API puis web) et relance du workflow Lighthouse cible `production` ; (2) traduction du catalogue puis des pages de connexion (lot I). Ancien : lot P (voir ci-dessus). Ensuite : parcourir à la main les écrans admin restants (création de bail dans l'interface, Paiements, Ventes, Courte durée, Statistiques) ; puis décisions A-02/A-03/AD-06, S-17, P1-07, P1-08, P1-14, performance (LCP).
 
 **Comptes de test sur `audit-qa`** : le mot de passe du propriétaire `kouadio.jean@ivologis.ci` a été réinitialisé sur la branche QA uniquement (valeur dans le scratchpad de session, `owner-qa-password.txt`) ; la prod n'est pas touchée.
 
