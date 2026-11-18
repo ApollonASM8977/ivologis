@@ -11,6 +11,8 @@ export const UI_EN: Dictionary = {
   "Fermer": "Close",
   "Mot de passe {0}": "Password {0}",
   "Page {0} / {1}": "Page {0} / {1}",
+  "Page précédente": "Previous page",
+  "Page suivante": "Next page",
   "Rechercher…": "Search…",
   "Remplissez les champs obligatoires signalés.": "Fill in the required fields highlighted.",
   "Site web": "Website",

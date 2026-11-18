@@ -76,7 +76,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 <span className="relative z-10">{m.hero.demo}</span>
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
               </Link>
-              <Link href="/securite" className="rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:text-primary">
+              <Link href="/securite" className="inline-flex items-center px-2 py-3 text-sm font-semibold text-ink-muted transition-colors hover:text-primary hover:underline">
                 {m.hero.security}
               </Link>
             </div>

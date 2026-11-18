@@ -84,6 +84,8 @@ export function DataTable<T>({
           </span>
           <div className="flex items-center gap-2">
             <button
+              type="button"
+              aria-label={t("Page précédente")}
               disabled={(page ?? 1) <= 1}
               onClick={() => onPageChange((page ?? 1) - 1)}
               className="rounded-lg border border-gray-200 p-1.5 disabled:opacity-40"
@@ -94,6 +96,8 @@ export function DataTable<T>({
               {t("Page {0} / {1}", page, totalPages)}
             </span>
             <button
+              type="button"
+              aria-label={t("Page suivante")}
               disabled={(page ?? 1) >= totalPages}
               onClick={() => onPageChange((page ?? 1) + 1)}
               className="rounded-lg border border-gray-200 p-1.5 disabled:opacity-40"

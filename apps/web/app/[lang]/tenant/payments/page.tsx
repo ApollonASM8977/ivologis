@@ -84,7 +84,7 @@ export default function TenantPaymentsPage() {
       header: "Quittance",
       cell: (r: any) =>
         r.receipt?.pdfUrl ? (
-          <DocumentLink path={r.receipt.pdfUrl} className="text-primary hover:underline">
+          <DocumentLink path={r.receipt.pdfUrl} className="text-primary hover:underline" aria-label={t("Télécharger la quittance")}>
             <Receipt className="h-4 w-4" />
           </DocumentLink>
         ) : (
