@@ -218,9 +218,9 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
             {isFetching && " · mise à jour…"}
           </p>
           <StaggerContainer key={qs} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {data.data.map((p) => (
+            {data.data.map((p, i) => (
               <StaggerItem key={p.id} className="h-full">
-                <ListingCard p={p} href={`${basePath}/${p.id}`} price={price(p)} icon={Icon} />
+                <ListingCard p={p} href={`${basePath}/${p.id}`} price={price(p)} icon={Icon} priority={i === 0} />
               </StaggerItem>
             ))}
           </StaggerContainer>
@@ -243,7 +243,7 @@ function CatalogListInner({ kind, basePath, title, subtitle, icon: Icon, emptyTi
   );
 }
 
-function ListingCard({ p, href, price, icon: Icon }: { p: any; href: string; price: string; icon: LucideIcon }) {
+function ListingCard({ p, href, price, icon: Icon, priority }: { p: any; href: string; price: string; icon: LucideIcon; priority?: boolean }) {
   const cover = p.images?.find((img: any) => img.isCover) ?? p.images?.[0];
   return (
     <div className="ivo-lift h-full rounded-xl">
@@ -263,6 +263,8 @@ function ListingCard({ p, href, price, icon: Icon }: { p: any; href: string; pri
             src={fileUrl(cover.url) ?? ""}
             alt={p.name}
             fill
+            // La photo de la première annonce est l'élément principal de la page (LCP) : chargée tout de suite, en priorité.
+            priority={priority}
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
