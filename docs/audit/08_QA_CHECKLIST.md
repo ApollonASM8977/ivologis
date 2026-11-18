@@ -47,6 +47,19 @@ Constats et suites :
 - SEO 91 sur la fiche : description absente pendant l'audit car l'API redémarrait après le déploiement (repli prévu sur un titre générique) ; revérifié ensuite : titre + description présents. C'est la limite du plan gratuit Render.
 - Performance (LCP 4-5 s) : le contenu des annonces est chargé côté client après le JS (~200 Ko). Pistes : rendre la liste et la fiche côté serveur avec les données déjà lues pour le SEO, alléger Motion sur la vitrine, plan Render payant (pas de réveil). À traiter en P1 « performance ».
 
+## Contrôle CSP du lot sécurité (2026-11-18 soir, mini-PC, build de production local)
+Contexte : branche `security/prelaunch` (lot non commité : CSP en production, `poweredByHeader: false`, case CGU, overrides npm). API locale :3101 sur Neon `audit-qa` (point d'accès `ep-curly-star-b1su9i1h`, réveillé par l'API au démarrage, vérifié avec l'outil Neon ; la prod n'est pas touchée) ; web `next start` :3100 construit avec `NEXT_PUBLIC_API_URL=http://localhost:3101`.
+Méthode : Chrome 157 piloté par `puppeteer-core@24.43.1` ; écouteur `securitypolicyviolation` injecté avant tout script de chaque page ; défilement complet (cadres chargés à la demande) ; erreurs console et JS relevées. Sessions admin / propriétaire / locataire par les jetons de test de `outils-session` (re-signés pour 1 h avec le `JWT_SECRET` de test) : `GET /auth/me` = 200 pour les trois.
+Preuves : `_RESSOURCES/outils-session/csp/` (`csp-report.json`, scripts, capture du formulaire).
+- [x] En-tête envoyé : `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://localhost:3101 https://images.unsplash.com; font-src 'self'; connect-src 'self' http://localhost:3101; frame-src https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`
+- [x] **0 violation sur 57 pages** : 21 publiques (accueil FR/EN, catalogue ×4, fiches location / courte durée / vente, connexion, inscription FR/EN, mot de passe oublié, vérification, sécurité, mentions légales, confidentialité, CGU, 404), 19 admin, 9 propriétaire, 9 locataire.
+- [x] Carte OpenStreetMap (fiches courte durée et vente) et visite 360° Matterport (fiche vente) affichées ; tuiles 12/12 et 10/10 au second passage (le premier avait eu `ERR_NETWORK_CHANGED`, coupure réseau locale, sans lien avec la CSP). La fiche location testée n'a pas de coordonnées, donc pas de carte.
+- [x] Service worker `sw.js` enregistré dans Chrome. Le navigateur intégré de l'application Claude refuse l'enregistrement (« unknown error when fetching the script ») : limite de ce navigateur, pas du site.
+- [x] Case CGU obligatoire : `POST /auth/register` sans `acceptTerms` → 400 « Le champ « acceptTerms » est obligatoire. » ; `acceptTerms=false` → 400 « Acceptez les conditions générales… » ; formulaire à 390 px sans cocher → message d'erreur sous la case, `aria-invalid=true`, aucune requête envoyée.
+- [x] Seule erreur console restante : le statut 404 de la page 404 (voulu).
+- [ ] Constat UX, non corrigé (D-10, attend l'accord) : à 390 px, le bandeau de mesure d'audience recouvre le bouton « Créer mon compte » tant qu'il n'est pas fermé.
+Rejouer : `outils-session/csp/run-api-qa.ps1` (refuse de démarrer si `DATABASE_URL` ne vise pas `audit-qa` ; dossier de travail sans `.env`, car **`apps/api/.env` vise la base de PRODUCTION**) ; installer `puppeteer-core@24.43.1 --ignore-scripts` dans un dossier d'outils et adapter le chemin du `require` en tête des scripts ; `node csp-check.cjs csp-report.json`.
+
 ## À vérifier après déploiement en prod
 - [x] Migrations appliquées (6 migrations du 2026-11-17, vérifié par SQL en lecture)
 - [ ] IP réelle affichée dans Profil → Sessions (S-07) — à faire par l'utilisateur connecté
