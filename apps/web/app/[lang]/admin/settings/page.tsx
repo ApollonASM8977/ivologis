@@ -13,6 +13,7 @@ import { Input, Label } from "@/components/ui/input";
 import { LoadingState } from "@/components/ui/empty-state";
 import { PaymentMethodBadge } from "@/components/payment-method-badge";
 import { t } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 interface SettingsForm {
   companyName: string;
@@ -69,7 +70,7 @@ export default function AdminSettingsPage() {
     <div>
       <PageHeader title={t("Paramètres")} subtitle={t("Configuration générale de l'entreprise IVOLOGIS")} />
 
-      <form onSubmit={handleSubmit((v) => updateMutation.mutate(v))} className="space-y-4">
+      <form onSubmit={handleSubmit((v) => updateMutation.mutate(v), invalidForm)} className="space-y-4">
         <Card>
           <CardHeader title={t("Informations de l'entreprise")} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

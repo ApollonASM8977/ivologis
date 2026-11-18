@@ -8,6 +8,7 @@ import { useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { t as tr } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 export interface PropertyFormValues {
   name: string;
@@ -72,7 +73,7 @@ export function PropertyForm({
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit, invalidForm)} className="space-y-4">
       {showOwnerField && (
         <div>
           <Label>{tr("Propriétaire")}</Label>

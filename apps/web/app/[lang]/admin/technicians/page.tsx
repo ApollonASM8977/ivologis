@@ -14,6 +14,7 @@ import { Modal } from "@/components/ui/modal";
 import { Input, Label } from "@/components/ui/input";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { t as tr } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 interface Technician {
   id: string;
@@ -99,7 +100,7 @@ export default function AdminTechniciansPage() {
       )}
 
       <Modal open={open} onClose={() => setOpen(false)} title={tr("Ajouter un technicien")}>
-        <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} className="space-y-4">
+        <form onSubmit={handleSubmit((v) => createMutation.mutate(v), invalidForm)} className="space-y-4">
           <div>
             <Label>{tr("Nom complet")}</Label>
             <Input {...register("fullName", { required: true })} />

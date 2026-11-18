@@ -19,6 +19,7 @@ import { PaymentMethodBadge } from "@/components/payment-method-badge";
 import { PaymentMethodPicker } from "@/components/payment-method-picker";
 import { t } from "@/lib/t-spaces";
 import { locale, money } from "@/lib/t";
+import { invalidForm } from "@/lib/form";
 
 interface PayForm {
   method: PaymentMethod;
@@ -121,7 +122,7 @@ export default function TenantPaymentsPage() {
       )}
 
       <Modal open={payOpen} onClose={() => setPayOpen(false)} title={t("Déclarer le paiement de mon loyer")}>
-        <form onSubmit={handleSubmit((v) => payMutation.mutate(v))} className="space-y-4">
+        <form onSubmit={handleSubmit((v) => payMutation.mutate(v), invalidForm)} className="space-y-4">
           <div className="rounded-xl bg-primary/5 px-4 py-3">
             <p className="text-xs text-ink-muted">{t("{0} · loyer de {1}", property?.name, monthLabel)}</p>
             <p className="text-lg font-semibold text-primary">{money(rent)}</p>

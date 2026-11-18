@@ -12,6 +12,7 @@ import { api, apiErrorMessage, fileUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Label, Select, Textarea } from "@/components/ui/input";
 import { t as tr } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 export interface MaintenanceFormValues {
   issueType: MaintenanceIssueType;
@@ -39,7 +40,7 @@ export function MaintenanceForm({ loading, onSubmit }: { loading?: boolean; onSu
   });
 
   return (
-    <form onSubmit={handleSubmit((v) => onSubmit({ ...v, photos }))} className="space-y-4">
+    <form onSubmit={handleSubmit((v) => onSubmit({ ...v, photos }), invalidForm)} className="space-y-4">
       <div>
         <Label htmlFor="mf-type">{tr("Type de problème")}</Label>
         <Select id="mf-type" {...register("issueType", { required: true })}>

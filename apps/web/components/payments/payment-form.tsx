@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { PaymentMethodPicker } from "@/components/payment-method-picker";
 import { t as tr } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 export interface PaymentFormValues {
   tenantId: string;
@@ -40,7 +41,7 @@ export function PaymentForm({ loading, onSubmit }: { loading?: boolean; onSubmit
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit, invalidForm)} className="space-y-4">
       <div>
         <Label>{tr("Locataire")}</Label>
         <Select {...register("tenantId", { required: true, onChange: (e) => onTenantChange(e.target.value) })}>

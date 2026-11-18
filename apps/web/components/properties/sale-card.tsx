@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { DocumentLink } from "@/components/document-link";
 import { t } from "@/lib/t-spaces";
 import { locale, money } from "@/lib/t";
+import { invalidForm } from "@/lib/form";
 
 interface ListForSaleForm {
   salePrice: number;
@@ -201,7 +202,7 @@ export function SaleCard({
         </Button>
 
         <Modal open={listModalOpen} onClose={() => setListModalOpen(false)} title={t("Mettre ce bien en vente")}>
-          <form onSubmit={listForm.handleSubmit((v) => listMutation.mutate(v))} className="space-y-3">
+          <form onSubmit={listForm.handleSubmit((v) => listMutation.mutate(v), invalidForm)} className="space-y-3">
             <div>
               <Label>{t("Prix de vente demandé (FCFA)")}</Label>
               <Input type="number" {...listForm.register("salePrice", { required: true, valueAsNumber: true })} />
@@ -449,7 +450,7 @@ export function SaleCard({
       </div>
 
       <Modal open={listModalOpen} onClose={() => setListModalOpen(false)} title={t("Modifier l'annonce")}>
-        <form onSubmit={listForm.handleSubmit((v) => listMutation.mutate(v))} className="space-y-3">
+        <form onSubmit={listForm.handleSubmit((v) => listMutation.mutate(v), invalidForm)} className="space-y-3">
           <div>
             <Label>{t("Prix de vente demandé (FCFA)")}</Label>
             <Input type="number" {...listForm.register("salePrice", { required: true, valueAsNumber: true })} />
@@ -475,7 +476,7 @@ export function SaleCard({
       </Modal>
 
       <Modal open={offerModalOpen} onClose={() => setOfferModalOpen(false)} title={t("Ajouter une offre")}>
-        <form onSubmit={offerForm.handleSubmit((v) => offerMutation.mutate(v))} className="space-y-3">
+        <form onSubmit={offerForm.handleSubmit((v) => offerMutation.mutate(v), invalidForm)} className="space-y-3">
           <div>
             <Label>{t("Nom de l'acheteur")}</Label>
             <Input {...offerForm.register("buyerName", { required: true })} />
@@ -495,7 +496,7 @@ export function SaleCard({
       </Modal>
 
       <Modal open={finalizeModalOpen} onClose={() => setFinalizeModalOpen(false)} title={t("Finaliser la vente")}>
-        <form onSubmit={finalizeForm.handleSubmit((v) => finalizeMutation.mutate(v))} className="space-y-3">
+        <form onSubmit={finalizeForm.handleSubmit((v) => finalizeMutation.mutate(v), invalidForm)} className="space-y-3">
           <div>
             <Label>{t("Nom de l'acheteur")}</Label>
             <Input {...finalizeForm.register("buyerName", { required: true })} />

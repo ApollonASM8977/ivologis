@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { t } from "@/lib/t-spaces";
 import { locale } from "@/lib/t";
+import { invalidForm } from "@/lib/form";
 
 interface RequestForm {
   type: "RESILIATION" | "AUTRE";
@@ -79,7 +80,7 @@ export default function TenantRequestsPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Card className="lg:col-span-2">
           <CardHeader title={t("Nouvelle demande")} />
-          <form onSubmit={form.handleSubmit((v) => send.mutate(v))} className="space-y-4">
+          <form onSubmit={form.handleSubmit((v) => send.mutate(v), invalidForm)} className="space-y-4">
             <div>
               <Label htmlFor="rq-type">{t("Type de demande")}</Label>
               <Select id="rq-type" {...form.register("type")}>

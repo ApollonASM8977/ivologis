@@ -39,7 +39,7 @@ export function RentalListingDetail({ id, basePath, initial }: { id: string; bas
   const user = useAuthStore((s) => s.user);
   const [modalOpen, setModalOpen] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
-  const { register, handleSubmit, reset } = useForm<VisitForm>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<VisitForm>();
 
   const { data: property, isLoading } = useQuery({
     queryKey: ["catalog", "rentals", id],
@@ -210,26 +210,28 @@ export function RentalListingDetail({ id, basePath, initial }: { id: string; bas
             {!user && (
               <>
                 <div>
-                  <Label>{t("Nom complet")}</Label>
-                  <Input {...register("guestName", { required: true })} />
+                  <Label htmlFor="vf-guestName">{t("Nom complet")}</Label>
+                  <Input id="vf-guestName" aria-invalid={!!errors.guestName} {...register("guestName", { required: t("Votre nom est requis."), minLength: { value: 2, message: t("Nom trop court.") } })} />
+                  {errors.guestName && <p role="alert" className="mt-1 text-xs text-danger">{errors.guestName.message}</p>}
                 </div>
                 <div>
-                  <Label>{t("Téléphone")}</Label>
-                  <Input type="tel" {...register("guestPhone", { required: true })} />
+                  <Label htmlFor="vf-guestPhone">{t("Téléphone")}</Label>
+                  <Input id="vf-guestPhone" aria-invalid={!!errors.guestPhone} type="tel" {...register("guestPhone", { required: t("Votre téléphone est requis."), pattern: { value: /^[+0-9 ().-]{8,20}$/, message: t("Numéro de téléphone invalide.") } })} />
+                  {errors.guestPhone && <p role="alert" className="mt-1 text-xs text-danger">{errors.guestPhone.message}</p>}
                 </div>
                 <div>
-                  <Label>{t("Email (optionnel)")}</Label>
-                  <Input type="email" {...register("guestEmail")} />
+                  <Label htmlFor="vf-guestEmail">{t("Email (optionnel)")}</Label>
+                  <Input id="vf-guestEmail" type="email" {...register("guestEmail")} />
                 </div>
               </>
             )}
             <div>
-              <Label>{t("Date souhaitée (optionnel)")}</Label>
-              <Input type="date" {...register("preferredDate")} />
+              <Label htmlFor="vf-preferredDate">{t("Date souhaitée (optionnel)")}</Label>
+              <Input id="vf-preferredDate" type="date" {...register("preferredDate")} />
             </div>
             <div>
-              <Label>{t("Message (optionnel)")}</Label>
-              <Textarea rows={3} placeholder={t("Date d'entrée souhaitée, nombre de personnes, questions...")} {...register("message")} />
+              <Label htmlFor="vf-message">{t("Message (optionnel)")}</Label>
+              <Textarea id="vf-message" rows={3} placeholder={t("Date d'entrée souhaitée, nombre de personnes, questions...")} {...register("message")} />
             </div>
             <Button type="submit" className="w-full" loading={mutation.isPending}>
               {t("Envoyer la demande")}

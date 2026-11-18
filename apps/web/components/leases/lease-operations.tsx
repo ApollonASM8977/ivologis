@@ -17,6 +17,7 @@ import { CountUp } from "@/components/dashboard/count-up";
 import { LeaseExpiryCard } from "@/components/leases/lease-expiry";
 import { t } from "@/lib/t-spaces";
 import { locale, money } from "@/lib/t";
+import { invalidForm } from "@/lib/form";
 
 export const CONDITIONS: Record<string, string> = {
   NEUF: "Neuf",
@@ -117,7 +118,7 @@ function InspectionFormView({ leaseId, type, onDone }: { leaseId: string; type: 
   });
 
   return (
-    <form onSubmit={form.handleSubmit((v) => save.mutate(v))} className="space-y-4">
+    <form onSubmit={form.handleSubmit((v) => save.mutate(v), invalidForm)} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="insp-date">{t("Date de l'état des lieux")}</Label>
@@ -273,7 +274,7 @@ function DepositCard({ lease }: { lease: any }) {
       ) : !ended ? (
         <p className="text-sm text-ink-muted">{t("La restitution se calcule à la fin du bail.")}</p>
       ) : (
-        <form onSubmit={form.handleSubmit((v) => settle.mutate(v))} className="space-y-4">
+        <form onSubmit={form.handleSubmit((v) => settle.mutate(v), invalidForm)} className="space-y-4">
           {fields.map((f, i) => (
             <div key={f.id} className="grid gap-2 sm:grid-cols-[1fr_10rem_auto]">
               <Input aria-label={t("Motif de retenue {0}", i + 1)} placeholder={t("Ex : peinture, carreau cassé")} {...form.register(`deductions.${i}.label`, { required: true, maxLength: 160 })} />
@@ -337,7 +338,7 @@ function RevisionCard({ lease }: { lease: any }) {
       {lease.revisionRatePercent !== null && lease.revisionRatePercent !== undefined && (
         <p className="mb-4 flex items-center gap-2 text-sm text-ink-muted"><TrendingUp className="h-4 w-4" />{" "}{t("Dernière révision : {0} %", Number(lease.revisionRatePercent).toFixed(2))}</p>
       )}
-      <form onSubmit={form.handleSubmit((v) => revise.mutate(v))} className="grid gap-4 sm:grid-cols-3">
+      <form onSubmit={form.handleSubmit((v) => revise.mutate(v), invalidForm)} className="grid gap-4 sm:grid-cols-3">
         <div>
           <Label htmlFor="rev-rent">{t("Nouveau loyer (FCFA)")}</Label>
           <Input id="rev-rent" type="number" min={1} {...form.register("newRent", { required: true, valueAsNumber: true, min: 1 })} />

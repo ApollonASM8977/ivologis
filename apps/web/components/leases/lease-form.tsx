@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { t as tr } from "@/lib/t-spaces";
 import { money } from "@/lib/t";
+import { invalidForm } from "@/lib/form";
 
 interface LeaseFormFields {
   type: LeaseType;
@@ -158,7 +159,7 @@ export function LeaseForm({ loading, onSubmit }: { loading?: boolean; onSubmit: 
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit, invalidForm)} className="space-y-4">
       <div>
         <Label>{tr("Type de contrat")}</Label>
         <Select {...register("type", { required: true })}>

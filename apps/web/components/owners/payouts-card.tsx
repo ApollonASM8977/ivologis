@@ -14,6 +14,7 @@ import { Input, Label, Select } from "@/components/ui/input";
 import { CountUp } from "@/components/dashboard/count-up";
 import { t } from "@/lib/t-spaces";
 import { locale, money } from "@/lib/t";
+import { invalidForm } from "@/lib/form";
 
 interface Balance {
   gross: number;
@@ -108,7 +109,7 @@ export function PayoutsCard({ ownerId, canRecord }: { ownerId: string; canRecord
         <motion.form
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          onSubmit={form.handleSubmit((v) => record.mutate(v))}
+          onSubmit={form.handleSubmit((v) => record.mutate(v), invalidForm)}
           className="mb-5 grid gap-3 overflow-hidden rounded-xl bg-surface p-4 sm:grid-cols-2"
         >
           <div>

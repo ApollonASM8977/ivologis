@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { DocumentLink } from "@/components/document-link";
 import { t } from "@/lib/t-spaces";
 import { locale, money } from "@/lib/t";
+import { invalidForm } from "@/lib/form";
 
 interface BookingForm {
   guestName: string;
@@ -307,7 +308,7 @@ export function ShortStayCard({
       </div>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("Nouvelle réservation")}>
-        <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} className="space-y-3">
+        <form onSubmit={handleSubmit((v) => createMutation.mutate(v), invalidForm)} className="space-y-3">
           <div>
             <Label>{t("Nom du voyageur")}</Label>
             <Input {...register("guestName", { required: true })} />

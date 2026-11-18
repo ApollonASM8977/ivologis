@@ -15,6 +15,7 @@ import { Input, Label } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SessionsList } from "@/components/profile/sessions-list";
 import { t } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 interface SetupResponse {
   secret: string;
@@ -123,7 +124,7 @@ export function SecurityCard() {
               <a href={setup.otpauthUrl} className="inline-block text-sm font-medium text-primary hover:underline">
                 {t("Ouvrir directement dans mon application")}
               </a>
-              <form onSubmit={handleSubmit((v) => enableMutation.mutate(v.code.trim()))} className="space-y-3">
+              <form onSubmit={handleSubmit((v) => enableMutation.mutate(v.code.trim()), invalidForm)} className="space-y-3">
                 <div>
                   <Label htmlFor="2fa-enable">{t("Code affiché dans l'application")}</Label>
                   <Input
@@ -144,7 +145,7 @@ export function SecurityCard() {
         </AnimatePresence>
 
         {enabled && (
-          <form onSubmit={handleSubmit((v) => disableMutation.mutate(v.code.trim()))} className="flex flex-wrap items-end gap-3">
+          <form onSubmit={handleSubmit((v) => disableMutation.mutate(v.code.trim()), invalidForm)} className="flex flex-wrap items-end gap-3">
             <div className="min-w-[10rem] flex-1">
               <Label htmlFor="2fa-disable">{t("Code pour désactiver")}</Label>
               <Input

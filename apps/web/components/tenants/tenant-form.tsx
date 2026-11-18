@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 import { t as tr } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 export interface TenantFormValues {
   fullName: string;
@@ -52,7 +53,7 @@ export function TenantForm({
   const password = watch("password");
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit, invalidForm)} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <SectionTitle>{tr("Identité")}</SectionTitle>
         <div className="col-span-2">

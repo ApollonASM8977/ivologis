@@ -17,6 +17,7 @@ import { AccountStatusBadge } from "@/components/status-badges";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { t } from "@/lib/t-spaces";
+import { invalidForm } from "@/lib/form";
 
 interface AdminRow {
   id: string;
@@ -189,7 +190,7 @@ export default function AdminTeamPage() {
       />
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t("Ajouter un agent immobilier")} width="max-w-xl">
-        <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} className="space-y-4">
+        <form onSubmit={handleSubmit((v) => createMutation.mutate(v), invalidForm)} className="space-y-4">
           <div>
             <Label>{t("Nom complet")}</Label>
             <Input {...register("fullName", { required: true })} />
