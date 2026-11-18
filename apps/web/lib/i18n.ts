@@ -44,7 +44,8 @@ export function translator(lang: Lang, ...dictionaries: Record<string, string>[]
   const en: Record<string, string> = Object.assign({}, ...dictionaries);
   return (fr: string, ...values: unknown[]) => {
     const text = lang === "en" ? (en[fr] ?? fr) : fr;
-    return values.length ? text.replace(/\{(\d+)\}/g, (_, i) => String(values[Number(i)] ?? "")) : text;
+    const value = (v: unknown) => (lang === "en" && typeof v === "string" && en[v] !== undefined ? en[v] : String(v ?? ""));
+    return values.length ? text.replace(/\{(\d+)\}/g, (_, i) => value(values[Number(i)])) : text;
   };
 }
 

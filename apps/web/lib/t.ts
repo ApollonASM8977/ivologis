@@ -22,8 +22,11 @@ export type Dictionary = Record<string, string>;
 export function makeT(...dictionaries: Dictionary[]) {
   const en: Dictionary = Object.assign({}, ...dictionaries);
   return function t(fr: string, ...values: unknown[]): string {
-    const text = currentLang() === "en" ? (en[fr] ?? fr) : fr;
-    return values.length ? text.replace(/\{(\d+)\}/g, (_, i) => String(values[Number(i)] ?? "")) : text;
+    const english = currentLang() === "en";
+    const text = english ? (en[fr] ?? fr) : fr;
+    // Une valeur qui est elle-même un texte connu (libellé, « d'entrée »…) est traduite aussi ; noms et nombres restent tels quels.
+    const value = (v: unknown) => (english && typeof v === "string" && en[v] !== undefined ? en[v] : String(v ?? ""));
+    return values.length ? text.replace(/\{(\d+)\}/g, (_, i) => value(values[Number(i)])) : text;
   };
 }
 
