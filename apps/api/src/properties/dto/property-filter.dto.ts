@@ -1,5 +1,6 @@
 import { PropertyStatus, PropertyType } from "@prisma/client";
-import { IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
 import { PaginationDto } from "../../common/dto/pagination.dto";
 
 export class PropertyFilterDto extends PaginationDto {
@@ -18,4 +19,10 @@ export class PropertyFilterDto extends PaginationDto {
   @IsOptional()
   @IsUUID()
   ownerId?: string;
+
+  /** File « À vérifier » de l'agence (P1-17). */
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === "true")
+  @IsBoolean()
+  toReview?: boolean;
 }

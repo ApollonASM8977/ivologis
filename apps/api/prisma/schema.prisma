@@ -350,6 +350,8 @@ model Property {
   shortStayApproved Boolean @default(false)
   // Location longue durée publiée au catalogue (bien vacant, publication décidée par l'agence uniquement).
   rentListed        Boolean @default(false)
+  // Modifié par le propriétaire depuis le dernier passage de l'agence : file « À vérifier » (P1-17).
+  reviewRequestedAt DateTime?
 
   // --- Vente ---
   forSale            Boolean    @default(false)

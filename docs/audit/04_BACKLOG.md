@@ -49,7 +49,7 @@ Une tâche = un commit `type(ID): ...`. Chaque tâche se vérifie sur l'environn
 | P1-14 | Tests web (parcours catalogue) + `next lint` en CI (D-03) | M | TODO | CI rouge si un parcours casse. |
 | P1-15 | Branche Neon de développement pour le `.env` local (D-05) | S | FAIT (2026-11-19) — `apps/api/.env` du poste : `DATABASE_URL` et `JWT_SECRET` remplacés par ceux de `audit-qa` (fichier non suivi par git) ; preuve : API lancée normalement → point d'accès Neon `audit-qa` démarré à la seconde de la requête (S-23) | Le dev local n'écrit plus en prod. |
 | P1-16 | Relances automatiques de loyers (planificateur) (E-04) | M | TODO | Notification J+5 d'impayé, journalisée. |
-| P1-17 | Modération : file « annonces à vérifier » pour l'admin | S | TODO | — |
+| P1-17 | Modération : file « annonces à vérifier » pour l'admin | S | FAIT (2026-11-19, branche `lot/hors-lancement`, non déployé) — champ `reviewRequestedAt` (migration `20261119100000_property_review_requested`) posé quand le propriétaire modifie son bien, vidé au passage de l'agence ; règle unique `TO_REVIEW_WHERE` (modifié par le propriétaire / courte durée à valider / titre foncier à vérifier) ; bouton « À vérifier (N) » et raisons sur Biens, carte cliquable au tableau de bord, notification à l'agence (FR/EN) ; test `apps/api/test/qa-moderation.mjs` 10/10 (restaure les données) | Le propriétaire modifie → annonces retirées + bien dans la file + agence notifiée ; l'agence valide → sorti de la file. |
 
 ## P2
 | ID | Titre | Effort |

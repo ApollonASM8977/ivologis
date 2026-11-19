@@ -312,6 +312,8 @@ export const EN: Record<string, string> = {
   "Nouveau commentaire": "New comment",
   "Nouveau message sur une demande de maintenance": "New message on a maintenance request",
   "Nouvelle demande de contact": "New contact request",
+  "Bien modifié par son propriétaire": "Property edited by its owner",
+  "« {0} » a été modifié par son propriétaire : ses annonces sont retirées du catalogue jusqu'à votre validation (Biens → À vérifier).": "“{0}” was edited by its owner: its listings are withdrawn from the catalogue until you approve them (Properties → To review).",
   "Nouvelle demande de réservation": "New booking request",
   "Nouvelle demande de visite": "New viewing request",
   "Numéro de téléphone invalide.": "Invalid phone number.",

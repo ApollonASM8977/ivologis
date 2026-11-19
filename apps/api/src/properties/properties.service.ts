@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, OnApplicationBootstrap } from "@nestjs/common";
-import { PropertyStatus, UserRole } from "@prisma/client";
+import { Prisma, PropertyStatus, SaleStatus, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { toSkipTake } from "../common/dto/pagination.dto";
 import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { AuditService } from "../audit/audit.service";
@@ -12,6 +13,19 @@ import { PropertyFilterDto } from "./dto/property-filter.dto";
 
 const isStaff = (user: AuthenticatedUser) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN_AGENT;
 
+/**
+ * File « À vérifier » de l'agence (P1-17) : bien modifié par son propriétaire depuis le dernier passage de l'agence,
+ * courte durée en attente de validation, ou bien en vente dont le titre foncier n'est pas vérifié.
+ */
+export const TO_REVIEW_WHERE: Prisma.PropertyWhereInput = {
+  archivedAt: null,
+  OR: [
+    { reviewRequestedAt: { not: null } },
+    { shortStayEnabled: true, shortStayApproved: false },
+    { forSale: true, landTitleVerified: false, saleStatus: { not: SaleStatus.VENDU } },
+  ],
+};
+
 @Injectable()
 export class PropertiesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(PropertiesService.name);
@@ -21,6 +35,7 @@ export class PropertiesService implements OnApplicationBootstrap {
     private audit: AuditService,
     private storage: StorageService,
     private translation: TranslationService,
+    private notifications: NotificationsService,
   ) {}
 
   async create(dto: CreatePropertyDto, user: AuthenticatedUser) {
@@ -89,6 +104,8 @@ export class PropertiesService implements OnApplicationBootstrap {
       where.ownerId = filter.ownerId;
     }
 
+    if (filter.toReview) where.AND = [TO_REVIEW_WHERE];
+
     if (filter.search) {
       where.OR = [
         { name: { contains: filter.search, mode: "insensitive" } },
@@ -135,11 +152,19 @@ export class PropertiesService implements OnApplicationBootstrap {
   async update(id: string, dto: UpdatePropertyDto, user: AuthenticatedUser) {
     await this.findOne(id);
     const { ownerId, shortStayApproved, rentListed, isDemo, ...rest } = dto;
-    // Toute modification par le propriétaire retire ses annonces publiques jusqu'à une nouvelle validation de l'agence.
+    // Toute modification par le propriétaire retire ses annonces publiques jusqu'à une nouvelle validation de l'agence,
+    // et met le bien dans la file « À vérifier » ; un passage de l'agence l'en sort.
     const moderation = isStaff(user)
-      ? { isDemo, rentListed, shortStayApproved: shortStayApproved ?? (rest.shortStayEnabled === true ? true : undefined) }
-      : { shortStayApproved: false, rentListed: false };
+      ? { isDemo, rentListed, shortStayApproved: shortStayApproved ?? (rest.shortStayEnabled === true ? true : undefined), reviewRequestedAt: null }
+      : { shortStayApproved: false, rentListed: false, reviewRequestedAt: new Date() };
     const updated = await this.prisma.property.update({ where: { id }, data: { ...rest, ...moderation } });
+    if (!isStaff(user)) {
+      await this.notifications.notifyStaff({
+        type: "PROPERTY_REVIEW",
+        title: "Bien modifié par son propriétaire",
+        message: `« ${updated.name} » a été modifié par son propriétaire : ses annonces sont retirées du catalogue jusqu'à votre validation (Biens → À vérifier).`,
+      });
+    }
     return this.syncEnglish(updated, dto);
   }
 

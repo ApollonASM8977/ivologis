@@ -5,7 +5,7 @@ import { ExpiriesDueCard } from "@/components/leases/lease-expiry";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Building2, Users, UserRound, Wallet, AlertTriangle, Wrench, Plus, Download } from "lucide-react";
+import { Building2, Users, UserRound, Wallet, AlertTriangle, Wrench, Plus, Download, ClipboardCheck } from "lucide-react";
 import { api } from "@/lib/api";
 
 import { PageHeader } from "@/components/ui/page-header";
@@ -33,6 +33,7 @@ interface DashboardData {
   openMaintenanceCount: number;
   occupancyRate: number;
   revenueChart: { month: string; revenue: number }[];
+  toReviewCount: number;
 }
 
 export default function AdminDashboardPage() {
@@ -77,6 +78,9 @@ export default function AdminDashboardPage() {
             <StatCard label={t("Propriétaires")} value={data.ownersCount} icon={Users} />
             <StatCard label={t("Locataires")} value={data.tenantsCount} icon={UserRound} />
             <StatCard label={t("Taux d'occupation")} value={`${data.occupancyRate}%`} icon={Building2} tone="primary" />
+            <Link href="/admin/properties?toReview=1" aria-label={t("Voir les annonces à vérifier")}>
+              <StatCard label={t("Annonces à vérifier")} value={data.toReviewCount ?? 0} icon={ClipboardCheck} tone={data.toReviewCount ? "warning" : undefined} />
+            </Link>
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">

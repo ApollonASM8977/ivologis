@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { MaintenanceStatus, PaymentStatus, PropertyStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { TO_REVIEW_WHERE } from "../properties/properties.service";
 
 function monthRange(monthsAgo: number) {
   const now = new Date();
@@ -44,6 +45,7 @@ export class ReportsService {
       overdue,
       openMaintenance,
       revenueChart,
+      toReview,
     ] = await Promise.all([
       this.prisma.property.count({ where: { archivedAt: null } }),
       this.prisma.property.count({ where: { status: PropertyStatus.LOUE, archivedAt: null } }),
@@ -59,6 +61,7 @@ export class ReportsService {
         where: { status: { in: [MaintenanceStatus.RECU, MaintenanceStatus.EN_COURS] } },
       }),
       this.revenueByMonth(),
+      this.prisma.property.count({ where: TO_REVIEW_WHERE }),
     ]);
 
     const occupancyRate = totalProperties > 0 ? Math.round((occupied / totalProperties) * 100) : 0;
@@ -74,6 +77,7 @@ export class ReportsService {
       openMaintenanceCount: openMaintenance,
       occupancyRate,
       revenueChart,
+      toReviewCount: toReview,
     };
   }
 

@@ -96,6 +96,7 @@ Commit `8f95d7f` (`main` en avance rapide depuis `5233399`) ; Render web seuleme
 - [x] S-23 / P1-15 : `.env` local → `audit-qa` (l'API lancée normalement réveille `audit-qa`).
 - [x] S-17 fichiers privés par lien signé : `qa-securite` 44/44, `qa-ab` 19/19, photos signées affichées dans les 3 espaces (`outils-session/csp/photos-ui.cjs`), 0 violation CSP sur 57 pages (`csp-report-lot1.json`).
 - [x] S-22 cookie de langue `Secure` en https (simulé par `x-forwarded-proto: https`).
+- [x] P1-17 file « À vérifier » : `qa-moderation.mjs` 10/10 ; interface vérifiée (carte du tableau de bord = file, bouton « À vérifier (N) » sans chiffre tant que le compte n'est pas connu, raison affichée sous le bien, 0 violation CSP ; capture `outils-session/csp/moderation-admin.png`) ; `qa-securite` 44/44 et `qa-ab` 19/19 inchangés.
 - [x] S-24 vraies 404 : `/wp-login.php`, `/.env`, `/x.png`, `/essai-inexistant.php` → 404 + `noindex` ; `/` et `/catalogue/locations` → 200 ; accueil anglais intact.
 
 ## À vérifier après déploiement en prod

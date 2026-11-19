@@ -14,6 +14,7 @@ import { Modal } from "@/components/ui/modal";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PropertyStatusBadge } from "@/components/status-badges";
+import { Badge } from "@/components/ui/badge";
 import { PropertyForm, PropertyFormValues } from "@/components/properties/property-form";
 import { t } from "@/lib/t-spaces";
 import { money } from "@/lib/t";
@@ -27,6 +28,21 @@ interface PropertyRow {
   rentAmount: number;
   owner: { fullName: string };
   currentTenant?: { fullName: string } | null;
+  reviewRequestedAt?: string | null;
+  shortStayEnabled?: boolean;
+  shortStayApproved?: boolean;
+  forSale?: boolean;
+  landTitleVerified?: boolean;
+  saleStatus?: string;
+}
+
+/** Pourquoi le bien attend l'agence (même règle que `TO_REVIEW_WHERE` côté API). */
+function reviewReasons(row: PropertyRow) {
+  return [
+    row.reviewRequestedAt && t("Modifié par le propriétaire"),
+    row.shortStayEnabled && !row.shortStayApproved && t("Courte durée à valider"),
+    row.forSale && !row.landTitleVerified && row.saleStatus !== "VENDU" && t("Titre foncier à vérifier"),
+  ].filter(Boolean) as string[];
 }
 
 export default function AdminPropertiesPage() {
@@ -43,12 +59,17 @@ function AdminPropertiesPageContent() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("");
+  const [toReview, setToReview] = useState(searchParams.get("toReview") === "1");
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["properties", page, status],
+    queryKey: ["properties", page, status, toReview],
     queryFn: async () =>
-      (await api.get("/properties", { params: { page, limit: 10, status: status || undefined } })).data,
+      (await api.get("/properties", { params: { page, limit: 10, status: status || undefined, toReview: toReview || undefined } })).data,
+  });
+  const { data: reviewCount } = useQuery({
+    queryKey: ["properties", "to-review-count"],
+    queryFn: async () => (await api.get("/properties", { params: { limit: 1, toReview: true } })).data.total as number,
   });
 
   const createMutation = useMutation({
@@ -70,6 +91,11 @@ function AdminPropertiesPageContent() {
           <p className="flex items-center gap-1 text-xs text-ink-muted">
             <MapPin className="h-3 w-3" /> {row.commune}
           </p>
+          {reviewReasons(row).length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {reviewReasons(row).map((reason) => <Badge key={reason} color="amber">{reason}</Badge>)}
+            </div>
+          )}
         </div>
       ),
     },
@@ -100,6 +126,17 @@ function AdminPropertiesPageContent() {
           <option value="MAINTENANCE">{t("En maintenance")}</option>
           <option value="SUSPENDU">{t("Suspendu")}</option>
         </Select>
+        <Button
+          size="sm"
+          variant={toReview ? "primary" : "secondary"}
+          aria-pressed={toReview}
+          onClick={() => {
+            setToReview(!toReview);
+            setPage(1);
+          }}
+        >
+          {reviewCount === undefined ? t("À vérifier") : t("À vérifier ({0})", reviewCount)}
+        </Button>
       </div>
 
       {!isLoading && data?.data?.length === 0 ? (
