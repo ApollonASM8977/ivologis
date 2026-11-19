@@ -45,6 +45,14 @@ export const PROPERTY_AMENITIES = [
   "Cour clôturée",
   "Balcon / terrasse",
   "Cuisine équipée",
+  // Équipements que les locataires ivoiriens vérifient en premier (P1-08, T-06).
+  "Compteur CIE individuel",
+  "Compteur CIE prépayé",
+  "Compteur SODECI individuel",
+  "Bâche à eau / surpresseur",
+  "Eau chaude",
+  "Cuisine interne",
+  "Toilettes internes",
 ] as const;
 
 export const PAYMENT_METHOD_COLORS: Record<string, { bg: string; text: string; border: string }> = {

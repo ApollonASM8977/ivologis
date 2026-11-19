@@ -42,6 +42,10 @@ export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
   [PropertyType.IMMEUBLE]: "Immeuble",
   [PropertyType.BUREAU]: "Bureau",
   [PropertyType.MAGASIN]: "Magasin",
+  [PropertyType.DUPLEX]: "Duplex",
+  [PropertyType.CHAMBRE_SALON]: "Chambre-salon",
+  [PropertyType.COUR_COMMUNE]: "Logement en cour commune",
+  [PropertyType.ENTREPOT]: "Entrepôt",
 };
 
 export const PROPERTY_STATUS_LABELS: Record<PropertyStatus, string> = {

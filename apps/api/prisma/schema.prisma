@@ -32,6 +32,11 @@ enum PropertyType {
   IMMEUBLE
   BUREAU
   MAGASIN
+  // Types courants en Côte d'Ivoire (P1-08, R-04).
+  DUPLEX
+  CHAMBRE_SALON
+  COUR_COMMUNE
+  ENTREPOT
 }
 
 enum PropertyStatus {

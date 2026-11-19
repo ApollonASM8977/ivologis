@@ -19,6 +19,10 @@ export enum PropertyType {
   IMMEUBLE = "IMMEUBLE",
   BUREAU = "BUREAU",
   MAGASIN = "MAGASIN",
+  DUPLEX = "DUPLEX",
+  CHAMBRE_SALON = "CHAMBRE_SALON",
+  COUR_COMMUNE = "COUR_COMMUNE",
+  ENTREPOT = "ENTREPOT",
 }
 
 export enum PropertyStatus {
