@@ -385,3 +385,20 @@ test("annonces en anglais : saisie de l'agence prioritaire, sinon traduction aut
   await service.syncEnglish({ id: "P1", description: null }, { description: "" });
   assert.deepEqual(updates.pop(), { descriptionEn: null });
 });
+
+test("P1-16 relances : l'avance couvre les premiers mois, rappel à J+5 de l'échéance", () => {
+  const { coveredByAdvance, reminderDue } = require("../dist/src/payments/rent-reminder.js");
+  const lease = { startDate: new Date(2026, 9, 15), rentAmount: "150000", advance: "300000" }; // entrée le 15/10, 2 mois d'avance
+  assert.equal(coveredByAdvance(lease, new Date(2026, 9, 20)), true); // octobre payé par l'avance
+  assert.equal(coveredByAdvance(lease, new Date(2026, 10, 20)), true); // novembre aussi
+  assert.equal(coveredByAdvance(lease, new Date(2026, 11, 2)), false); // décembre dû
+  assert.equal(coveredByAdvance({ ...lease, advance: "0" }, new Date(2026, 9, 20)), false);
+  assert.equal(coveredByAdvance({ ...lease, rentAmount: "0" }, new Date(2026, 9, 20)), false);
+
+  const old = new Date(2025, 0, 1);
+  assert.equal(reminderDue(old, new Date(2026, 10, 5, 23, 59)), false); // le 5 : trop tôt
+  assert.equal(reminderDue(old, new Date(2026, 10, 6, 0, 0)), true); // le 6 : J+5
+  const enteredThisMonth = new Date(2026, 10, 10);
+  assert.equal(reminderDue(enteredThisMonth, new Date(2026, 10, 14)), false); // entrée le 10 : J+4
+  assert.equal(reminderDue(enteredThisMonth, new Date(2026, 10, 15)), true); // J+5
+});

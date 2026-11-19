@@ -1,7 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnApplicationBootstrap, OnModuleDestroy } from "@nestjs/common";
 import { LeaseStatus, PaymentStatus } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
+import { coveredByAdvance, reminderDue, startOfMonth } from "./rent-reminder";
 import { PdfService } from "../common/pdf/pdf.service";
 import { toSkipTake } from "../common/dto/pagination.dto";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -18,19 +20,33 @@ function generateReceiptNumber() {
   return `QUIT-${year}-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
-function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
+const AUTO_REMINDER_ACTION = "AUTO_RENT_REMINDER";
 
 @Injectable()
-export class PaymentsService {
+export class PaymentsService implements OnApplicationBootstrap, OnModuleDestroy {
+  private readonly logger = new Logger(PaymentsService.name);
+  private reminderTimers: NodeJS.Timeout[] = [];
+
   constructor(
     private prisma: PrismaService,
     private pdfService: PdfService,
     private notifications: NotificationsService,
     private storage: StorageService,
     private settings: SettingsService,
+    private audit: AuditService,
   ) {}
+
+  onApplicationBootstrap() {
+    if (process.env.NODE_ENV === "test") return;
+    const run = () => this.sendAutomaticReminders().catch((e) => this.logger.error(`Relances de loyers : ${e?.message ?? e}`));
+    // Comme les échéances des baux : le plan gratuit endort le serveur, chaque réveil rattrape les relances, puis toutes les 6 h.
+    this.reminderTimers = [setTimeout(run, 45_000), setInterval(run, 6 * 60 * 60 * 1000)];
+    this.reminderTimers.forEach((t) => t.unref());
+  }
+
+  onModuleDestroy() {
+    this.reminderTimers.forEach((t) => clearTimeout(t));
+  }
 
   async create(dto: CreatePaymentDto) {
     if (!dto.tenantId) {
@@ -278,9 +294,11 @@ export class PaymentsService {
       property: (typeof activeLeases)[number]["property"];
       owner: (typeof activeLeases)[number]["owner"];
       rentAmount: (typeof activeLeases)[number]["rentAmount"];
+      startDate: Date;
       month: Date;
     }> = [];
     for (const lease of activeLeases) {
+      if (coveredByAdvance(lease, currentMonth)) continue;
       const paidThisMonth = await this.prisma.payment.findFirst({
         where: {
           leaseId: lease.id,
@@ -295,11 +313,21 @@ export class PaymentsService {
           property: lease.property,
           owner: lease.owner,
           rentAmount: lease.rentAmount,
+          startDate: lease.startDate,
           month: currentMonth,
         });
       }
     }
     return overdue;
+  }
+
+  private remindTenant(userId: string, propertyName: string, rentAmount: unknown) {
+    return this.notifications.notify({
+      userId,
+      type: "PAYMENT_REMINDER",
+      title: "Rappel de paiement",
+      message: `Votre loyer pour ${propertyName} (${formatXOF(Number(rentAmount))}) est en attente ce mois-ci. Merci de régulariser votre situation rapidement.`,
+    });
   }
 
   async sendOverdueReminder(leaseId: string) {
@@ -312,14 +340,49 @@ export class PaymentsService {
       throw new BadRequestException("Ce locataire n'a pas de compte de connexion à notifier.");
     }
 
-    await this.notifications.notify({
-      userId: lease.tenant.userId,
-      type: "PAYMENT_REMINDER",
-      title: "Rappel de paiement",
-      message: `Votre loyer pour ${lease.property.name} (${formatXOF(Number(lease.rentAmount))}) est en attente ce mois-ci. Merci de régulariser votre situation rapidement.`,
-    });
-
+    await this.remindTenant(lease.tenant.userId, lease.property.name, lease.rentAmount);
     return { message: "Rappel envoyé au locataire." };
+  }
+
+  /**
+   * P1-16 : à J+5 d'un loyer impayé, un seul rappel par bail et par mois (journalisé dans l'audit, ce qui évite les doublons
+   * entre deux passages) ; l'agence reçoit le récapitulatif, avec les locataires sans compte à appeler.
+   */
+  async sendAutomaticReminders(now = new Date()) {
+    const month = startOfMonth(now);
+    const due = (await this.findOverdue()).filter((o) => reminderDue(o.startDate, now));
+    if (!due.length) return { reminded: 0, toCall: 0 };
+
+    const done = await this.prisma.auditLog.findMany({
+      where: { action: AUTO_REMINDER_ACTION, createdAt: { gte: month }, entityId: { in: due.map((o) => o.leaseId) } },
+      select: { entityId: true },
+    });
+    const already = new Set(done.map((d) => d.entityId));
+    const todo = due.filter((o) => !already.has(o.leaseId));
+    if (!todo.length) return { reminded: 0, toCall: 0 };
+
+    const toCall: string[] = [];
+    for (const o of todo) {
+      if (o.tenant.userId) await this.remindTenant(o.tenant.userId, o.property.name, o.rentAmount);
+      else toCall.push(o.tenant.fullName);
+      await this.audit.log({
+        action: AUTO_REMINDER_ACTION,
+        entityType: "Lease",
+        entityId: o.leaseId,
+        metadata: { month: month.toISOString().slice(0, 7), tenantNotified: !!o.tenant.userId },
+      });
+    }
+
+    const reminded = todo.length - toCall.length;
+    await this.notifications.notifyStaff({
+      type: "PAYMENT_REMINDER",
+      title: "Relances automatiques de loyers",
+      message: toCall.length
+        ? `${todo.length} loyer(s) impayé(s) à J+5 : rappel envoyé à ${reminded} locataire(s). Sans compte, à appeler : ${toCall.join(", ")}.`
+        : `${todo.length} loyer(s) impayé(s) à J+5 : rappel envoyé à ${reminded} locataire(s).`,
+    });
+    this.logger.log(`Relances de loyers : ${reminded} rappel(s), ${toCall.length} locataire(s) à appeler.`);
+    return { reminded, toCall: toCall.length };
   }
 
   async exportCsv(filter: PaymentFilterDto, scope: { ownerId?: string; tenantId?: string }) {
