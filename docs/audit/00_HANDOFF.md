@@ -1,12 +1,11 @@
 # 00 — HANDOFF (à lire en premier)
 
-## État au 2026-11-19 après-midi (à lire d'abord)
-- **Branche `lot/hors-lancement`** (11 commits, `310b922`), **ni poussée ni déployée**. Production = `main` `9af456d`.
-- Fait et testé sur `audit-qa` : S-17, S-22, S-23, S-24, S-25, S-15 (NestJS 11.2.11, audit d'exécution 0), P1-07 suivi sans compte, P1-08 types ivoiriens, P1-09 vérification foncière documentée, P1-16 relances de loyers, P1-17 file « À vérifier », U-11 à U-17, P1-14 (lint + parcours du catalogue en CI).
-- **Défauts de production corrigés dans ce lot** (encore présents en ligne) : profil locataire qui ne s'enregistre pas ; demande de visite refusée sans e-mail ni date ; fiche d'annonce inconnue en 200 au lieu de 404.
-- Preuves : `08_QA_CHECKLIST.md` § « Lot hors lancement » (suites `qa-*`, 31/31 unitaires, parcours 8/8, 57 pages 0 violation CSP).
-- **Déploiement (sur accord)** : fusionner dans `main`, pousser, `trigger_deploy` API (applique 3 migrations : `20261119100000_property_review_requested`, `20261119110000_ivorian_property_types`, `20261119120000_land_title_verification`) **puis** web. L'API et le site partent ensemble (route de vérification foncière, NestJS 11).
-- **Attend l'utilisateur** : (1) accord de déploiement du lot ; (2) retour à un instant passé dans la console Neon (`18_RESTAURATION.md` § A ; la copie de branche et la fenêtre de 6 h sont vérifiées) ; (3) les 10 prérequis d'ouverture (D-17, au signal de l'utilisateur) ; (4) bandeau qui recouvre « Créer mon compte » à 390 px (D-10).
+## État au 2026-11-19, 14 h 15 UTC (à lire d'abord)
+- **Lot hors lancement DÉPLOYÉ** avec l'accord de l'utilisateur : `main` = `50e8c2f` (avance rapide depuis `lot/hors-lancement`, aucune réécriture). Render API `dep-dbvg517f3r2c73c63cag` (live 14:09 UTC, 3 migrations appliquées en prod, vérifié par SQL en lecture) puis web `dep-dbvg6emtlv9c738p8v90`.
+- En ligne : S-15 (NestJS 11.2.11), S-17, S-22, S-24, S-25, P1-07, P1-08, P1-09, P1-14, P1-16, P1-17, U-11 à U-17, et les 3 défauts corrigés (profil locataire, demande de visite sans e-mail ni date, fausse 404 des fiches).
+- Vérifié en prod (lecture seule) : route de vérification foncière présente (401 sans jeton), catalogue des ventes avec la date de vérification et sans le nom du vérificateur, demande de visite aux champs vides acceptée par la validation, fiche inconnue 404, 20 pages publiques 0 violation CSP 0 erreur JS. CI GitHub `44540682546` verte (lint + parcours du catalogue dans Chrome sur Postgres jetable).
+- Test de restauration : fenêtre d'historique Neon 6 h vérifiée, copie complète d'`audit-qa` identique (comptes + empreinte des fichiers), branche temporaire supprimée (`18_RESTAURATION.md`).
+- **Attend l'utilisateur** : (1) retour à un instant passé dans la console Neon (`18_RESTAURATION.md` § A, 2 min) ; (2) les 10 prérequis d'ouverture (D-17, à son signal) ; (3) bandeau qui recouvre « Créer mon compte » à 390 px (D-10) ; (4) à vérifier connecté en prod : enregistrement de « Mon profil » d'un locataire.
 - Outils locaux : API `PORT=3101 CORS_ORIGIN=http://localhost:3100 node dist/src/main` (base `audit-qa`), web `NEXT_PUBLIC_API_URL=http://localhost:3101 npx next start -p 3100` ; suites `outils-session/csp/run-qa-suites.cjs` ; parcours `apps/web/e2e/parcours-catalogue.mjs`.
 
 ## Historique
