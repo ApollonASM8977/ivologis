@@ -47,7 +47,7 @@ Une tâche = un commit `type(ID): ...`. Chaque tâche se vérifie sur l'environn
 | P1-12 | Stockage objet (Cloudflare R2/S3) + compression d'images à l'upload + vérification des octets magiques (D-01, P-03, S-14) | M | **BLOQUÉ** (compte de stockage) | — |
 | P1-13 | Jeton en cookie `httpOnly` (S-08) | L | TODO (après domaine personnalisé idéalement) | — |
 | P1-14 | Tests web (parcours catalogue) + `next lint` en CI (D-03) | M | TODO | CI rouge si un parcours casse. |
-| P1-15 | Branche Neon de développement pour le `.env` local (D-05) | S | TODO | Le dev local n'écrit plus en prod. |
+| P1-15 | Branche Neon de développement pour le `.env` local (D-05) | S | FAIT (2026-11-19) — `apps/api/.env` du poste : `DATABASE_URL` et `JWT_SECRET` remplacés par ceux de `audit-qa` (fichier non suivi par git) ; preuve : API lancée normalement → point d'accès Neon `audit-qa` démarré à la seconde de la requête (S-23) | Le dev local n'écrit plus en prod. |
 | P1-16 | Relances automatiques de loyers (planificateur) (E-04) | M | TODO | Notification J+5 d'impayé, journalisée. |
 | P1-17 | Modération : file « annonces à vérifier » pour l'admin | S | TODO | — |
 
