@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { frenchValidationException } from "./common/validation/validation-messages";
+import { OptionalEmptyFieldsPipe } from "./common/validation/optional-empty-fields.pipe";
 import { AgencyPrivacyInterceptor } from "./common/interceptors/agency-privacy.interceptor";
 import { langMiddleware } from "./common/i18n/i18n";
 
@@ -32,6 +33,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix("api");
   app.useGlobalPipes(
+    new OptionalEmptyFieldsPipe(),
     new ValidationPipe({
       whitelist: true,
       transform: true,

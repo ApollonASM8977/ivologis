@@ -414,3 +414,20 @@ test("U-14 sessions : durée de vie du jeton comme jsonwebtoken, format inconnu 
   assert.equal(tokenLifetimeMs("120"), 120); // chiffres seuls = millisecondes (jsonwebtoken)
   assert.equal(tokenLifetimeMs("2 days"), Number.POSITIVE_INFINITY);
 });
+
+test("champs facultatifs vides : retirés s'ils ne sont pas du texte libre (demande de visite sans e-mail ni date)", async () => {
+  const { OptionalEmptyFieldsPipe } = require("../dist/src/common/validation/optional-empty-fields.pipe.js");
+  const { CreateVisitRequestDto } = require("../dist/src/sales/dto/create-visit-request.dto.js");
+  const pipe = new OptionalEmptyFieldsPipe();
+  const body = { guestName: "Awa", guestPhone: "+225 07 11 22 33 44", guestEmail: "", preferredDate: "", message: "", website: "" };
+  const out = pipe.transform({ ...body }, { type: "body", metatype: CreateVisitRequestDto });
+  assert.equal("guestEmail" in out, false);
+  assert.equal("preferredDate" in out, false);
+  assert.equal(out.message, ""); // texte libre : "" gardé (effacer)
+  assert.equal(out.website, ""); // champ piège : inchangé
+  assert.deepEqual(await validate(plainToInstance(CreateVisitRequestDto, out)), []);
+  // Sans le tube, l'ancien défaut : e-mail et date vides refusés.
+  assert.ok((await validate(plainToInstance(CreateVisitRequestDto, body))).length >= 2);
+  // Paramètres de route / requête : non concernés.
+  assert.deepEqual(pipe.transform({ q: "" }, { type: "query", metatype: CreateVisitRequestDto }), { q: "" });
+});

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { toLang } from "@/lib/i18n";
 import { catalogMeta } from "@/messages/catalog-meta";
 import { SaleListingDetail } from "@/components/catalog/sale-listing-detail";
@@ -15,6 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PublicCatalogSaleDetailPage({ params }: Props) {
   const { id } = await params;
   const p = await fetchListing("sales", id);
+  if (p === false) notFound();
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
       {p && <ListingJsonLd kind="sales" p={p} />}

@@ -38,7 +38,75 @@ jobs:
       - name: Vérifier le bilingue
         run: npm run check:i18n --workspace=apps/web
 
+      # P1-14 : règles Next.js (Core Web Vitals, hooks React) ; une erreur fait échouer la CI.
+      - name: Lint du web
+        run: npm run lint --workspace=apps/web
+
       - name: Construire le web
         run: npm run build:web
         env:
           NEXT_TELEMETRY_DISABLED: 1
+
+  # P1-14 : parcours du catalogue dans Chrome, sur une base Postgres jetable (migrations + seed), jamais sur Neon.
+  parcours-web:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ivologis
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: ivologis
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ivologis"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Valeurs propres à la CI (base jetable), sans lien avec la production.
+      DATABASE_URL: postgresql://ivologis:ci-only@localhost:5432/ivologis
+      JWT_SECRET: ci-only-jwt-secret-for-a-throwaway-database
+      SEED_PASSWORD: ci-only-seed-password
+      CORS_ORIGIN: http://localhost:3100
+      NEXT_PUBLIC_API_URL: http://localhost:3101
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Compiler le paquet partagé et le client Prisma
+        run: |
+          npm run build:shared
+          npm run prisma:generate
+
+      - name: Migrations et seed sur la base jetable
+        run: |
+          npm run prisma:deploy --workspace=apps/api
+          npm run prisma:seed
+
+      - name: Construire l'API et le web
+        run: |
+          npm run build --workspace=@ivologis/api
+          npm run build:web
+
+      - name: Démarrer l'API et le web
+        run: |
+          PORT=3101 nohup node apps/api/dist/src/main > api.log 2>&1 &
+          (cd apps/web && nohup npx next start -p 3100 > ../../web.log 2>&1 &)
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3101/api/catalog/rentals && curl -s -o /dev/null http://localhost:3100/fr && break
+            sleep 2
+          done
+
+      - name: Parcours du catalogue (Chrome)
+        run: node apps/web/e2e/parcours-catalogue.mjs
+
+      - name: Journaux en cas d'échec
+        if: failure()
+        run: tail -n 100 api.log web.log

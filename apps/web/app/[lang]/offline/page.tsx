@@ -32,6 +32,8 @@ export default async function OfflinePage({ params }: Props) {
       <BrandLogo size="lg" />
       <h1 className="text-2xl font-bold text-ink">{m.heading}</h1>
       <p className="max-w-sm text-sm text-ink-muted">{m.text}</p>
+      {/* Rechargement complet voulu : sans réseau, la navigation interne de Next ne peut pas réessayer. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/" className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white">
         {m.retry}
       </a>

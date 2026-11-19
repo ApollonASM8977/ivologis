@@ -13,6 +13,8 @@ import { LOCALES, formatMoney, type Lang } from "@/lib/i18n";
  * `npm run check:i18n` vérifie que chaque texte français du code a sa traduction.
  */
 export function currentLang(): Lang {
+  // `use` (pas un hook classique) est permis hors composant pendant le rendu : `t` n'est appelé qu'au rendu côté serveur.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   if (typeof window === "undefined") return use(LangContext);
   return document.documentElement.lang === "en" ? "en" : "fr";
 }

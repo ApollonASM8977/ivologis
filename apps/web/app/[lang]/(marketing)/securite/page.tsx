@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Lock, KeyRound, Eye, Database, FileCheck2, ShieldAlert, Server, History } from "lucide-react";
 import { toLang, type Messages } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/page-meta";
@@ -115,9 +116,9 @@ export default async function SecurityPage({ params }: Props) {
 
       <p className="mt-10 text-sm text-ink-muted">
         {m.report}{" "}
-        <a href="/#contact" className="font-semibold text-primary hover:underline">
+        <Link href="/#contact" className="font-semibold text-primary hover:underline">
           {m.reportLink}
-        </a>{" "}
+        </Link>{" "}
         {m.reportEnd}
       </p>
     </article>

@@ -14,8 +14,11 @@ const DEAL: Record<Lang, Record<ListingKind, string>> = {
   en: { sales: "for sale", rentals: "for rent", "short-stay": "furnished, short stay" },
 };
 
-/** Lecture serveur d'une annonce publique (sans compter de visite). null si l'API dort ou si l'annonce n'existe plus. */
-export async function fetchListing(kind: ListingKind, id: string): Promise<any | null> {
+/**
+ * Lecture serveur d'une annonce publique (sans compter de visite). `false` si l'API répond 404 (annonce inconnue ou retirée :
+ * la page renvoie une vraie 404) ; `null` si l'API dort ou ne répond pas (la page se charge alors côté navigateur).
+ */
+export async function fetchListing(kind: ListingKind, id: string): Promise<any | null | false> {
   try {
     const res = await fetch(`${API}/api/catalog/${kind}/${encodeURIComponent(id)}`, {
       headers: { "x-ivologis-no-count": "1" },
@@ -23,6 +26,7 @@ export async function fetchListing(kind: ListingKind, id: string): Promise<any |
       // Plan gratuit Render : si l'API se réveille, on n'attend pas, la page reste fonctionnelle côté client.
       signal: AbortSignal.timeout(8000),
     });
+    if (res.status === 404) return false;
     return res.ok ? res.json() : null;
   } catch {
     return null;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ArtciDeclaration } from "@/components/marketing/legal-identity";
 import { toLang, type Lang } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/page-meta";
@@ -14,9 +15,9 @@ const H2 = ({ children }: { children: React.ReactNode }) => <h2 className="mt-10
 const P = ({ children }: { children: React.ReactNode }) => <p className="mt-2 text-ink-muted">{children}</p>;
 const Who = ({ children }: { children: React.ReactNode }) => <span className="font-medium text-ink">{children}</span>;
 const LegalLink = ({ children }: { children: React.ReactNode }) => (
-  <a href="/mentions-legales" className="font-semibold text-primary hover:underline">
+  <Link href="/mentions-legales" className="font-semibold text-primary hover:underline">
     {children}
-  </a>
+  </Link>
 );
 
 function Body({ lang }: { lang: Lang }) {
