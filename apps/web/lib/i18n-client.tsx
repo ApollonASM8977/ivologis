@@ -24,7 +24,8 @@ export function useLang() {
 
 /** Change de langue pour tout le site : cookie d'un an puis rechargement, pour que tout (serveur compris) bascule d'un coup. */
 export function switchLang(lang: Lang) {
-  document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax`;
+  // `secure` en https (S-22) ; pas en http local, sinon le navigateur refuserait le cookie.
+  document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax${location.protocol === "https:" ? "; secure" : ""}`;
   // Compte connecté : l'API envoie ensuite notifications et quittances dans cette langue.
   const token = document.cookie.match(/(?:^|;\s*)ivologis_token=([^;]+)/)?.[1];
   const saveOnAccount = token

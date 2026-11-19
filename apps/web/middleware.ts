@@ -46,7 +46,9 @@ export function middleware(request: NextRequest) {
     if (isLang(prefix)) url.pathname = pathname.slice(prefix.length + 1) || "/";
     url.searchParams.delete("lang");
     const res = NextResponse.redirect(url);
-    res.cookies.set(LANG_COOKIE, isLang(prefix) ? prefix : (queryLang as string), { path: "/", maxAge: 31536000, sameSite: "lax" });
+    // `secure` dès que le site est servi en https (Render transmet le protocole d'origine dans x-forwarded-proto) (S-22).
+    const https = (request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "")) === "https";
+    res.cookies.set(LANG_COOKIE, isLang(prefix) ? prefix : (queryLang as string), { path: "/", maxAge: 31536000, sameSite: "lax", secure: https });
     return res;
   }
 

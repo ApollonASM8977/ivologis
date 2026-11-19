@@ -33,8 +33,9 @@ export class StorageController {
     @Res() res: Response,
   ) {
     const file = await this.storage.get(id);
-    if (DOCUMENT_MIME_TYPES.includes(file.mimeType)) {
-      const valid = verifyFileSignature(`/api/files/${id}`, exp, sig, process.env.JWT_SECRET as string);
+    const path = `/api/files/${id}`;
+    if (DOCUMENT_MIME_TYPES.includes(file.mimeType) || (await this.storage.isPrivate(path))) {
+      const valid = verifyFileSignature(path, exp, sig, process.env.JWT_SECRET as string);
       if (!valid) throw new ForbiddenException("Lien de document expiré ou invalide. Rouvrez le document depuis l'application.");
     }
     res.setHeader("Content-Type", file.mimeType);

@@ -107,7 +107,18 @@ check("messages d'erreur en français", JSON.stringify(err.json?.message ?? "").
 const ext = await call("PATCH", "/users/me", { token: T.tenant, body: { avatarUrl: "https://evil.example/x.png" } });
 check("avatar externe refusé", ext.status === 400);
 
-// --- 6. En-têtes et CORS ---
+// --- 6. Fichiers privés (S-17) : servis seulement par lien signé ; les fichiers publics restent ouverts ---
+const withPhoto = adminMaint.find((m) => m.photos?.length);
+if (withPhoto) {
+  const photo = withPhoto.photos[0];
+  check("photo de maintenance sans lien signé → 403", (await call("GET", photo.replace(/^\/api/, ""))).status === 403);
+  const signedPhoto = await call("POST", "/files/sign", { token: T.admin, body: { url: photo } });
+  check("agence : photo ouverte par lien signé", signedPhoto.status === 201 && (await call("GET", String(signedPhoto.json?.url).replace(/^\/api/, ""))).status === 200);
+} else check("photo de maintenance présente pour le contrôle S-17", false, "aucune demande avec photo sur cette base");
+const adminAvatar = (await call("GET", "/auth/me", { token: T.admin })).json?.avatarUrl;
+if (adminAvatar?.startsWith("/api/files/")) check("fichier public (avatar) ouvert sans signature", (await call("GET", adminAvatar.replace(/^\/api/, ""))).status === 200);
+
+// --- 7. En-têtes et CORS ---
 const h = await call("GET", "/catalog/sales?limit=1", { headers: { Origin: "https://evil.example" } });
 check("pas d'autorisation CORS pour un site tiers", h.headers.get("access-control-allow-origin") !== "https://evil.example" && h.headers.get("access-control-allow-origin") !== "*");
 check("en-tête X-Content-Type-Options", h.headers.get("x-content-type-options") === "nosniff");

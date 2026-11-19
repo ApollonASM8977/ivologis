@@ -41,16 +41,29 @@ const expectDenied = async (who, action, method, path, tok, body) => {
   results.push({ who, action, method, path, status: r.status, ok: r.status === 403 || r.status === 404 });
 };
 
-// 1. A crée ses enregistrements.
+// 1. A crée ses enregistrements, dont une photo jointe (fichier privé, S-17).
 const lease = must(await call("GET", "/leases?limit=1", T.tenantA), "bail du locataire A");
 const leaseA = (lease.data ?? lease)[0];
-const maintenance = must(await call("POST", "/maintenance", T.tenantA, { propertyId: leaseA.propertyId, issueType: "PLOMBERIE", description: "Test A/B : fuite sous l'évier (créée par le locataire A).", priority: "MOYENNE" }), "demande de maintenance du locataire A");
+const PNG_1PX = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
+const form = new FormData();
+form.append("file", new Blob([PNG_1PX], { type: "image/png" }), "qa-ab.png");
+const upload = await fetch(`${API}/maintenance/photos`, { method: "POST", headers: { authorization: `Bearer ${T.tenantA}` }, body: form });
+const photoUrl = must({ status: upload.status, body: await upload.json().catch(() => null) }, "photo du locataire A").url;
+const maintenance = must(await call("POST", "/maintenance", T.tenantA, { propertyId: leaseA.propertyId, issueType: "PLOMBERIE", description: "Test A/B : fuite sous l'évier (créée par le locataire A).", priority: "MOYENNE", photos: [photoUrl] }), "demande de maintenance du locataire A");
+const filePath = photoUrl.replace(/^\/api/, "");
 // Un propriétaire ne crée pas de bien lui-même (décision E-13 : l'agence les crée) : on prend un bien qui lui est rattaché.
 const ownerProps = must(await call("GET", "/properties?limit=1", T.ownerA), "biens du propriétaire A");
 const property = (ownerProps.data ?? ownerProps)[0];
 
-// Contrôle du test lui-même : A lit bien ses propres enregistrements.
-const ownRead = [await call("GET", `/maintenance/${maintenance.id}`, T.tenantA), await call("GET", `/properties/${property.id}`, T.ownerA)];
+// Contrôle du test lui-même : A lit bien ses propres enregistrements, et ouvre sa photo par lien signé.
+const signedA = await call("POST", "/files/sign", T.tenantA, { url: photoUrl });
+const ownRead = [
+  await call("GET", `/maintenance/${maintenance.id}`, T.tenantA),
+  await call("GET", `/properties/${property.id}`, T.ownerA),
+  { status: signedA.status === 201 ? 200 : signedA.status },
+  { status: (await fetch(API + String(signedA.body?.url ?? "").replace(/^\/api/, ""))).status },
+];
+await expectDenied("anonyme", "ouvrir la photo sans lien signé", "GET", filePath, null);
 
 // 2. Comptes B.
 const tenantB = await createUserB("tenants");
@@ -66,10 +79,11 @@ for (const [who, tok] of [["locataire B", tenantB], ["propriétaire B", ownerB]]
   await expectDenied(who, "modifier", "PATCH", `/properties/${property.id}`, tok, { name: "Bien piraté" });
   await expectDenied(who, "supprimer", "DELETE", `/properties/${property.id}`, tok);
   await expectDenied(who, "lire le bail", "GET", `/leases/${leaseA.id}`, tok);
+  await expectDenied(who, "obtenir un lien vers la photo", "POST", "/files/sign", tok, { url: photoUrl });
 }
 
 
-console.log(`Contrôle : A lit ses propres enregistrements → ${ownRead.map((r) => r.status).join(", ")} (attendu 200, 200)`);
+console.log(`Contrôle : A lit ses propres enregistrements → ${ownRead.map((r) => r.status).join(", ")} (attendu 200, 200, 200, 200 : demande, bien, lien signé, photo)`);
 console.log("\n| Utilisateur | Action | Requête | Réponse | Résultat |\n|---|---|---|---|---|");
 for (const r of results) console.log(`| ${r.who} | ${r.action} | ${r.method} ${r.path.replace(/[0-9a-f-]{36}/, ":id")} | ${r.status} | ${r.ok ? "refusé ✓" : "ACCEPTÉ ✗"} |`);
 const failed = results.filter((r) => !r.ok).length + ownRead.filter((r) => r.status !== 200).length;

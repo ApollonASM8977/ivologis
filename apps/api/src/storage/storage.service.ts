@@ -28,7 +28,10 @@ export async function optimizeImage(buffer: Buffer): Promise<Buffer> {
 export class StorageService {
   constructor(private prisma: PrismaService) {}
 
-  /** Retrouve à qui appartient un document servi par lien signé (bail, quittance, pièce jointe, reçu de séjour, document de vente). */
+  /**
+   * Retrouve à qui appartient un fichier privé servi par lien signé : bail, quittance, pièce jointe, reçu de séjour,
+   * document de vente, photo de maintenance ou d'état des lieux, pièce d'identité du propriétaire, photo du locataire (S-17).
+   */
   private async findDocumentParties(url: string): Promise<{ ownerId: string | null; tenantId: string | null; userId?: string | null } | null> {
     const lease = await this.prisma.lease.findFirst({
       where: { OR: [{ documentUrl: url }, { wordUrl: url }] },
@@ -54,7 +57,27 @@ export class StorageService {
     if (saleDocument) return { ownerId: saleDocument.property.ownerId, tenantId: null };
     const soldProperty = await this.prisma.property.findFirst({ where: { saleDocumentUrl: url }, select: { ownerId: true } });
     if (soldProperty) return { ownerId: soldProperty.ownerId, tenantId: null };
+    const maintenance = await this.prisma.maintenanceRequest.findFirst({
+      where: { photos: { has: url } },
+      select: { tenantId: true, property: { select: { ownerId: true } } },
+    });
+    if (maintenance) return { ownerId: maintenance.property.ownerId, tenantId: maintenance.tenantId };
+    // Photos d'état des lieux rangées dans le JSON des pièces ; `url` est toujours /api/files/<uuid> (pas de joker LIKE).
+    const [inspection] = await this.prisma.$queryRaw<{ ownerId: string; tenantId: string }[]>`
+      SELECT l."ownerId", l."tenantId" FROM inspections i JOIN leases l ON l.id = i."leaseId"
+      WHERE i.rooms::text LIKE ${`%${url}%`} LIMIT 1`;
+    if (inspection) return inspection;
+    const owner = await this.prisma.owner.findFirst({ where: { idDocumentUrl: url }, select: { id: true } });
+    if (owner) return { ownerId: owner.id, tenantId: null };
+    const tenant = await this.prisma.tenant.findFirst({ where: { photoUrl: url }, select: { id: true } });
+    if (tenant) return { ownerId: null, tenantId: tenant.id };
     return null;
+  }
+
+  /** Un fichier rattaché à un dossier privé ne s'ouvre qu'avec un lien signé ; les photos d'annonces restent publiques. */
+  async isPrivate(url: string) {
+    if (await this.prisma.propertyImage.findFirst({ where: { url }, select: { id: true } })) return false;
+    return (await this.findDocumentParties(url)) !== null;
   }
 
   async authorizeDocument(url: string, user: AuthenticatedUser) {

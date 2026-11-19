@@ -21,7 +21,8 @@ import { LogoMarquee } from "@/components/marketing/logo-marquee";
 import { AudienceTabs, DashboardMockup, FaqList } from "@/components/marketing/home-islands";
 import { HoverLift, Reveal, StepBadge, StepsLine } from "@/components/marketing/css-motion";
 
-import { toLang } from "@/lib/i18n";
+import { notFound } from "next/navigation";
+import { isLang } from "@/lib/i18n";
 import { homeMessages } from "@/messages/home";
 
 // Composant serveur : le texte arrive dans le HTML (affichage immédiat, même en 3G) ; seuls les îlots interactifs s'hydratent.
@@ -52,7 +53,10 @@ function HeroBlobs() {
 }
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
-  const m = homeMessages[toLang((await params).lang)];
+  // Une adresse d'un seul niveau avec extension (/wp-login.php…) échappe au middleware et arrive ici : vrai 404.
+  const lang = (await params).lang;
+  if (!isLang(lang)) notFound();
+  const m = homeMessages[lang];
   return (
     <>
       <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-white to-white">

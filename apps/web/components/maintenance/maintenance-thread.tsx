@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { Send } from "lucide-react";
@@ -34,15 +34,29 @@ export function timeLabel(dateStr: string) {
   return new Date(dateStr).toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" });
 }
 
-/** Photos jointes au signalement, cliquables pour les voir en grand. */
+/** Photos jointes au signalement (privées : servies par lien signé, S-17), cliquables pour les voir en grand. */
 export function MaintenancePhotos({ photos }: { photos?: string[] }) {
-  if (!photos?.length) return null;
+  const { data: signed, isError } = useQuery({
+    queryKey: ["signed-files", photos],
+    queryFn: () => Promise.all((photos ?? []).map((url) => api.post("/files/sign", { url }).then((r) => r.data.url as string))),
+    enabled: !!photos?.length,
+    staleTime: 8 * 60_000, // les liens signés valent 10 minutes
+  });
+  // Lien signé refusé ou réseau coupé : pas de squelette sans fin.
+  if (!photos?.length || isError) return null;
+  if (!signed) {
+    return (
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-busy="true">
+        {photos.map((url) => <div key={url} className="h-28 animate-pulse rounded-lg bg-gray-100" />)}
+      </div>
+    );
+  }
   return (
     <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
       {photos.map((url, i) => (
         <motion.a
           key={url}
-          href={fileUrl(url)}
+          href={fileUrl(signed[i])}
           target="_blank"
           rel="noreferrer"
           initial={{ opacity: 0, scale: 0.96 }}
@@ -52,7 +66,8 @@ export function MaintenancePhotos({ photos }: { photos?: string[] }) {
           className="relative block h-28 overflow-hidden rounded-lg"
           aria-label={t("Voir la photo {0} en grand", i + 1)}
         >
-          <Image src={fileUrl(url) ?? ""} alt={t("Photo {0} du problème", i + 1)} fill sizes="33vw" className="object-cover" />
+          {/* unoptimized : une photo privée ne passe pas par le cache d'images du serveur web */}
+          <Image src={fileUrl(signed[i]) ?? ""} alt={t("Photo {0} du problème", i + 1)} fill sizes="33vw" className="object-cover" unoptimized />
         </motion.a>
       ))}
     </div>
