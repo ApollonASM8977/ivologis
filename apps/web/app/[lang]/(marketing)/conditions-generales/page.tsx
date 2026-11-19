@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { toLang, type Lang } from "@/lib/i18n";
+import { pageMetadata } from "@/lib/page-meta";
 
 type Props = { params: Promise<{ lang: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return { title: toLang((await params).lang) === "en" ? "Terms of use" : "Conditions générales d'utilisation" };
+  const lang = toLang((await params).lang);
+  return pageMetadata(lang, "/conditions-generales", lang === "en" ? "Terms of use" : "Conditions générales d'utilisation");
 }
 
 const H2 = ({ children }: { children: React.ReactNode }) => <h2 className="mt-10 text-lg font-semibold">{children}</h2>;

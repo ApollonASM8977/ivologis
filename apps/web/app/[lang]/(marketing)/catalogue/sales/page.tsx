@@ -3,10 +3,12 @@ import { toLang } from "@/lib/i18n";
 import { catalogMeta } from "@/messages/catalog-meta";
 import { fetchCatalogPage, toQueryString } from "@/lib/listing-seo";
 import { SalesCatalog } from "@/components/catalog/sales-catalog";
+import { pageMetadata } from "@/lib/page-meta";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
-  const m = catalogMeta[toLang((await params).lang)].sales;
-  return { title: m.title, description: m.description };
+  const lang = toLang((await params).lang);
+  const m = catalogMeta[lang].sales;
+  return pageMetadata(lang, "/catalogue/sales", m.title, m.description);
 }
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };

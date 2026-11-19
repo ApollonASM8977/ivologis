@@ -66,7 +66,7 @@
 | Limites `"use client"` (petit JS envoyé) | ✅ | Pages publiques en composants serveur + îlots ; 103 kB de JS partagé (sortie de `next build`) |
 | Données côté serveur, pas de cascade | ✅ | Catalogue et fiches rendus côté serveur (lot P) |
 | Écrans d'erreur et 404 | ✅ | `app/global-error.tsx`, `app/[lang]/not-found.tsx`, `[...missing]` |
-| Métadonnées et SEO | ✅ | Titre, description, Open Graph, `sitemap.xml`, `robots.txt` ; annonces de démo en `noindex` (voulu) |
+| Métadonnées et SEO | ✅ | Titre, description, Open Graph, `sitemap.xml`, `robots.txt` ; annonces de démo en `noindex` (voulu). 2026-11-19 : chaque page publique a sa propre adresse d'aperçu (`og:url`, canonique), son titre et son image (`lib/page-meta.ts`, non déployé) |
 | Sécurité : autorisation dans chaque Server Action | ➖ | Aucune Server Action (`"use server"` absent) : toute écriture passe par l'API NestJS, contrôlée route par route |
 | Secrets : `.env*` hors git, seules les `NEXT_PUBLIC_*` atteignent le navigateur | ✅ | `.gitignore` ; seuls des `.env.example` sont suivis ; navigateur : `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL` |
 | Politique de sécurité du contenu (CSP) | ✅ | Ce lot (§ 2) |

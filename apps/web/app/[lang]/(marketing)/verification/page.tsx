@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileCheck2, Home, EyeOff, FlaskConical, ShieldAlert, Wallet, Landmark, Scale } from "lucide-react";
 import { toLang, type Messages } from "@/lib/i18n";
+import { pageMetadata } from "@/lib/page-meta";
 
 type Props = { params: Promise<{ lang: string }> };
 
@@ -87,8 +88,9 @@ const MESSAGES: Messages<typeof fr> = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const m = MESSAGES[toLang((await params).lang)];
-  return { title: m.metaTitle, description: m.metaDescription };
+  const lang = toLang((await params).lang);
+  const m = MESSAGES[lang];
+  return pageMetadata(lang, "/verification", m.metaTitle, m.metaDescription);
 }
 
 export default async function VerificationPage({ params }: Props) {

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { ArtciDeclaration } from "@/components/marketing/legal-identity";
 import { toLang, type Lang } from "@/lib/i18n";
+import { pageMetadata } from "@/lib/page-meta";
 
 type Props = { params: Promise<{ lang: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return { title: toLang((await params).lang) === "en" ? "Privacy" : "Confidentialité" };
+  const lang = toLang((await params).lang);
+  return pageMetadata(lang, "/confidentialite", lang === "en" ? "Privacy" : "Confidentialité");
 }
 
 const H2 = ({ children }: { children: React.ReactNode }) => <h2 className="mt-10 text-lg font-semibold">{children}</h2>;
