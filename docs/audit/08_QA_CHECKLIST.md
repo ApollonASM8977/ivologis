@@ -85,6 +85,12 @@ Commit `d3d00a9` ; Render `dep-dbv3l2d6e07s73aksc60` (API, live 23:55:13) puis `
 - [x] Lighthouse **mobile sur la prod** après déploiement (run Actions `44425634399`, cible `production`, Lighthouse 12.8.2, 4G lente simulée + CPU ×4, médiane de 5) : accueil **98** (91-100), locations **99** (90-100), fiche démo **99** (84-100), sécurité **97** (94-99), connexion **100** ; accessibilité 100 et bonnes pratiques **100** partout (le 96 de la cible `build` venait bien du CORS) ; SEO 100 sauf la fiche de démo (66, `noindex` voulu). Pages ventes / CGU non mesurées dans ce run. Rapports : `outils-session/lighthouse/44425634399/`.
 - [x] Seules erreurs console : 404 de la page 404 (voulu) et une photo de démo supprimée par Unsplash (`photo-1500382017233-…` → 404 chez Unsplash même) sur une fiche vente de démo — disparaîtra avec le retrait des données de démo.
 
+## Déploiement du retrait de `zod` (2026-11-19, 00:17-00:21 UTC)
+Commit `8f95d7f` (`main` en avance rapide depuis `5233399`) ; Render web seulement `dep-dbv40au7bikc73fgo8g0` (live 00:19:43, « Ready in 3.2s ») ; API non concernée.
+- [x] 0 violation CSP sur les 20 pages publiques de la prod, en-têtes identiques, 0 envoi `/analytics` (`outils-session/csp/csp-report-prod-zod.json`).
+- [x] Journaux Render : démarrage propre. Deux messages antérieurs à ce lot : photo Unsplash de démo supprimée (déjà notée) ; avertissement Next.js « `metadataBase` not set … using http://localhost:10000 » émis par une route hors de `app/[lang]/layout.tsx` — **sans effet visible** : les pages servent `og:image` = `https://ivologis-web.onrender.com/opengraph-image?…` (vérifié sur 6 pages). Correctif possible : `metadataBase` aussi dans `app/layout.tsx`.
+- [ ] Constat SEO (antérieur, non corrigé) : `og:url` des pages catalogue / sécurité / connexion = l'accueil (`https://ivologis-web.onrender.com`) au lieu de l'adresse de la page ; un lien partagé peut s'afficher comme l'accueil. Les fiches ont bien leur propre `og:url`.
+
 ## À vérifier après déploiement en prod
 - [x] Migrations appliquées (6 migrations du 2026-11-17, vérifié par SQL en lecture)
 - [ ] IP réelle affichée dans Profil → Sessions (S-07) — à faire par l'utilisateur connecté

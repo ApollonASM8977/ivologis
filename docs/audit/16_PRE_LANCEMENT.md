@@ -108,7 +108,7 @@
 | 10 | Retirer les données et images de démonstration ; créer les vrais comptes, supprimer ceux de test | Utilisateur + code | P0-17, D-06 |
 
 **P1 — à faire vite après l'ouverture (ou avant si possible)**
-- ✅ **`zod` retiré de `apps/web/package.json`** (2026-11-19, branche `fix/s15-retirer-zod`, **non déployé**) : importé nulle part ; `npm ls zod` vide ; dépendances d'exécution **4 modérées, 0 élevée** (GHSA-mrhx-c7xc-m3w5 disparue) ; lock : 11 lignes retirées, binaires Linux / Windows / macOS intacts (16 / 5 / 6) ; `tsc`, `check:i18n`, `build:web` verts (S-15).
+- ✅ **`zod` retiré de `apps/web/package.json`** (2026-11-19, `8f95d7f`, **déployé** : Render web `dep-dbv40au7bikc73fgo8g0`, 0 violation CSP sur 20 pages publiques ensuite) : importé nulle part ; `npm ls zod` vide ; dépendances d'exécution **4 modérées, 0 élevée** (GHSA-mrhx-c7xc-m3w5 disparue) ; lock : 11 lignes retirées, binaires Linux / Windows / macOS intacts (16 / 5 / 6) ; `tsc`, `check:i18n`, `build:web` verts (S-15).
 - Passage à NestJS 12 : seul correctif proposé pour `@nestjs/core` (GHSA-36xv-jgw5-4q75) et `@nestjs/platform-express` ; `@nestjs/common` et `file-type` (GHSA-5v7r-6r5c-r473) ont un correctif sans changement de version majeure (`npm audit fix`, à tester) (S-15).
 - **`.env` local de l'API = base de production** (S-23) : le pointer vers `audit-qa` (ou une branche de développement) ; garder les accès prod hors du poste.
 - Fournisseur d'e-mails (réinitialisation de mot de passe aujourd'hui par l'agence) — P1-10.
