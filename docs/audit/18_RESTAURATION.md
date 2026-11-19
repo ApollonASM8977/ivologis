@@ -1,10 +1,10 @@
 # 18 — Restauration des données (P1-14)
 
-Rédigé le 2026-11-19. **Test réel : en attente de l'accord de l'utilisateur** (il crée puis supprime une branche Neon temporaire ; la suppression d'une branche n'est jamais faite sans accord).
+Rédigé le 2026-11-19. **Test réel fait le 2026-11-19 avec l'accord de l'utilisateur** (résultat en bas de page).
 
 ## Ce qui est sauvegardé
 - **Toute la donnée métier est dans Neon** (projet `fancy-star-15869804`) : biens, baux, paiements, comptes… et aussi les **fichiers** (photos, PDF, pièces) dans la table `stored_files`. Restaurer la base restaure donc aussi les fichiers.
-- Neon garde un **historique** qui permet de revenir à un instant passé (« Instant restore » / branche à un instant donné). La durée de cet historique dépend de l'offre Neon : **à lire dans la console (Settings → Instant restore / History retention), NON VÉRIFIÉ ici**. Sur l'offre gratuite elle est courte : passer à une offre payante fait partie des prérequis d'ouverture (`17_PLAN_LANCEMENT.md`, D-17).
+- Neon garde un **historique** qui permet de revenir à un instant passé (« Instant restore » / branche à un instant donné). Durée de cet historique **vérifiée le 2026-11-19 : 6 heures** (`history_retention_seconds = 21600`, offre `free_v3`) : une erreur remarquée plus de 6 h après ne peut plus être annulée. Elle est courte : passer à une offre payante fait partie des prérequis d'ouverture (`17_PLAN_LANCEMENT.md`, D-17).
 - Rien d'autre à sauvegarder : Render ne garde aucune donnée (le code est sur GitHub, les secrets dans les variables d'environnement Render).
 
 ## A. Test de restauration (sur `audit-qa`, jamais sur `main`) — à faire une fois par trimestre
@@ -25,3 +25,8 @@ Rédigé le 2026-11-19. **Test réel : en attente de l'accord de l'utilisateur**
 
 ## Ce que la restauration ne couvre pas
 - Une restauration au-delà de la fenêtre d'historique de l'offre Neon : d'où la recommandation d'une **exportation régulière** (`pg_dump` hebdomadaire vers un stockage externe) à mettre en place avec les comptes fournisseurs (D-17).
+
+## Résultat du test du 2026-11-19 (audit-qa)
+- Instant T = 14:04:47 UTC : 17 biens, 7 baux, 21 paiements, 28 locataires, 34 fichiers (47 735 octets), 23 migrations ; marqueur `RESTORE_TEST_MARKER` écrit à 14:04:55 dans `audit_logs`.
+- **Retour à un instant passé par l'outil Neon de l'agent : impossible** — les instantanés (snapshots) ne sont permis que sur la branche racine (`main` = production, exclue) et la création de branche de l'outil part des données actuelles. Ce retour à T se fait **dans la console Neon** (§ A, étape 3) : à faire une fois par l'utilisateur (2 minutes) ou avec son accord dans le navigateur.
+- **Copie complète d'`audit-qa` dans une branche temporaire** (`restore-test-20261119`, créée à 14:05:39) : comptes identiques, et empreinte MD5 du contenu des 34 fichiers identique (`af5de72c…`) → la base et les fichiers se recopient sans perte. Branche supprimée ensuite ; il ne reste que `main` et `audit-qa`.

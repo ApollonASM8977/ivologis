@@ -6,7 +6,7 @@
 - **Défauts de production corrigés dans ce lot** (encore présents en ligne) : profil locataire qui ne s'enregistre pas ; demande de visite refusée sans e-mail ni date ; fiche d'annonce inconnue en 200 au lieu de 404.
 - Preuves : `08_QA_CHECKLIST.md` § « Lot hors lancement » (suites `qa-*`, 31/31 unitaires, parcours 8/8, 57 pages 0 violation CSP).
 - **Déploiement (sur accord)** : fusionner dans `main`, pousser, `trigger_deploy` API (applique 3 migrations : `20261119100000_property_review_requested`, `20261119110000_ivorian_property_types`, `20261119120000_land_title_verification`) **puis** web. L'API et le site partent ensemble (route de vérification foncière, NestJS 11).
-- **Attend l'utilisateur** : (1) accord de déploiement du lot ; (2) test de restauration réel (`18_RESTAURATION.md` : branche Neon temporaire à créer puis supprimer) ; (3) les 10 prérequis d'ouverture (D-17, au signal de l'utilisateur) ; (4) bandeau qui recouvre « Créer mon compte » à 390 px (D-10).
+- **Attend l'utilisateur** : (1) accord de déploiement du lot ; (2) retour à un instant passé dans la console Neon (`18_RESTAURATION.md` § A ; la copie de branche et la fenêtre de 6 h sont vérifiées) ; (3) les 10 prérequis d'ouverture (D-17, au signal de l'utilisateur) ; (4) bandeau qui recouvre « Créer mon compte » à 390 px (D-10).
 - Outils locaux : API `PORT=3101 CORS_ORIGIN=http://localhost:3100 node dist/src/main` (base `audit-qa`), web `NEXT_PUBLIC_API_URL=http://localhost:3101 npx next start -p 3100` ; suites `outils-session/csp/run-qa-suites.cjs` ; parcours `apps/web/e2e/parcours-catalogue.mjs`.
 
 ## Historique
