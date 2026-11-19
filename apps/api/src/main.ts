@@ -18,6 +18,8 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   // Derrière le proxy Render : sans cela, req.ip est l'IP du proxy pour tout le monde (limitation de débit commune, IP fausses dans les sessions).
   if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
+  // Express 5 (NestJS 11) lit les paramètres d'URL en mode « simple » ; on garde la lecture d'Express 4 (S-15).
+  app.set("query parser", "extended");
 
   // Langue de la requête (en-tête Accept-Language du site) pour les messages et les documents.
   app.use(langMiddleware);

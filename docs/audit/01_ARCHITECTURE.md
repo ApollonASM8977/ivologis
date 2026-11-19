@@ -5,7 +5,7 @@ Dernière mise à jour : 2026-11-17 (Phase 1).
 ## 1. Stack
 | Couche | Technologie | Emplacement |
 |---|---|---|
-| API | NestJS 10, TypeScript 5.9, Prisma 5, PostgreSQL (Neon serverless, PG 18, eu-central-1) | `apps/api` |
+| API | NestJS 11.2 (Express 5), TypeScript 5.9, Prisma 5, PostgreSQL (Neon serverless, PG 18, eu-central-1) | `apps/api` |
 | Web | Next.js 15.5 (App Router), React 19, Tailwind 3, TanStack Query 5, Zustand 5, react-hook-form, motion, recharts, sonner, lucide | `apps/web` |
 | Partagé | Enums, libellés FR, constantes, `formatXOF` | `packages/shared` (à compiler : `npm run build:shared`) |
 | PDF / Word | pdfkit (quittances, contrats, relevés), docx | `apps/api/src/common/pdf`, `common/docx` |

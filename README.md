@@ -23,7 +23,7 @@ L'application mobile (locataire + propriétaire, React Native / Expo) est prévu
 
 | Couche | Choix |
 |---|---|
-| Backend | NestJS 10 + TypeScript, Prisma ORM, PostgreSQL |
+| Backend | NestJS 11 (Express 5) + TypeScript, Prisma ORM, PostgreSQL |
 | Base de données | PostgreSQL (Neon serverless en dev/prod, ou toute instance Postgres) |
 | Auth | JWT (Bearer), bcryptjs, rate limiting sur `/auth/login` |
 | Web | Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS |
@@ -201,12 +201,7 @@ GET           /notifications/me   PATCH /notifications/:id/read
 - **Journal d'audit** (`audit_logs`) pour les connexions et actions sensibles.
 - Upload de fichiers limité en taille (5 Mo) et filtré par extension (images uniquement pour les
   photos de biens).
-- **Note de durcissement avant mise en production** : `multer` (upload de fichiers) contient des
-  correctifs de sécurité (DoS) disponibles uniquement à partir de `@nestjs/platform-express@12`
-  (NestJS 12), une montée de version majeure volontairement non appliquée dans ce MVP pour ne
-  pas déstabiliser l'ensemble du backend sans campagne de tests dédiée. L'endpoint d'upload est
-  déjà protégé par authentification, contrôle de rôle et limite de taille ; prévoir la migration
-  NestJS 10 → 12 avant un lancement public à fort trafic. Exécutez `npm audit` régulièrement.
+- **Dépendances** : NestJS 11.2 (Express 5, multer 2.5) depuis le 2026-11-19 ; `npm audit --omit=dev` = 0 vulnérabilité ce jour-là. Exécutez `npm audit` régulièrement.
 
 ## 11. Déploiement (production)
 
