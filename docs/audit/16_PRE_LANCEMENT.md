@@ -135,7 +135,9 @@
 | Fiche | **94** | 100 |
 | Sécurité | — | 100 |
 
-Objectif ≥ 96 sur mobile non atteint pour locations, ventes et fiche (prochain levier : filtres traités par le serveur sans React Query). 100 sur mobile n'est pas atteignable avec Next.js/React (~103 kB de JS partagé sous la simulation Lantern). En production, le plan gratuit Render ajoute ~50 s au premier visiteur après une mise en veille : c'est le premier problème de vitesse réel.
+**Mise à jour après déploiement — mobile sur la prod** (run `44425634399`, 2026-11-19 00:02 UTC, médiane de 5) : accueil **98**, locations **99**, fiche **99**, sécurité **97**, connexion **100** ; bonnes pratiques 100 partout. Les 5 pages mesurées atteignent l'objectif ≥ 96 en production ; les écarts entre passages restent grands (84 à 100) : se fier aux médianes. Ventes et CGU non mesurées dans ce run.
+Mesure de la version du dépôt (colonne mobile ci-dessus, avant ce lot) : objectif ≥ 96 non atteint pour locations, ventes et fiche (prochain levier : filtres traités par le serveur sans React Query). 100 sur mobile n'est pas atteignable avec Next.js/React (~103 kB de JS partagé sous la simulation Lantern). En production, le plan gratuit Render ajoute ~50 s au premier visiteur après une mise en veille : c'est le premier problème de vitesse réel.
 
-## 10. Décision demandée à l'utilisateur
-Déployer ce lot (pousser `security/prelaunch`, fusionner, puis Render : **API d'abord, puis web**). Aucune migration de base dans ce lot. Après déploiement : refaire le contrôle CSP sur les pages **publiques** de la prod (lecture seule, aucun compte de test utilisé) et relancer le workflow Lighthouse cible `production`.
+## 10. Déploiement (accord de l'utilisateur le 2026-11-18)
+**Fait** : `main` avancé en avance rapide de `017048a` à `d3d00a9` ; Render API `dep-dbv3l2d6e07s73aksc60` (live 23:55 UTC) puis web `dep-dbv3m3mtlv9c73fn9900` (live 23:58 UTC). Aucune migration. Contrôles en prod (`08_QA_CHECKLIST.md`) : nouveau code de l'API confirmé, en-têtes et CSP en place, **0 violation CSP sur 20 pages publiques**.
+À noter : les services Render affichent « déploiement automatique : oui » mais le push sur `main` n'a déclenché aucun déploiement (ni pour `017048a` ni pour `d3d00a9`) → déclenchement manuel (`trigger_deploy`) toujours nécessaire ; le lien GitHub ↔ Render est à vérifier dans le tableau de bord Render.

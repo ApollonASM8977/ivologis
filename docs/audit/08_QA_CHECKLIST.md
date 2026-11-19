@@ -77,6 +77,14 @@ Preuves : `_RESSOURCES/outils-session/csp/` (`csp-report.json`, scripts, capture
 - [ ] Constat UX, non corrigé (D-10, attend l'accord) : à 390 px, le bandeau de mesure d'audience recouvre le bouton « Créer mon compte » tant qu'il n'est pas fermé.
 Rejouer : `outils-session/csp/run-api-qa.ps1` (refuse de démarrer si `DATABASE_URL` ne vise pas `audit-qa` ; dossier de travail sans `.env`, car **`apps/api/.env` vise la base de PRODUCTION**) ; installer `puppeteer-core@24.43.1 --ignore-scripts` dans un dossier d'outils et adapter le chemin du `require` en tête des scripts ; `node csp-check.cjs csp-report.json`.
 
+## Contrôles en production après le déploiement du lot sécurité (2026-11-18, 23:55-00:00 UTC)
+Commit `d3d00a9` ; Render `dep-dbv3l2d6e07s73aksc60` (API, live 23:55:13) puis `dep-dbv3m3mtlv9c73fn9900` (web, live 23:58:31). Aucune connexion avec un compte de test ; mesure d'audience refusée avant chaque page (0 page vue ajoutée).
+- [x] API sur le nouveau code : `POST /api/auth/register` volontairement invalide (mot de passe « x », sans case) → 400 « Le mot de passe est trop court. / Le champ « acceptTerms » est obligatoire. » (aucun compte ne pouvait être créé) ; démarrage propre dans les journaux Render ; pas de `X-Powered-By`, `nosniff`, HSTS.
+- [x] Site : en-tête CSP de prod = celle du dépôt avec `https://ivologis-api.onrender.com` et `upgrade-insecure-requests` ; `X-Frame-Options: DENY` ; pas de `X-Powered-By`.
+- [x] **0 violation CSP sur 20 pages publiques** (Chrome 157, `outils-session/csp/csp-check-prod.cjs`, rapport `csp-report-prod.json`) ; cartes OpenStreetMap et visite Matterport affichées ; 0 envoi `/analytics`.
+- [x] Lighthouse **mobile sur la prod** après déploiement (run Actions `44425634399`, cible `production`, Lighthouse 12.8.2, 4G lente simulée + CPU ×4, médiane de 5) : accueil **98** (91-100), locations **99** (90-100), fiche démo **99** (84-100), sécurité **97** (94-99), connexion **100** ; accessibilité 100 et bonnes pratiques **100** partout (le 96 de la cible `build` venait bien du CORS) ; SEO 100 sauf la fiche de démo (66, `noindex` voulu). Pages ventes / CGU non mesurées dans ce run. Rapports : `outils-session/lighthouse/44425634399/`.
+- [x] Seules erreurs console : 404 de la page 404 (voulu) et une photo de démo supprimée par Unsplash (`photo-1500382017233-…` → 404 chez Unsplash même) sur une fiche vente de démo — disparaîtra avec le retrait des données de démo.
+
 ## À vérifier après déploiement en prod
 - [x] Migrations appliquées (6 migrations du 2026-11-17, vérifié par SQL en lecture)
 - [ ] IP réelle affichée dans Profil → Sessions (S-07) — à faire par l'utilisateur connecté
