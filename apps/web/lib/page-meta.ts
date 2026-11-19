@@ -11,12 +11,15 @@ import { alt as imageAlt, contentType as imageType, size as imageSize } from "@/
  * `path` = adresse publique, sans préfixe de langue (la langue passe par un cookie, voir `middleware.ts`).
  * Next.js remplace en entier l'objet `openGraph` du gabarit et ne remet pas l'image de `app/opengraph-image` :
  * le type, la langue, le nom du site et l'image d'aperçu sont donc repris ici.
+ * `image` : adresse absolue d'une image propre à la page (photo d'annonce) ; sinon l'image générale du site.
  */
-export function pageMetadata(lang: Lang, path: string, title: string, description?: string): Metadata {
+export function pageMetadata(lang: Lang, path: string, title: string, description?: string, image?: string): Metadata {
   const meta = siteMessages[lang].meta;
   const url = `${siteUrl}${path}`;
   const summary = description ?? meta.ogDescription;
-  const images = [{ url: `${siteUrl}/opengraph-image`, width: imageSize.width, height: imageSize.height, type: imageType, alt: imageAlt }];
+  const images = image
+    ? [{ url: image }]
+    : [{ url: `${siteUrl}/opengraph-image`, width: imageSize.width, height: imageSize.height, type: imageType, alt: imageAlt }];
   return {
     title,
     ...(description ? { description } : {}),

@@ -3,6 +3,7 @@ import { PROPERTY_TYPE_LABELS } from "@ivologis/shared";
 import { formatMoney, translator, type Lang } from "@/lib/i18n";
 import { LABELS_EN } from "@/messages/en/labels";
 import { siteUrl } from "@/lib/site";
+import { pageMetadata } from "@/lib/page-meta";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -97,14 +98,11 @@ export function listingMetadata(kind: ListingKind, p: any, lang: Lang): Metadata
   const summary = `${type} ${DEAL[lang][kind]} ${where} ${place(p)}${rooms}${p.surfaceM2 ? `, ${Number(p.surfaceM2)} m²` : ""}${lang === "en" ? ":" : " :"} ${priceText(kind, p, lang)}.`;
   const description = (text ? `${summary} ${text}` : summary).slice(0, 160);
   const cover = p.images?.find((i: any) => i.isCover) ?? p.images?.[0];
-  const url = `${siteUrl}${listingPath(kind, p.id)}`;
   return {
-    title,
-    description,
-    alternates: { canonical: url },
+    // Adresse, langue, nom du site, aperçu X ; sans photo, l'image générale du site.
+    ...pageMetadata(lang, listingPath(kind, p.id), title, description, absoluteImage(cover?.url)),
     // Une annonce de démonstration ne doit jamais apparaître dans Google.
     robots: p.isDemo ? { index: false, follow: false } : undefined,
-    openGraph: { title, description, url, type: "website", images: cover ? [{ url: absoluteImage(cover.url)! }] : undefined },
   };
 }
 
