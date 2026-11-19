@@ -7,6 +7,7 @@ import { Inbox, CheckCircle2, Circle, Mail, Phone } from "lucide-react";
 import { motion } from "motion/react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
+import { InboxTabs } from "@/components/layout/inbox-tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/ui/data-table";
@@ -102,6 +103,7 @@ export default function AdminContactRequestsPage() {
 
   return (
     <div>
+      <InboxTabs />
       <PageHeader
         title={t("Demandes de démo")}
         subtitle={pending ? t("{0} demande(s) à traiter sur cette page", pending) : t("Demandes reçues depuis le site vitrine")}

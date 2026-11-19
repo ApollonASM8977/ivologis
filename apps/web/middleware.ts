@@ -22,7 +22,7 @@ function accessRedirect(request: NextRequest): NextResponse | null {
   const home = ROLE_HOME[role];
   const to = (path: string) => NextResponse.redirect(new URL(path, request.url));
 
-  if (pathname === "/") return token && home ? to(home) : null;
+  // U-16 : l'accueil reste consultable une fois connecté (« Mon espace » dans l'en-tête) ; seules les pages de connexion renvoient vers l'espace.
   if (matches(pathname, AUTH_PATHS)) return token && home ? to(home) : null;
 
   const space = pathname.match(/^\/(admin|owner|tenant)(\/|$)/)?.[1];

@@ -1,18 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Cookies from "js-cookie";
 import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { DEFAULT_LANG, LANG_SWITCHER_ENABLED } from "@/lib/i18n";
 import { useLang } from "@/lib/i18n-client";
 import { marketingMessages } from "@/messages/marketing";
+import { ROLE_HOME } from "@/lib/auth-store";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const lang = useLang();
   const m = marketingMessages[lang];
+  // U-16 : visiteur connecté → « Mon espace » à la place de « Se connecter ». Lu après l'affichage pour garder la page statique.
+  const [space, setSpace] = useState<string | null>(null);
+  useEffect(() => setSpace(ROLE_HOME[Cookies.get("ivologis_role") as keyof typeof ROLE_HOME] ?? null), []);
+  const account = space ? { href: space, label: m.mySpace } : { href: "/login", label: m.login };
   const LINKS = [
     { href: "/catalogue", label: m.nav.catalogue },
     { href: "/#fonctionnalites", label: m.nav.features },
@@ -41,8 +47,8 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           {showSwitcher && <LanguageSwitcher className="hidden sm:inline-flex" />}
-          <Link href="/login" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-gray-50 sm:block">
-            {m.login}
+          <Link href={account.href} className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-gray-50 sm:block">
+            {account.label}
           </Link>
           <Link
             href="/#contact"
@@ -81,8 +87,8 @@ export function SiteHeader() {
               {l.label}
             </Link>
           ))}
-          <Link href="/login" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary/5">
-            {m.login}
+          <Link href={account.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary/5">
+            {account.label}
           </Link>
           {showSwitcher && <LanguageSwitcher className="ml-3 mt-1 self-start sm:hidden" />}
           <span className="h-3" />

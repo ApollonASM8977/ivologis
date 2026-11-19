@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { useDebouncedValue } from "@/components/ui/search-input";
 import { ADMIN_NAV } from "@/components/layout/nav-config";
 import { t as tr } from "@/lib/t-spaces";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 interface Option {
   id: string;
@@ -24,6 +25,7 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const dialogRef = useFocusTrap<HTMLDivElement>(open);
   const debounced = useDebouncedValue(query.trim(), 200);
 
   useEffect(() => {
@@ -106,14 +108,16 @@ export function CommandPalette() {
           onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}
         >
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label={tr("Recherche rapide")}
+            tabIndex={-1}
             initial={{ opacity: 0, y: -12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 420, damping: 32 }}
-            className="w-full max-w-xl overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl"
+            className="w-full max-w-xl overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl outline-none"
           >
             <div className="flex items-center gap-3 border-b border-gray-100 px-4">
               <Search className="h-4 w-4 text-ink-muted" />

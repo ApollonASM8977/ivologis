@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { motion } from "motion/react";
@@ -26,7 +27,6 @@ interface UpdateForm {
 
 export default function MaintenanceDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   const { data: request, isLoading } = useQuery({
@@ -61,9 +61,9 @@ export default function MaintenanceDetailPage() {
 
   return (
     <div>
-      <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
+      <Link href="/admin/maintenance" className="mb-4 flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" />{" "}{tr("Retour")}
-      </button>
+      </Link>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-4 lg:col-span-2">

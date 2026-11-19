@@ -26,6 +26,14 @@ const INTERNAL_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT];
 const ENFORCE_MANDATORY_2FA = false;
 const DUMMY_PASSWORD_HASH = bcrypt.hashSync("ivologis-timing-equalizer", 12);
 
+/** Durée de vie du jeton (JWT_EXPIRES_IN : « 7d », « 12h », « 30m », « 90s » ; chiffres seuls = millisecondes, comme jsonwebtoken). */
+export function tokenLifetimeMs(value = process.env.JWT_EXPIRES_IN ?? "7d") {
+  const m = /^(\d+)\s*(ms|s|m|h|d)?$/.exec(value.trim());
+  const unit: Record<string, number> = { ms: 1, s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 };
+  // shortcut: format non reconnu (ex. « 2 days ») = aucune session masquée, plutôt que d'en cacher une encore valable.
+  return m ? Number(m[1]) * unit[m[2] ?? "ms"] : Number.POSITIVE_INFINITY;
+}
+
 export interface SessionMeta {
   userAgent?: string;
   ip?: string;
@@ -337,8 +345,9 @@ export class AuthService {
   }
 
   async listSessions(userId: string, currentSessionId?: string | null) {
+    // U-14 : une session plus vieille que la durée de vie du jeton ne peut plus servir : elle n'est plus affichée.
     const sessions = await this.prisma.session.findMany({
-      where: { userId, revokedAt: null },
+      where: { userId, revokedAt: null, createdAt: { gt: new Date(Date.now() - tokenLifetimeMs()) } },
       orderBy: { lastSeenAt: "desc" },
       select: { id: true, userAgent: true, ip: true, createdAt: true, lastSeenAt: true },
       take: 50,
@@ -353,6 +362,16 @@ export class AuthService {
     });
     if (result.count === 0) throw new BadRequestException("Session introuvable ou déjà fermée.");
     return { message: "Session fermée." };
+  }
+
+  /** U-14 : ferme toutes les sessions sauf celle de l'appareil utilisé. */
+  async revokeOtherSessions(userId: string, currentSessionId?: string | null) {
+    const result = await this.prisma.session.updateMany({
+      where: { userId, revokedAt: null, ...(currentSessionId ? { id: { not: currentSessionId } } : {}) },
+      data: { revokedAt: new Date() },
+    });
+    await this.audit.log({ userId, action: "REVOKE_OTHER_SESSIONS", entityType: "User", entityId: userId, metadata: { count: result.count } });
+    return { message: "Autres sessions fermées.", count: result.count };
   }
 
   async me(userId: string) {

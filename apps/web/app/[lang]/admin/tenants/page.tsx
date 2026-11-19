@@ -115,7 +115,7 @@ function AdminTenantsPageContent() {
       <ImportTenantsDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("Ajouter un locataire")} width="max-w-2xl">
-        <TenantForm loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
+        <TenantForm withPassword loading={createMutation.isPending} onSubmit={(values) => createMutation.mutate(values)} />
       </Modal>
     </div>
   );

@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useEffect, useId } from "react";
 import { t } from "@/lib/t-ui";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 /** Fenêtre modale : fondu du fond et zoom du panneau en CSS (`ivo-fade-in`, `ivo-zoom-in`), sans bibliothèque. */
 export function Modal({
@@ -19,6 +20,7 @@ export function Modal({
   width?: string;
 }) {
   const titleId = useId();
+  const panelRef = useFocusTrap<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -31,10 +33,12 @@ export function Modal({
   return (
     <div className="ivo-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`ivo-zoom-in w-full ${width} max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl`}
+        tabIndex={-1}
+        className={`ivo-zoom-in w-full ${width} max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl outline-none`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">

@@ -15,6 +15,7 @@ const fr = {
     closeMenu: "Fermer le menu",
   },
   login: "Se connecter",
+  mySpace: "Mon espace",
   demo: "Demander une démo",
   footer: {
     tagline: "Gestion immobilière locative pour la Côte d'Ivoire.",
@@ -47,6 +48,7 @@ export const marketingMessages: Messages<typeof fr> = {
       closeMenu: "Close menu",
     },
     login: "Sign in",
+    mySpace: "My account",
     demo: "Request a demo",
     footer: {
       tagline: "Rental property management for Côte d'Ivoire.",

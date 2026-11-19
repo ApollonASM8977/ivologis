@@ -15,6 +15,7 @@ import { LoadingState, EmptyState } from "@/components/ui/empty-state";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
 import { t } from "@/lib/t-spaces";
 import { money, pick } from "@/lib/t";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 function Fact({ icon: Icon, label, value }: { icon: typeof Home; label: string; value: React.ReactNode }) {
   return (
@@ -32,6 +33,7 @@ function Fact({ icon: Icon, label, value }: { icon: typeof Home; label: string; 
 
 export default function TenantPropertyPage() {
   const [active, setActive] = useState<number | null>(null);
+  const lightboxRef = useFocusTrap<HTMLDivElement>(active !== null);
   const { data: company } = usePublicCompany();
 
   const { data: properties, isLoading } = useQuery({
@@ -187,8 +189,8 @@ export default function TenantPropertyPage() {
               if (e.key === "ArrowLeft") step(-1);
             }}
             tabIndex={-1}
-            ref={(el) => el?.focus()}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/90 p-4 backdrop-blur-sm"
+            ref={lightboxRef}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/90 p-4 backdrop-blur-sm outline-none"
           >
             <motion.img
               key={images[active].id}

@@ -7,6 +7,7 @@ import { CardHeader } from "@/components/ui/card";
 import { usePublicCompany } from "@/lib/use-company";
 import { fileUrl } from "@/lib/api";
 import { t } from "@/lib/t-catalog";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 /** Apparition douce d'une section quand elle entre à l'écran (CSS piloté par le défilement, sans JavaScript). */
 export function Reveal({ children, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -17,6 +18,7 @@ export function Reveal({ children, className = "" }: { children: React.ReactNode
 export function PhotoGallery({ images, alt }: { images?: { id: string; url: string }[]; alt: string }) {
   const [open, setOpen] = useState<number | null>(null);
   const swipeStart = useRef<number | null>(null);
+  const dialogRef = useFocusTrap<HTMLDivElement>(open !== null);
   const count = images?.length ?? 0;
   const go = useCallback((delta: number) => setOpen((i) => (i === null ? i : (i + delta + count) % count)), [count]);
 
@@ -62,10 +64,12 @@ export function PhotoGallery({ images, alt }: { images?: { id: string; url: stri
 
       {open !== null && (
         <div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label={t("Photos du bien")}
-          className="ivo-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          tabIndex={-1}
+          className="ivo-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 outline-none"
           onClick={() => setOpen(null)}
         >
           <button type="button" aria-label={t("Fermer")} className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setOpen(null)}>

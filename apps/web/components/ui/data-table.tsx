@@ -39,7 +39,28 @@ export function DataTable<T>({
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-      <div className="overflow-x-auto">
+      {/* U-12 : sous 640 px, une carte par ligne (1re colonne en titre, puis « libellé : valeur ») au lieu d'un tableau qui déborde. */}
+      <ul className="divide-y divide-gray-100 sm:hidden" data-table-cards>
+        {rows.map((row) => (
+          <li
+            key={rowKey(row)}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            className={`space-y-1.5 px-4 py-3 text-sm ${onRowClick ? "cursor-pointer active:bg-gray-50" : ""}`}
+          >
+            {columns.map((col, i) =>
+              i === 0 ? (
+                <div key={col.header} className="font-medium text-ink">{col.cell(row)}</div>
+              ) : (
+                <div key={col.header} className="flex items-start justify-between gap-3">
+                  {col.header && <span className="shrink-0 pt-0.5 text-xs uppercase tracking-wide text-ink-muted">{col.header}</span>}
+                  <div className="min-w-0 text-right">{col.cell(row)}</div>
+                </div>
+              ),
+            )}
+          </li>
+        ))}
+      </ul>
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-ink-muted">
             <tr>

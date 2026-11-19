@@ -258,17 +258,19 @@ test("messages de validation : un champ absent est signalé « obligatoire » un
 test("tout passe par l'agence : coordonnées de l'autre partie masquées selon le rôle", () => {
   const { hideCounterpartContacts } = require("../dist/src/common/interceptors/agency-privacy.interceptor.js");
   const forOwner = hideCounterpartContacts(
-    { data: [{ id: 1, guestPhone: "+225", guestEmail: "a@b.c", tenant: { fullName: "T", phone: "07", monthlyIncome: 1 }, owner: { phone: "05" }, amount: 10, date: new Date(0) }] },
+    { data: [{ id: 1, guestPhone: "+225", guestEmail: "a@b.c", tenant: { fullName: "T", phone: "07", monthlyIncome: 1, inviteCodeHash: "h" }, owner: { phone: "05" }, amount: 10, date: new Date(0) }] },
     "OWNER",
   );
   const row = forOwner.data[0];
   assert.equal(row.guestPhone, undefined);
   assert.equal(row.tenant.phone, undefined);
   assert.equal(row.tenant.monthlyIncome, undefined);
+  assert.equal(row.tenant.inviteCodeHash, undefined);
   assert.equal(row.tenant.fullName, "T");
   assert.equal(row.owner.phone, "05");
   assert.ok(row.date instanceof Date);
-  const forTenant = hideCounterpartContacts({ property: { owner: { fullName: "O", phone: "05", email: "o@x" } }, tenant: { phone: "07" } }, "TENANT");
+  const forTenant = hideCounterpartContacts({ property: { owner: { fullName: "O", phone: "05", email: "o@x", inviteCodeHash: "h" } }, tenant: { phone: "07" } }, "TENANT");
+  assert.equal(forTenant.property.owner.inviteCodeHash, undefined);
   assert.equal(forTenant.property.owner.phone, undefined);
   assert.equal(forTenant.property.owner.email, undefined);
   assert.equal(forTenant.tenant.phone, "07");
@@ -401,4 +403,14 @@ test("P1-16 relances : l'avance couvre les premiers mois, rappel à J+5 de l'éc
   const enteredThisMonth = new Date(2026, 10, 10);
   assert.equal(reminderDue(enteredThisMonth, new Date(2026, 10, 14)), false); // entrée le 10 : J+4
   assert.equal(reminderDue(enteredThisMonth, new Date(2026, 10, 15)), true); // J+5
+});
+
+test("U-14 sessions : durée de vie du jeton comme jsonwebtoken, format inconnu = rien de masqué", () => {
+  const { tokenLifetimeMs } = require("../dist/src/auth/auth.service.js");
+  assert.equal(tokenLifetimeMs("7d"), 7 * 86_400_000);
+  assert.equal(tokenLifetimeMs("12h"), 12 * 3_600_000);
+  assert.equal(tokenLifetimeMs("30m"), 30 * 60_000);
+  assert.equal(tokenLifetimeMs("90s"), 90_000);
+  assert.equal(tokenLifetimeMs("120"), 120); // chiffres seuls = millisecondes (jsonwebtoken)
+  assert.equal(tokenLifetimeMs("2 days"), Number.POSITIVE_INFINITY);
 });

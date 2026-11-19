@@ -43,13 +43,17 @@ export function TenantForm({
   loading,
   onSubmit,
   submitLabel = "Enregistrer",
+  withPassword = false,
 }: {
   defaultValues?: Partial<TenantFormValues>;
   loading?: boolean;
   onSubmit: (values: TenantFormValues) => void;
   submitLabel?: string;
+  /** Création par l'agence seulement ; le locataire change son mot de passe dans « Sécurité du compte » (mot de passe actuel exigé). */
+  withPassword?: boolean;
 }) {
-  const { register, handleSubmit, watch } = useForm<TenantFormValues>({ defaultValues });
+  // shouldUnregister : seuls les champs du formulaire partent à l'API (pas id, contrats, paiements… du dossier chargé), sinon 400.
+  const { register, handleSubmit, watch } = useForm<TenantFormValues>({ defaultValues, shouldUnregister: true });
   const password = watch("password");
 
   return (
@@ -126,11 +130,6 @@ export function TenantForm({
           <Label>{tr("Revenu mensuel (FCFA)")}</Label>
           <Input type="number" {...register("monthlyIncome", { valueAsNumber: true })} />
         </div>
-        <div>
-          <Label>{tr("Mot de passe (optionnel)")}</Label>
-          <Input type="password" {...register("password")} />
-          <PasswordStrengthMeter password={password ?? ""} />
-        </div>
 
         <SectionTitle>{tr("Contact d'urgence")}</SectionTitle>
         <div>
@@ -155,6 +154,17 @@ export function TenantForm({
           <Label>{tr("Adresse du garant")}</Label>
           <Input {...register("guarantorAddress")} />
         </div>
+
+        {withPassword && (
+          <>
+            <SectionTitle>{tr("Sécurité du compte")}</SectionTitle>
+            <div>
+              <Label>{tr("Mot de passe (optionnel)")}</Label>
+              <Input type="password" autoComplete="new-password" {...register("password")} />
+              <PasswordStrengthMeter password={password ?? ""} />
+            </div>
+          </>
+        )}
       </div>
       <Button type="submit" className="w-full" loading={loading}>
         {tr(submitLabel)}

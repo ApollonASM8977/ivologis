@@ -5,7 +5,7 @@ import { usePath } from "@/lib/i18n-client";
 import clsx from "clsx";
 import { Building } from "lucide-react";
 import { motion } from "motion/react";
-import { NavItem } from "./nav-config";
+import { NavItem, isNavActive } from "./nav-config";
 import { t } from "@/lib/t-spaces";
 
 export function Sidebar({ items }: { items: NavItem[] }) {
@@ -30,8 +30,9 @@ export function Sidebar({ items }: { items: NavItem[] }) {
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2 scrollbar-thin">
         {items.map((item, i) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = isNavActive(item, pathname);
           const Icon = item.icon;
+          const heading = item.group && item.group !== items[i - 1]?.group ? item.group : null;
           return (
             <motion.div
               key={item.href}
@@ -39,6 +40,7 @@ export function Sidebar({ items }: { items: NavItem[] }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: i * 0.03 }}
             >
+              {heading && <p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t(heading)}</p>}
               <Link
                 href={item.href}
                 className={clsx(

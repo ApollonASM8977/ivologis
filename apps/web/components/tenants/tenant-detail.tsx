@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { api } from "@/lib/api";
@@ -12,8 +12,7 @@ import { InviteCodeCard } from "@/components/invite-code-card";
 import { t } from "@/lib/t-spaces";
 import { locale, money } from "@/lib/t";
 
-export function TenantDetail({ id }: { id: string }) {
-  const router = useRouter();
+export function TenantDetail({ id, listHref }: { id: string; listHref: string }) {
 
   const { data: tenant, isLoading } = useQuery({
     queryKey: ["tenants", id],
@@ -24,9 +23,9 @@ export function TenantDetail({ id }: { id: string }) {
 
   return (
     <div>
-      <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
+      <Link href={listHref} className="mb-4 flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" />{" "}{t("Retour")}
-      </button>
+      </Link>
 
       <div className="mb-6 flex items-center gap-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">

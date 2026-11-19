@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePath } from "@/lib/i18n-client";
 import clsx from "clsx";
 import { Building, X } from "lucide-react";
-import { NavItem } from "./nav-config";
+import { NavItem, isNavActive } from "./nav-config";
 import { t } from "@/lib/t-spaces";
 
 export function MobileSidebar({
@@ -35,12 +35,14 @@ export function MobileSidebar({
           </button>
         </div>
         <nav className="space-y-1">
-          {items.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(item.href + "/");
+          {items.map((item, i) => {
+            const active = isNavActive(item, pathname);
             const Icon = item.icon;
+            const heading = item.group && item.group !== items[i - 1]?.group ? item.group : null;
             return (
+              <div key={item.href}>
+              {heading && <p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t(heading)}</p>}
               <Link
-                key={item.href}
                 href={item.href}
                 onClick={onClose}
                 className={clsx(
@@ -51,6 +53,7 @@ export function MobileSidebar({
                 <Icon className="h-4.5 w-4.5" />
                 {t(item.label)}
               </Link>
+              </div>
             );
           })}
         </nav>

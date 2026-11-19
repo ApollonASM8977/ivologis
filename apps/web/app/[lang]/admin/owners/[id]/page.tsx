@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { PayoutsCard } from "@/components/owners/payouts-card";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -31,9 +32,9 @@ export default function OwnerDetailPage() {
 
   return (
     <div>
-      <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
+      <Link href="/admin/owners" className="mb-4 flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" />{" "}{t("Retour")}
-      </button>
+      </Link>
 
       <div className="mb-6 flex items-center gap-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">

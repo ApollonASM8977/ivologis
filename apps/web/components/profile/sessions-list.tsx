@@ -19,10 +19,16 @@ interface SessionRow {
   current: boolean;
 }
 
+// U-14 : navigateur et système lus dans l'en-tête User-Agent (ordre important : Edge et Opera se disent aussi « Chrome »).
+const BROWSERS: [RegExp, string][] = [[/edg\//i, "Edge"], [/opr\/|opera/i, "Opera"], [/samsungbrowser/i, "Samsung Internet"], [/firefox|fxios/i, "Firefox"], [/chrome|crios/i, "Chrome"], [/safari/i, "Safari"]];
+const SYSTEMS: [RegExp, string][] = [[/iphone|ipad|ipod/i, "iOS"], [/android/i, "Android"], [/windows/i, "Windows"], [/mac os/i, "macOS"], [/cros/i, "ChromeOS"], [/linux/i, "Linux"]];
+
 function describe(userAgent: string | null) {
   if (!userAgent) return { label: t("Appareil inconnu"), icon: Globe };
-  if (/iphone|android|mobile/i.test(userAgent)) return { label: t("Téléphone"), icon: Smartphone };
-  return { label: t("Ordinateur"), icon: Laptop };
+  const browser = BROWSERS.find(([re]) => re.test(userAgent))?.[1] ?? t("Navigateur inconnu");
+  const system = SYSTEMS.find(([re]) => re.test(userAgent))?.[1];
+  const phone = /iphone|android|mobile/i.test(userAgent);
+  return { label: `${phone ? t("Téléphone") : t("Ordinateur")} · ${browser}${system ? ` · ${system}` : ""}`, icon: phone ? Smartphone : Laptop };
 }
 
 function ago(dateStr: string) {
@@ -49,6 +55,16 @@ export function SessionsList() {
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   });
+
+  const revokeOthers = useMutation({
+    mutationFn: () => api.delete("/auth/sessions"),
+    onSuccess: () => {
+      toast.success(t("Autres sessions fermées."));
+      queryClient.invalidateQueries({ queryKey: ["auth", "sessions"] });
+    },
+    onError: (error) => toast.error(apiErrorMessage(error)),
+  });
+  const others = (sessions ?? []).filter((s) => !s.current).length;
 
   return (
     <div className="space-y-3">
@@ -90,6 +106,11 @@ export function SessionsList() {
         })}
       </AnimatePresence>
       {sessions && sessions.length === 0 && <p className="text-sm text-ink-muted">{t("Aucune session active.")}</p>}
+      {others > 0 && (
+        <Button variant="ghost" size="sm" loading={revokeOthers.isPending} onClick={() => revokeOthers.mutate()} data-revoke-others>
+          {t("Fermer les autres sessions")}
+        </Button>
+      )}
     </div>
   );
 }

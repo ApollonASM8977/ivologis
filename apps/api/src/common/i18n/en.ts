@@ -378,6 +378,7 @@ export const EN: Record<string, string> = {
   "Session de configuration expirée. Reconnectez-vous.": "Setup session expired. Sign in again.",
   "Session expirée. Reconnectez-vous.": "Session expired. Sign in again.",
   "Session fermée.": "Session closed.",
+  "Autres sessions fermées.": "Other sessions closed.",
   "Session introuvable ou déjà fermée.": "Session not found or already closed.",
   "Seul un bail actif peut être révisé.": "Only an active lease can be reviewed.",
   "Seul un bail actif peut recevoir une décision d'échéance.": "Only an active lease can receive an end-of-lease decision.",

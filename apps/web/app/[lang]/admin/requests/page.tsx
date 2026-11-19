@@ -9,6 +9,7 @@ import { Phone, MessageCircle, Check, X as XIcon, CalendarCheck, CalendarRange, 
 import { api, apiErrorMessage } from "@/lib/api";
 import { SHORT_STAY_STATUS_COLORS, SHORT_STAY_STATUS_LABELS, VISIT_REQUEST_STATUS_COLORS, VISIT_REQUEST_STATUS_LABELS } from "@ivologis/shared";
 import { PageHeader } from "@/components/ui/page-header";
+import { InboxTabs } from "@/components/layout/inbox-tabs";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { StaggerContainer, StaggerItem } from "@/components/ui/stagger";
@@ -93,6 +94,7 @@ export default function AdminRequestsPage() {
 
   return (
     <div>
+      <InboxTabs />
       <PageHeader title={tr("Demandes clients")} subtitle={tr("Visites et réservations envoyées depuis le site public, à traiter rapidement")} />
 
       <div role="tablist" className="mb-5 flex gap-2 border-b border-gray-200">

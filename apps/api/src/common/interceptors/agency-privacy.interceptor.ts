@@ -9,7 +9,8 @@ import { AuthenticatedUser } from "../types/authenticated-user";
  * un locataire ne reçoit jamais celles du propriétaire. Seul le personnel de l'agence les voit.
  * Appliqué à toutes les réponses JSON, pour que de futurs écrans ne puissent pas les exposer par mégarde.
  */
-const PERSON_CONTACT = ["phone", "email", "address"];
+// inviteCodeHash (S-25) : empreinte du code d'invitation, utile au seul serveur.
+const PERSON_CONTACT = ["phone", "email", "address", "inviteCodeHash"];
 const TENANT_PRIVATE = [
   ...PERSON_CONTACT,
   "idDocumentType",

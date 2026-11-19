@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Mail, CheckCircle2, XCircle, Paperclip } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
+import { InboxTabs } from "@/components/layout/inbox-tabs";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Textarea, Label, Select } from "@/components/ui/input";
@@ -91,6 +92,7 @@ export default function AdminTenantRequestsPage() {
 
   return (
     <div>
+      <InboxTabs />
       <PageHeader title={t("Demandes des locataires")} subtitle={t("Résiliations et autres démarches à traiter")} />
 
       <div className="mb-4 flex gap-3">

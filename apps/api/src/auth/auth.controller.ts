@@ -123,6 +123,12 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Delete("sessions")
+  revokeOtherSessions(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.revokeOtherSessions(user.id, user.sessionId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete("sessions/:id")
   revokeSession(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.authService.revokeSession(user.id, id);

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -86,9 +87,9 @@ export function PropertyDetail({ id, listHref, canManage = true }: { id: string;
 
   return (
     <div>
-      <button onClick={() => router.back()} className="mb-4 flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
+      <Link href={listHref} className="mb-4 flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" />{" "}{t("Retour")}
-      </button>
+      </Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
