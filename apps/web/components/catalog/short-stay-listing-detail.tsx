@@ -186,6 +186,9 @@ export function ShortStayListingDetail({ id, basePath, initial }: { id: string; 
             <p className="rounded-lg bg-surface px-3 py-2 text-sm">
               {t("Référence à conserver :")}{" "}<span className="font-mono font-semibold text-ink">{reference}</span>
             </p>
+            <Link href={`/catalogue/suivi?ref=${reference}`} className="block text-sm font-medium text-primary hover:underline">
+              {t("Suivre ma demande")}
+            </Link>
             <Button className="w-full" onClick={() => { setModalOpen(false); setReference(null); }}>
               {t("Fermer")}
             </Button>

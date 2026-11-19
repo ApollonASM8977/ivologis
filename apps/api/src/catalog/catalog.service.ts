@@ -2,6 +2,10 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma, PropertyStatus, SaleStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { CatalogFilterDto } from "./dto/catalog-filter.dto";
+import { TrackRequestDto } from "./dto/track-request.dto";
+
+/** Les 8 derniers chiffres suffisent : « 07 00 00 00 00 », « +225 0700000000 » et « 0700000000 » sont le même numéro. */
+const phoneKey = (phone?: string | null) => (phone ?? "").replace(/\D/g, "").slice(-8);
 
 // Liste blanche : le catalogue est public, rien d'interne (propriétaire, acheteur, commission, locataire) n'en sort.
 const PUBLIC_FIELDS = {
@@ -86,6 +90,36 @@ function filterOrder(f: CatalogFilterDto, priceField: PriceField): Prisma.Proper
 @Injectable()
 export class CatalogService {
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Suivi public d'une demande (P1-07) : seulement le type, le statut, les dates et le bien — rien de personnel.
+   * Même réponse si la référence n'existe pas ou si le téléphone ne correspond pas (rien à deviner).
+   */
+  async track({ reference, phone }: TrackRequestDto) {
+    const key = phoneKey(phone);
+    const property = { select: { name: true, commune: true } };
+    if (key.length === 8 && reference.startsWith("RDV-")) {
+      const visit = await this.prisma.propertyVisitRequest.findUnique({
+        where: { reference },
+        select: { reference: true, status: true, guestPhone: true, preferredDate: true, createdAt: true, property },
+      });
+      if (visit && phoneKey(visit.guestPhone) === key) {
+        const { guestPhone: _hidden, ...rest } = visit;
+        return { kind: "VISITE" as const, ...rest };
+      }
+    }
+    if (key.length === 8 && reference.startsWith("RES-")) {
+      const booking = await this.prisma.shortStayBooking.findUnique({
+        where: { reference },
+        select: { reference: true, status: true, guestPhone: true, checkIn: true, checkOut: true, createdAt: true, property },
+      });
+      if (booking && phoneKey(booking.guestPhone) === key) {
+        const { guestPhone: _hidden, ...rest } = booking;
+        return { kind: "SEJOUR" as const, ...rest };
+      }
+    }
+    throw new NotFoundException("Aucune demande ne correspond à cette référence et à ce numéro.");
+  }
 
   private async search<S extends Prisma.PropertySelect>(
     published: Prisma.PropertyWhereInput,

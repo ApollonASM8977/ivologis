@@ -22,6 +22,7 @@ const fr = {
     fallback: "Résidence meublée",
   },
   myRequests: { title: "Mes demandes" },
+  track: { title: "Suivre ma demande", description: "Retrouvez l'avancement de votre demande de visite ou de réservation avec sa référence et votre numéro de téléphone." },
 };
 
 export const catalogMeta: Messages<typeof fr> = {
@@ -47,5 +48,6 @@ export const catalogMeta: Messages<typeof fr> = {
       fallback: "Furnished residence",
     },
     myRequests: { title: "My requests" },
+    track: { title: "Track my request", description: "Check the progress of your viewing or booking request with its reference and your phone number." },
   },
 };

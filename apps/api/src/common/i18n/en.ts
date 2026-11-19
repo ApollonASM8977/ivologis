@@ -317,6 +317,8 @@ export const EN: Record<string, string> = {
   "Nouvelle demande de réservation": "New booking request",
   "Nouvelle demande de visite": "New viewing request",
   "Numéro de téléphone invalide.": "Invalid phone number.",
+  "Aucune demande ne correspond à cette référence et à ce numéro.": "No request matches this reference and phone number.",
+  "Référence invalide (exemple : RDV-2026-A1B2C3D4).": "Invalid reference (example: RDV-2026-A1B2C3D4).",
   "Numéro de téléphone trop court.": "Phone number too short.",
   "Numéro de téléphone trop long.": "Phone number too long.",
   "Offre introuvable.": "Offer not found.",

@@ -42,6 +42,9 @@ export function MyRequests() {
           <Link href="/login" className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">
             {t("Se connecter")}
           </Link>
+          <Link href="/catalogue/suivi" className="mt-3 block text-sm font-medium text-primary hover:underline">
+            {t("Suivre une demande avec sa référence")}
+          </Link>
         </Card>
       </div>
     );

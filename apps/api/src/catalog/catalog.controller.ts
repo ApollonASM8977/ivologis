@@ -1,6 +1,8 @@
 import { Controller, Get, Headers, Param, Query } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { CatalogService } from "./catalog.service";
 import { CatalogFilterDto } from "./dto/catalog-filter.dto";
+import { TrackRequestDto } from "./dto/track-request.dto";
 
 // Le rendu serveur du site (référencement) envoie cet en-tête : sa lecture ne compte pas comme une visite.
 const NO_COUNT_HEADER = "x-ivologis-no-count";
@@ -12,6 +14,13 @@ const NO_COUNT_HEADER = "x-ivologis-no-count";
 @Controller("catalog")
 export class CatalogController {
   constructor(private catalogService: CatalogService) {}
+
+  /** Suivi d'une demande sans compte (P1-07) : limité comme les formulaires publics (les références ne se devinent pas). */
+  @Get("track")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  track(@Query() dto: TrackRequestDto) {
+    return this.catalogService.track(dto);
+  }
 
   @Get("sales")
   listSales(@Query() filter: CatalogFilterDto) {

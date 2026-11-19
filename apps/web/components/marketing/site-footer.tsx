@@ -26,6 +26,7 @@ export function SiteFooter({ lang }: { lang: Lang }) {
           <ul className="mt-3 space-y-2 text-sm text-ink-muted">
             <li><Link href="/login" className="hover:text-primary">{m.login}</Link></li>
             <li><Link href="/forgot-password" className="hover:text-primary">{m.footer.forgotPassword}</Link></li>
+            <li><Link href="/catalogue/suivi" className="hover:text-primary">{m.footer.trackRequest}</Link></li>
           </ul>
         </div>
         <div>
