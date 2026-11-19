@@ -135,6 +135,7 @@ export const CATALOG_EN: Dictionary = {
   "Terrains, villas, appartements, document foncier contrôlé": "Land, villas, flats, land document checked",
   "Titre vérifié": "Title verified",
   "Titre vérifié · {0}": "Title verified · {0}",
+  "Titre vérifié le {0} · {1}": "Title verified on {0} · {1}",
   "Total à prévoir": "Total to plan for",
   "Tous": "All",
   "Toutes": "All",

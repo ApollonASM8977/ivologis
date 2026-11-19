@@ -132,6 +132,7 @@ export enum SaleDocumentType {
   RECU = "RECU",
   PREUVE_PAIEMENT = "PREUVE_PAIEMENT",
   ACTE = "ACTE",
+  DOCUMENT_FONCIER = "DOCUMENT_FONCIER",
   AUTRE = "AUTRE",
 }
 

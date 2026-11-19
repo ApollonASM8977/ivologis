@@ -15,7 +15,7 @@ import { AuthenticatedUser } from "../common/types/authenticated-user";
 import { documentUploadOptions } from "../common/file-upload/document-upload.options";
 import { StorageService } from "../storage/storage.service";
 import { SalesService } from "./sales.service";
-import { SetSaleDto } from "./dto/set-sale.dto";
+import { SetSaleDto, VerifyLandTitleDto } from "./dto/set-sale.dto";
 import { CreateSaleOfferDto } from "./dto/create-offer.dto";
 import { FinalizeSaleDto } from "./dto/finalize-sale.dto";
 import { CreateVisitRequestDto } from "./dto/create-visit-request.dto";
@@ -41,6 +41,14 @@ export class SalesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT, UserRole.OWNER)
   setSale(@Param("propertyId") propertyId: string, @Body() dto: SetSaleDto, @CurrentUser() user: AuthenticatedUser) {
     return this.salesService.setSale(propertyId, dto, user, user.id);
+  }
+
+  @Patch("properties/:propertyId/land-title-verification")
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN_AGENT)
+  @RequirePermissions(PERMISSION_KEYS.PROPERTIES_MANAGE)
+  verifyLandTitle(@Param("propertyId") propertyId: string, @Body() dto: VerifyLandTitleDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.salesService.verifyLandTitle(propertyId, dto.verified, user);
   }
 
   @Get("properties/:propertyId/sale-offers")

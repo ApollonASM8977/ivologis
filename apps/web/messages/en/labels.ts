@@ -45,6 +45,7 @@ export const LABELS_EN: Dictionary = {
   "Demande en attente": "Request pending",
   "Disponible": "Available",
   "Divorcé(e)": "Divorced",
+  "Document foncier (ACD, TF, lettre d'attribution…)": "Land document (ACD, land title, allocation letter…)",
   "Droit de mutation": "Transfer duty",
   "Eau": "Water",
   "Électricité": "Electricity",

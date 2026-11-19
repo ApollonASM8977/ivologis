@@ -98,6 +98,8 @@ export const EN: Record<string, string> = {
   "Ce bien n'est pas activé pour la location courte durée.": "This property is not enabled for short-stay rental.",
   "Ce bien n'est pas disponible en location courte durée.": "This property is not available for short-stay rental.",
   "Ce bien n'est pas en vente.": "This property is not for sale.",
+  "Mettez d'abord le bien en vente en précisant le type de titre foncier.": "First list the property for sale and specify the type of land title.",
+  "Archivez d'abord la copie du document foncier (type « Document foncier ») avant de marquer le titre comme vérifié.": "First archive a copy of the land document (type “Land document”) before marking the title as verified.",
   "Ce bien n'est plus disponible.": "This property is no longer available.",
   "Ce compte a été suspendu.": "This account has been suspended.",
   "Ce compte est en attente de validation.": "This account is awaiting approval.",

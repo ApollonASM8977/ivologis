@@ -189,6 +189,7 @@ export const SALE_DOCUMENT_TYPE_LABELS: Record<SaleDocumentType, string> = {
   [SaleDocumentType.RECU]: "Reçu de paiement",
   [SaleDocumentType.PREUVE_PAIEMENT]: "Preuve de paiement",
   [SaleDocumentType.ACTE]: "Acte de vente",
+  [SaleDocumentType.DOCUMENT_FONCIER]: "Document foncier (ACD, TF, lettre d'attribution…)",
   [SaleDocumentType.AUTRE]: "Autre document",
 };
 

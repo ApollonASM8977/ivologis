@@ -13,6 +13,13 @@ import { CreateVisitRequestDto } from "./dto/create-visit-request.dto";
 import { ScheduleVisitDto } from "./dto/schedule-visit.dto";
 import { UploadSaleDocumentDto } from "./dto/upload-sale-document.dto";
 
+const LAND_TITLE_NOT_VERIFIED = {
+  landTitleVerified: false,
+  landTitleVerifiedAt: null,
+  landTitleVerifiedBy: null,
+  landTitleDocumentId: null,
+} as const;
+
 @Injectable()
 export class SalesService {
   constructor(
@@ -60,6 +67,10 @@ export class SalesService {
     const property = await this.getProperty(propertyId);
     if (user.role === UserRole.OWNER) assertOwnsResource(user, property.ownerId);
 
+    const landTitleType = dto.forSale ? dto.landTitleType ?? property.landTitleType : null;
+    // Une vérification ne vaut que pour le titre contrôlé : propriétaire qui modifie, retrait ou autre type de titre = à revérifier.
+    const resetVerification = user.role === UserRole.OWNER || landTitleType !== property.landTitleType;
+
     const updated = await this.prisma.property.update({
       where: { id: propertyId },
       data: {
@@ -67,8 +78,8 @@ export class SalesService {
         salePrice: dto.forSale ? dto.salePrice : null,
         saleCommissionRate: dto.forSale ? dto.saleCommissionRate : null,
         saleStatus: SaleStatus.DISPONIBLE,
-        landTitleType: dto.forSale ? dto.landTitleType : null,
-        landTitleVerified: user.role === UserRole.OWNER ? false : dto.landTitleVerified ?? property.landTitleVerified,
+        landTitleType,
+        ...(resetVerification ? LAND_TITLE_NOT_VERIFIED : {}),
       },
     });
 
@@ -80,6 +91,41 @@ export class SalesService {
       metadata: { salePrice: dto.salePrice },
     });
 
+    return updated;
+  }
+
+  /** P1-09 : l'agence ne certifie un titre qu'avec la copie du document foncier archivée ; date, vérificateur et pièce sont gardés. */
+  async verifyLandTitle(propertyId: string, verified: boolean, user: AuthenticatedUser) {
+    const property = await this.getProperty(propertyId);
+
+    if (!verified) {
+      const updated = await this.prisma.property.update({ where: { id: propertyId }, data: LAND_TITLE_NOT_VERIFIED });
+      await this.audit.log({ userId: user.id, action: "UNVERIFY_LAND_TITLE", entityType: "Property", entityId: propertyId });
+      return updated;
+    }
+
+    if (!property.forSale || !property.landTitleType) {
+      throw new BadRequestException("Mettez d'abord le bien en vente en précisant le type de titre foncier.");
+    }
+    const document = await this.prisma.propertySaleDocument.findFirst({
+      where: { propertyId, type: SaleDocumentType.DOCUMENT_FONCIER },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!document) {
+      throw new BadRequestException("Archivez d'abord la copie du document foncier (type « Document foncier ») avant de marquer le titre comme vérifié.");
+    }
+
+    const updated = await this.prisma.property.update({
+      where: { id: propertyId },
+      data: { landTitleVerified: true, landTitleVerifiedAt: new Date(), landTitleVerifiedBy: user.fullName, landTitleDocumentId: document.id },
+    });
+    await this.audit.log({
+      userId: user.id,
+      action: "VERIFY_LAND_TITLE",
+      entityType: "Property",
+      entityId: propertyId,
+      metadata: { documentId: document.id, landTitleType: property.landTitleType },
+    });
     return updated;
   }
 
@@ -298,8 +344,15 @@ export class SalesService {
   async removeSaleDocument(documentId: string, actorId?: string) {
     const document = await this.prisma.propertySaleDocument.findUnique({ where: { id: documentId } });
     if (!document) throw new NotFoundException("Document introuvable.");
-    await this.prisma.propertySaleDocument.delete({ where: { id: documentId } });
+    // Sans la pièce qui la justifie, la vérification du titre tombe (l'annonce quitte le catalogue).
+    const [unverified] = await this.prisma.$transaction([
+      this.prisma.property.updateMany({ where: { landTitleDocumentId: documentId }, data: LAND_TITLE_NOT_VERIFIED }),
+      this.prisma.propertySaleDocument.delete({ where: { id: documentId } }),
+    ]);
     await this.audit.log({ userId: actorId, action: "REMOVE_SALE_DOCUMENT", entityType: "PropertySaleDocument", entityId: documentId });
+    if (unverified.count > 0) {
+      await this.audit.log({ userId: actorId, action: "LAND_TITLE_VERIFICATION_REMOVED", entityType: "Property", entityId: document.propertyId, metadata: { documentId } });
+    }
     return { success: true };
   }
 }

@@ -41,6 +41,7 @@ const SALE_FIELDS = {
   saleStatus: true,
   landTitleType: true,
   landTitleVerified: true,
+  landTitleVerifiedAt: true, // la date seulement : ni le vérificateur ni la pièce ne sont publics
 } satisfies Prisma.PropertySelect;
 
 const SHORT_STAY_FIELDS = { ...PUBLIC_FIELDS, shortStayNightlyRate: true } satisfies Prisma.PropertySelect;

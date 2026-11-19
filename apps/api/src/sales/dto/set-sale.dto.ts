@@ -23,9 +23,10 @@ export class SetSaleDto {
   @IsOptional()
   @IsEnum(LandTitleType)
   landTitleType?: LandTitleType;
+}
 
-  /** Ignoré si envoyé par un propriétaire : seule l'agence peut certifier un titre vérifié. */
-  @IsOptional()
+/** P1-09 : la vérification du titre passe par sa propre route, réservée à l'agence. */
+export class VerifyLandTitleDto {
   @IsBoolean()
-  landTitleVerified?: boolean;
+  verified: boolean;
 }

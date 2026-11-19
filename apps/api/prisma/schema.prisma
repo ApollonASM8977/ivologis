@@ -108,6 +108,7 @@ enum SaleDocumentType {
   RECU
   PREUVE_PAIEMENT
   ACTE
+  DOCUMENT_FONCIER
   AUTRE
 }
 
@@ -370,6 +371,10 @@ model Property {
   saleDocumentUrl    String?
   landTitleType      LandTitleType?
   landTitleVerified  Boolean        @default(false)
+  // P1-09 : la vérification n'est valable qu'avec la copie du document foncier archivée.
+  landTitleVerifiedAt  DateTime?
+  landTitleVerifiedBy  String?
+  landTitleDocumentId  String?
 
   // --- Catalogue / analytics ---
   isDemo         Boolean @default(false)

@@ -18,7 +18,7 @@ import { CountUp } from "@/components/dashboard/count-up";
 import { LocationMap, VirtualTourCard, DemoNotice, AgencyContact, locationLabel, PhotoGallery } from "@/components/catalog/property-extras";
 import { HoneypotField } from "@/components/ui/honeypot";
 import { t } from "@/lib/t-catalog";
-import { money, pick } from "@/lib/t";
+import { locale, money, pick } from "@/lib/t";
 
 interface VisitForm {
   preferredDate?: string;
@@ -76,7 +76,9 @@ export function SaleListingDetail({ id, basePath, initial }: { id: string; baseP
           {property.landTitleVerified && !property.isDemo && (
             <p className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-success">
               <ShieldCheck className="h-3.5 w-3.5" />
-              {t("Titre vérifié · {0}", LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS])}
+              {property.landTitleVerifiedAt
+                ? t("Titre vérifié le {0} · {1}", new Date(property.landTitleVerifiedAt).toLocaleDateString(locale()), LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS])
+                : t("Titre vérifié · {0}", LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS])}
             </p>
           )}
         </div>

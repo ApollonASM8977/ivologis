@@ -74,6 +74,7 @@ export function SaleCard({
     queryFn: async () => (await api.get(`/properties/${propertyId}/sale-documents`)).data,
     enabled: !!property?.forSale,
   });
+  const hasLandDocument = (documents ?? []).some((d: { type: string }) => d.type === "DOCUMENT_FONCIER");
 
   const { data: visitRequests } = useQuery({
     queryKey: ["visit-requests", propertyId],
@@ -108,14 +109,7 @@ export function SaleCard({
   });
 
   const verifyMutation = useMutation({
-    mutationFn: (verified: boolean) =>
-      api.patch(`/properties/${propertyId}/sale`, {
-        forSale: true,
-        salePrice: property?.salePrice,
-        saleCommissionRate: property?.saleCommissionRate,
-        landTitleType: property?.landTitleType ?? "AUTRE",
-        landTitleVerified: verified,
-      }),
+    mutationFn: (verified: boolean) => api.patch(`/properties/${propertyId}/land-title-verification`, { verified }),
     onSuccess: () => {
       toast.success(t("Statut de vérification mis à jour."));
       invalidateProperty();
@@ -276,14 +270,27 @@ export function SaleCard({
               {LAND_TITLE_TYPE_LABELS[property.landTitleType as keyof typeof LAND_TITLE_TYPE_LABELS] ?? t("Titre non précisé")}
               {property.landTitleVerified ? t(" · vérifié") : t(" · non vérifié")}
             </Badge>
+            {property.landTitleVerified && property.landTitleVerifiedAt && (
+              <span className="text-xs text-ink-muted" data-land-title-proof>
+                {property.landTitleVerifiedBy
+                  ? t("Vérifié le {0} par {1}, sur la copie archivée du document foncier.", new Date(property.landTitleVerifiedAt).toLocaleDateString(locale()), property.landTitleVerifiedBy)
+                  : t("Vérifié le {0}, sur la copie archivée du document foncier.", new Date(property.landTitleVerifiedAt).toLocaleDateString(locale()))}
+              </span>
+            )}
             {!property.landTitleVerified && !canManage && (
               <span className="text-xs text-ink-muted">{t("Invisible du catalogue public tant que l'agence n'a pas vérifié le titre.")}</span>
+            )}
+            {canManage && !property.landTitleVerified && !hasLandDocument && (
+              <span className="text-xs text-ink-muted" data-land-title-hint>
+                {t("Pour vérifier le titre, ajoutez d'abord la copie du document foncier (type « Document foncier »).")}
+              </span>
             )}
             {canManage && (
               <button
                 type="button"
+                disabled={verifyMutation.isPending || (!property.landTitleVerified && !hasLandDocument)}
                 onClick={() => verifyMutation.mutate(!property.landTitleVerified)}
-                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium ${property.landTitleVerified ? "border-success text-success hover:bg-success/10" : "border-primary text-primary hover:bg-primary/10"}`}
+                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50 ${property.landTitleVerified ? "border-success text-success hover:bg-success/10" : "border-primary text-primary hover:bg-primary/10"}`}
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
                 {property.landTitleVerified ? t("Retirer la vérification") : t("Marquer le titre comme vérifié")}
