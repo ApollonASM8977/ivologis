@@ -25,7 +25,7 @@ async function adminToken() {
   const r = await fetch(`${API}/auth/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email: process.env.E2E_ADMIN_EMAIL ?? "admin@ivologis.ci", password: process.env.SEED_PASSWORD }),
+    body: JSON.stringify({ identifier: process.env.E2E_ADMIN_EMAIL ?? "admin@ivologis.ci", password: process.env.SEED_PASSWORD }),
   });
   if (!r.ok) throw new Error(`Connexion admin impossible (${r.status})`);
   return (await r.json()).accessToken;
