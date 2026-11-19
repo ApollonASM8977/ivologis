@@ -35,7 +35,7 @@
 |---|---|---|
 | A01 Contrôle d'accès défaillant | ✅ | 141 routes auditées (`15_ROUTES.md`), A/B 16/16, 41/41 ; S-02 (rattachement par téléphone) et S-04 (fuite du catalogue) corrigés |
 | A02 Mauvaise configuration de sécurité | 🟡 | CSP stricte en production, HSTS, `X-Frame-Options`, `frame-ancestors`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Powered-By` retiré, `helmet` côté API, CORS limité. Reste : 2FA obligatoire désactivée (S-06), `JWT_SECRET` de Render à confirmer, `script-src 'unsafe-inline'` |
-| A03 Défaillances de la chaîne d'approvisionnement logicielle | 🟡 | Overrides npm (multer, body-parser, qs, lodash, postcss), `uuid` inutilisé retiré ; restent 5 alertes d'exécution (NestJS 10 → 12, `zod` inutilisé). Dependabot désactivé sur GitHub |
+| A03 Défaillances de la chaîne d'approvisionnement logicielle | 🟡 | Overrides npm (multer, body-parser, qs, lodash, postcss), `uuid` inutilisé retiré ; restaient 5 alertes d'exécution ; après retrait de `zod` (branche `fix/s15-retirer-zod`) : 4 modérées, 0 élevée (NestJS 10 → 12). Dependabot désactivé sur GitHub |
 | A04 Défaillances cryptographiques | 🟡 | bcrypt 12 tours, HTTPS forcé, URL de documents signées HMAC 10 min, codes d'invitation en HMAC. Reste : pièces d'identité non chiffrées en base, images privées non signées (S-17) |
 | A05 Injection | ✅ | Prisma paramétré (test d'injection SQL OK), React échappe tout ; un seul `dangerouslySetInnerHTML` : JSON-LD avec `<` échappé (`lib/listing-seo.tsx:129`) ; CSP en défense supplémentaire |
 | A06 Conception non sécurisée | 🟡 | Paiement déclaratif + confirmation agence (S-03), validation agence des annonces (S-16), règles légales CI en code testé. Reste : pas de test de charge ni d'intrusion externe |
@@ -108,7 +108,7 @@
 | 10 | Retirer les données et images de démonstration ; créer les vrais comptes, supprimer ceux de test | Utilisateur + code | P0-17, D-06 |
 
 **P1 — à faire vite après l'ouverture (ou avant si possible)**
-- **Retirer `zod` de `apps/web/package.json`** : déclaré mais importé nulle part ; supprime la seule alerte « élevée » des dépendances d'exécution (GHSA-mrhx-c7xc-m3w5). Petit changement, sans risque fonctionnel (S-15).
+- ✅ **`zod` retiré de `apps/web/package.json`** (2026-11-19, branche `fix/s15-retirer-zod`, **non déployé**) : importé nulle part ; `npm ls zod` vide ; dépendances d'exécution **4 modérées, 0 élevée** (GHSA-mrhx-c7xc-m3w5 disparue) ; lock : 11 lignes retirées, binaires Linux / Windows / macOS intacts (16 / 5 / 6) ; `tsc`, `check:i18n`, `build:web` verts (S-15).
 - Passage à NestJS 12 : seul correctif proposé pour `@nestjs/core` (GHSA-36xv-jgw5-4q75) et `@nestjs/platform-express` ; `@nestjs/common` et `file-type` (GHSA-5v7r-6r5c-r473) ont un correctif sans changement de version majeure (`npm audit fix`, à tester) (S-15).
 - **`.env` local de l'API = base de production** (S-23) : le pointer vers `audit-qa` (ou une branche de développement) ; garder les accès prod hors du poste.
 - Fournisseur d'e-mails (réinitialisation de mot de passe aujourd'hui par l'agence) — P1-10.
